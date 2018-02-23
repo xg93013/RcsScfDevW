@@ -1,0 +1,271 @@
+//发票录入
+EUI.EntryInvoice = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	topRenderTo: "",
+	subData: "", //提交企业信息及发票信息
+	ticketData: "", //录入所有发票信息
+	initComponent: function() {
+		var g = this;
+		g.ticketData = [];
+		//发票录入配置
+		EUI.Container({
+			renderTo: this.renderTo,
+			width: 550,
+			height: "auto",
+			items: [{
+				xtype: "FormPanel",
+				itemspace: 20,
+				height: "auto",
+				id: "ticketForm",
+				items: g.initInvoiceForm()
+			}]
+		});
+		//主要提交信息
+		EUI.Container({
+			renderTo: this.topRenderTo,
+			height: "auto",
+			width: 950,
+			items:g.initMainForm()
+		});
+		g.setLabelWidth();//设置表单样式
+		g.subCleanOne();//提交单张发票
+		g.subMainForm();//提交核心表单
+	},
+	//单张发票表单初始化
+	initInvoiceForm: function() {
+		var formGrid = [{
+				xtype: "NumberField",
+				labelWidth: 160,
+				width: 270,
+				height: 34,
+				title: "批次号",
+				allowBlank: false,
+				displayText: "批次号",
+				name: "pcNum"
+			}, {
+				xtype: "NumberField",
+				title: "发票代码",
+				labelWidth: 160,
+				width: 270,
+				height: 34,
+				name: "ticketDm",
+				//allowBlank: false,
+				validateText: "输入信息不合适！",
+				displayText: "发票代码",
+				//						validater: function(value) {
+				//							if(value == "xg") {
+				//								return true;
+				//							} else {
+				//								return false;
+				//							}
+				//						}
+			}, {
+				xtype: "NumberField",
+				labelWidth: 160,
+				width: 270,
+				title: "发票号码",
+				name: "ticketNum",
+				displayText: "发票号码" // 显示在文本框内的提示语
+			}, {
+				xtype: "Container",
+				layout: "column",
+				height: "auto",
+				style: {
+					"padding": "0"
+				},
+				items: [{
+					xtype: "NumberField",
+					labelWidth: 160,
+					width: 75,
+					title: "税额",
+					name: "sjMoney",
+					displayText: "税额", // 显示在文本框内的提示语
+					unit: "元"
+				}, {
+					xtype: "NumberField",
+					labelWidth: 50,
+					width: 75,
+					title: "金额",
+					displayText: "金额",
+					name: "tickeyMoney",
+					unit: "元"
+				}]
+			},
+			{
+				xtype: "NumberField",
+				labelWidth: 160,
+				width: 260,
+				title: "税价合计",
+				displayText: "税价合计",
+				name: "sjSum",
+				unit: "元"
+			}, {
+				xtype: "DateField",
+				labelWidth: 160,
+				width: 270,
+				title: "开票日期",
+				displayText: "开票日期",
+				name: "dateNum"
+			}, {
+				xtype: "DateField",
+				labelWidth: 160,
+				width: 270,
+				title: "账款到期日",
+				displayText: "账款到期日",
+				name: "endDate"
+			}
+		]
+		return formGrid;
+	},
+	//添加单张发票
+	addTicket: function() {
+		var oneTicket = EUI.getCmp("ticketForm").getFormValue();
+		console.log(this.ticketData);
+		this.ticketData.push(oneTicket);
+		if(this.ticketData == "[]") {
+			console.log("xg");
+		}
+		//		$.each(this.ticketData, function(n, value) {
+		//			if(value.ticketNum != oneTicket.ticketNum) {
+		//				console.log("不存在");
+		//				continue;
+		//			}
+		//			else{
+		//				console.log("存在");
+		//				
+		//				return fase;
+		//			}
+		//		});
+		console.log(oneTicket);
+		//		this.ticketData.push(oneTicket);
+		var htmls = "";
+		htmls += '<div class="ticket_item" data-id="' + oneTicket.ticketNum + '">';
+		htmls += '<span class="span_w40 text_over">' + oneTicket.ticketDm + '/' + oneTicket.pcNum + '</span>';
+		htmls += '<span class="span_w30 text_over">' + oneTicket.tickeyMoney + '元</span>';
+		htmls += '<span class="span_w30 text_over">' + oneTicket.dateNum + '</span>';
+		htmls += '<div class="close_ico"></div>';
+		htmls += '</div>';
+		console.log(this.ticketData);
+		$("#tickets_list").append(htmls);
+		$(".end_num").html(this.ticketData.length);
+		$(".ticket_item").live("mouseenter", function() {
+			$(this).find(".close_ico").show();
+		});
+		$(".ticket_item").live("mouseleave", function() {
+			$(this).find(".close_ico").hide();
+		});
+		$(".close_ico").live("click", function() {
+			$(this).parent().remove();
+		});
+	},
+	//核心企业主要信息
+	initMainForm: function() {
+		var mainFormGrid = [{
+			xtype: "FormPanel",
+			itemspace: 20,
+			height: "auto",
+			id: "ticketMainForm",
+			items: [{
+				xtype: "TextField",
+				readonly: "readonly",
+				title: "录入编号",
+				value: "15124",
+				labelWidth: 160,
+				width: 270,
+				name: "lrNum",
+				//					allowBlank: false,
+				displayText: "displayText",
+				// 不能为空，必填
+			}, {
+				xtype: "ComboBox",
+				field: ["id"], // 表示哪些值需要提交到后端
+				name: "coreName",
+				labelWidth: 160,
+				id: "coreComId",
+				title: "核心企业",
+				displayText: "请选择供应商",
+				async: true, // 是否异步，true为异步
+				store: {
+					url: ""
+				}, // 从后台获取数据的地址
+				editable: true, // 是否可编辑
+				loadMask: true, // 是否有遮罩层
+				showSearch: false, // 是否展开下拉框
+				searchText: "name", // 下拉框的内容
+				canClear: true,
+				// value : "一年级一班",
+				data: [{
+					id: "store1",
+					coreName: "store1"
+				}, {
+					id: "store2",
+					coreName: "store2"
+				}, {
+					id: "store3",
+					coreName: "store3"
+				}],
+				deforeLoad: function(store) {},
+				afterLoad: function(data) {
+					console.log(data);
+				}
+			}, {
+				xtype: "TextField",
+				labelWidth: 160,
+				width: 270,
+				title: "应付账款凭证",
+				name: "ticketNum",
+				displayText: "应付账款凭证" // 显示在文本框内的提示语
+			}, {
+				xtype: "TextArea",
+				labelWidth: 160,
+				width: 650,
+				title: "录入说明",
+				name: "pcNum"
+			}]
+		}];
+		return mainFormGrid;
+	},
+	//提交所有信息
+	subMainForm: function() {
+		$("#submit_ticket_form").live("click", function() {
+			if(EUI.getCmp("ticketMainForm").isValid()) {
+				console.log(EUI.getCmp("ticketMainForm").getFormValue());
+			}
+		})
+	},
+	//设置表单样式
+	setLabelWidth: function() {
+		$(".ux-field-label span").css({
+			"float": "none",
+			"margin-right": "10px"
+		});
+		$("#TextField1004").parent(".ux-line-row").css({
+			"width": "200px",
+			"float": "left"
+		});
+		$("#TextField1005").parent(".ux-line-row").css({
+			"width": "200px",
+			"float": "left"
+		});
+		$(".ux-field-textarea").parent().css({
+			"width": "700px"
+		});
+	},
+	//删除单张发票
+	delOneTicket: function() {
+
+	},
+	//提交清除单条信息
+	subCleanOne: function() {
+		var g = this;
+		$(".reset_btn").live("click", function() {
+			EUI.getCmp("ticketForm").reset();
+		})
+		$(".submit_btn").live("click", function() {
+			if(EUI.getCmp("ticketForm").isValid()) {
+				//				EUI.getCmp("ticketForm").
+				g.addTicket();
+			}
+		})
+	}
+});

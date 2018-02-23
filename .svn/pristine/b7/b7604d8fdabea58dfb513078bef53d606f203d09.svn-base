@@ -1,0 +1,103 @@
+package com.rcsit.scf.bsp.controller;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.domain.PageModel;
+import com.rcsit.scf.bsp.domain.ResponseModel;
+import com.rcsit.scf.bsp.domain.enums.UserIdentityType;
+import com.rcsit.scf.bsp.handler.AvfNoticeHandler;
+import com.rcsit.scf.bsp.handler.PbmVerdorHandler;
+import com.rcsit.scf.bsp.model.avf.AvfAccountsRecTraNotice;
+import com.rcsit.scf.bsp.model.pbm.PbmVerdor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.lang.reflect.InvocationTargetException;
+
+/**通知单
+ * Created by hmily on 2017/5/9.
+ */
+
+@Controller
+@RequestMapping(value = "/avf/notice")
+public class AvfNoticeController extends BaseController {
+
+    private AvfNoticeHandler avfNoticeHandler = new AvfNoticeHandler();
+    private PbmVerdorHandler pbmVerdorHandler = new PbmVerdorHandler();
+
+    /**
+     * 查看通知单列表
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "/noticesList")
+    public Object noticesList(@RequestParam(value = "page",defaultValue = "1")int page, @RequestParam(value = "rows",defaultValue = "25")int rows,
+                                     @CookieValue("token")String token,Model model){
+        JSONObject jsonObject = avfNoticeHandler.noticesList(page, rows, token);
+        return new PageModel<>(jsonObject);
+    }
+
+
+    /**
+     * 通知单列表页面
+     * @param userIdentityType
+     * @return
+     */
+    @RequestMapping("/noticesListPage")
+    public String noticesListPage(Model model ,@RequestParam("identityType")UserIdentityType userIdentityType,@CookieValue("token")String token){
+        int needConfirmQuota = avfNoticeHandler.needConfirmQuota(token);
+        model.addAttribute("needConfirmQuota",needConfirmQuota);
+        return "/avf/"+userIdentityType.name().toLowerCase()+"/sheet";
+    }
+
+    /**
+     * 通知单详情页面
+     * @param id
+     * @param token
+     * @param model
+     * @return
+     */
+    @RequestMapping("/noticeDetailPage")
+    public String noticeDetailPage(@RequestParam("id")String id ,@RequestParam("identityType")UserIdentityType userIdentityType,@CookieValue("token")String token,Model model){
+         AvfAccountsRecTraNotice avfAccountsRecTraNotice = avfNoticeHandler.noticeDetails(id, token);
+        model.addAttribute("avfAccountsRecTraNotice",avfAccountsRecTraNotice);
+        String data = pbmVerdorHandler.doVerdorDetail(avfAccountsRecTraNotice.getSupplyCode(),token);
+        PbmVerdor pbmVerdor = JSONObject.parseObject(data, new TypeReference<PbmVerdor>() {
+        });
+        model.addAttribute("pbmVerdor",pbmVerdor);
+        return "/avf/"+userIdentityType.name().toLowerCase()+"/finance_detail";
+    }
+
+    /**
+     * 查看通知单详情
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/noticeConfirmPage")
+    public String noticeConfirmPage(@RequestParam("id")String id,@RequestParam("identityType")UserIdentityType userIdentityType ,@CookieValue("token")String token,Model model){
+        AvfAccountsRecTraNotice avfAccountsRecTraNotice = avfNoticeHandler.noticeDetails(id, token);
+        model.addAttribute("avfAccountsRecTraNotice",avfAccountsRecTraNotice);
+        String data = pbmVerdorHandler.doVerdorDetail(avfAccountsRecTraNotice.getSupplyCode(),token);
+        PbmVerdor pbmVerdor = JSONObject.parseObject(data, new TypeReference<PbmVerdor>() {
+        });
+        model.addAttribute("pbmVerdor",pbmVerdor);
+        return "/avf/"+userIdentityType.name().toLowerCase()+"/confirm_sheet";
+    }
+
+
+    /**
+     * 通知单确认
+     * @param id
+     * @return
+     */
+    @RequestMapping(value = "/noticeConfirm")
+    @ResponseBody
+    public ResponseModel noticeConfirm(@RequestParam("id")String id, @CookieValue("token")String token ) throws InvocationTargetException, IllegalAccessException {
+        avfNoticeHandler.noticeConfirm(id, token);
+        return ResponseModel.SUCCESS();
+    }
+}

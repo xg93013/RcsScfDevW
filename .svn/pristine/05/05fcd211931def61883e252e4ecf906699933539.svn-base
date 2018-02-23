@@ -1,0 +1,259 @@
+$(function() {
+	showPersonList();
+    shoIidentityList();
+    initPwdWin();
+    //用户退出
+    $("#exit_login").click(function(){
+        console.log("退出!");
+        $.ajax({
+            type: 'get',
+            url: _ctxPath+"/ura/user/logout.json",
+            success: function(data){
+                console.log(data.status);
+                if(data.status == true){
+                	window.location.href = "/";
+				}
+            },
+            error:function(){
+                console.log("error");
+            }
+        });
+    });
+	$(".update_pwd_link").live("click",function(){
+        showPwdWin();
+	});
+    //修改密码
+	$(".save_update").live("click",function(){
+        var errImg = "<img src='/static/login/images/errors.png'/>";
+        var passwdEg = /^[a-zA-Z0-9_][a-zA-Z0-9_]{5,15}$/;
+		var oldPsw = $("#oldPsw");
+        var newPsw = $("#newPsw");
+        var renewPsw = $("#renewPsw");
+        if(!passwdEg.test(oldPsw.val()) || oldPsw.val() == ""){
+            oldPsw.parent(".update_items").addClass("red_border");
+            $(".info_text").html(errImg+"<span>请输入正确密码！</span>");
+            return false;
+		}else {
+            oldPsw.parent(".update_items").removeClass("red_border");
+        }
+        if(!passwdEg.test(newPsw.val()) || newPsw.val() == ""){
+            newPsw.parent(".update_items").addClass("red_border");
+            $(".info_text").html(errImg+"<span>请输入正确新密码！</span>");
+            return false;
+        }else {
+            newPsw.parent(".update_items").removeClass("red_border");
+        }
+        if(renewPsw.val() != newPsw.val()){
+            renewPsw.parent(".update_items").addClass("red_border");
+            $(".info_text").html(errImg+"<span>两次密码输入不一致！</span>");
+            return false;
+        }else {
+            renewPsw.parent(".update_items").removeClass("red_border");
+        }
+        $.ajax({
+            type: 'get',
+            url: _ctxPath+"/ura/user/changePsw.json",
+            success: function(data){
+                console.log(data.status);
+                if(data.status == true){
+                   	$(".pwd_win").empty().append(seccessInfo());
+                }else{
+                    $(".pwd_win").empty().append(errorInfo("修改失败！"));
+				}
+            },
+            error:function(data){
+                $(".pwd_win").empty().append(errorInfo("修改失败！"));
+            }
+        });
+	});
+    //取消修改密码
+    $(".cancel_update").live("click",function(){
+		closePwdWin();
+	});
+
+    //关闭弹窗
+    $(".black_win").live("click", function() {
+        closeWin();
+    });
+	//单选
+	$('.chioce_list ul li b').click(function() {
+		var _this = $(this);
+		var count = $('.chioce_list ul li b').length;
+		var count1 = 0;
+		var count2 = 0;
+		if(_this.hasClass('b_1')) {
+			_this.removeClass('b_1').addClass('b_2');
+		} else {
+			_this.removeClass('b_2').addClass('b_1');
+		}
+		count1 = $('.chioce_list ul li b.b_1').length;
+		count2 = $('.chioce_list ul li b.b_2').length;
+		if(count == count2) {
+			$('.chioce_list ul li .all_chioce').removeClass('b_1').addClass('b_2');
+		} else {
+			$('.chioce_list ul li .all_chioce').removeClass('b_2').addClass('b_1');
+		}
+
+	});
+	/*全选按钮*/
+	$('.chioce_list ul li .all_chioce').click(function() {
+		var _this = $(this);
+		if(_this.hasClass('b_1')) {
+			_this.removeClass('b_1').addClass('b_2');
+			$('.chioce_list ul li b').removeClass('b_1').addClass('b_2');
+		} else {
+			_this.removeClass('b_2').addClass('b_1');
+			$('.chioce_list ul li b').removeClass('b_2').addClass('b_1');
+
+		}
+	});
+
+	$('.ui-jqgrid-htable th').mouseenter(function() {
+		$('.chioce').show();
+	});
+	$('.ui-jqgrid-htable th').mouseleave(function() {
+		$('.chioce').hide();
+	});
+
+	//同意弹出弹出框
+	var timer = 60;
+	$('#agree').click(function() {
+		$('#overlay').css('display', 'block');
+		$('#loadingTip').css('display', 'block');
+		timer = 60;
+		Countdown();
+	});
+	$('.overlay').click(function() {
+		$('#overlay').css('display', 'none');
+		$('#loadingTip').css('display', 'none');
+		timer = 0;
+		Countdown();
+	});
+	//倒计时
+	function Countdown() {
+		var clear;
+		if(timer >= 1) {
+			timer -= 1;
+			$('#second').text(timer);
+			clear = setTimeout(function() {
+				Countdown();
+			}, 1000);
+		} else {
+			clearInterval(clear);
+			$('#overlay').css('display', 'none');
+			$('#loadingTip').css('display', 'none');
+		}
+	}
+	//时间区间
+	$(".limitTime").each(function(){
+		var startTime = $(this).attr("data-st");
+		var endTime = $(this).attr("data-end");
+		$(this).html(getLimitTime(startTime,endTime));
+	});
+});
+
+function showPersonList() {
+	$(".person_info").mouseenter(function() {
+		$(".hide_nlist").show();
+	});
+	$(".person_info").mouseleave(function() {
+		$(".hide_nlist").hide();
+	});
+}
+function initWin() {
+    var winHtmls = '<div class="black_win"></div><div class="show_win showComWin"></div>';
+    $("body").append(winHtmls);
+}
+function showWin(htmls) {
+    $(".black_win").show();
+    $(".show_win").show().html(htmls);
+    var sHeight = parseInt($(".show_win").css("height")) / 2;
+    $(".show_win").css({
+        "margin-top": "-" + sHeight + "px"
+    });
+    console.log(sHeight);
+}
+function closeWin() {
+    $(".black_win").hide().next(".show_win").hide();
+}
+
+function seccessInfo(){
+	var htmls = "<p style='margin:50px auto 30px;'><img src='/static/avf/images/success.png'></p>";
+	htmls+="<p style='margin:30px auto 30px;'>操作成功！</p>";
+	return htmls;
+}
+function errorInfo(msg){
+    var htmls = "<p style='margin:50px auto 30px;'><img src='/static/avf/images/waring.png'></p>";
+    htmls+="<p style='margin:30px auto 30px;'>"+msg+"</p>";
+    return htmls;
+}
+//获取时间差
+function getLimitTime(startTime,endTime){
+    var startDate=new Date(startTime.replace("-", "/").replace("-", "/"));
+    var endDate=new Date(endTime.replace("-", "/").replace("-", "/"));
+    var number = 0;
+    var yearToMonth = (endDate.getFullYear() - startDate.getFullYear()) * 12;
+    number += yearToMonth;
+    var monthToMonth = endDate.getMonth() - startDate.getMonth();
+    number += monthToMonth;
+    // alert( + " 人月 ");
+    return parseInt(number  + 1);
+}
+//展示菜单
+function shoIidentityList(){
+    var listJson = JSON.parse($("#identityList").html());
+    console.log(listJson);
+    var htmls = "";
+    for(var i=0; i<listJson.length; i++)
+    {
+        console.log(listJson[i].companyName);
+        var url = "/ura/user/loginWithIdentity?identityId="+listJson[i].id;
+        htmls += '<li><a href="'+url+'">'+listJson[i].companyName+'</a></li>';
+    }
+    htmls += '<li><a href="javascript:void(0)" class="update_pwd_link">修改密码</a></li>';
+    $(".hide_nlist ul").append(htmls);
+}
+
+function closePwdWin(){
+    $(".black_pwd").hide();
+    $(".pwd_win").hide();
+}
+function initPwdWin() {
+    var winHtmls = '<div class="black_win black_pwd"></div><div class="show_win pwd_win"></div>';
+    $("body").append(winHtmls);
+}
+function showPwdWin(){
+    $(".black_pwd").show();
+	var htmls = "";
+	htmls+='<div class="update_pwd_box">';
+    htmls+='<p class="update_title">修改密码</p>';
+    htmls+='<div class="update_items">';
+    htmls+='<span>原始密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="oldPsw" id="oldPsw"/>';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="update_items">';
+    htmls+='<span>新密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="newPsw" id="newPsw" />';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="update_items">';
+    htmls+='<span>重复新密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="renewPsw" id="renewPsw"/>';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="info_text update_pwd_info"></div>';
+    htmls+='<div class="update_bnt">';
+    htmls+='<div class="update_bnt_right fr">';
+    htmls+='<input type="button" value="保存" class="save_update"/>';
+    htmls+='<input type="button" value="取消" class="cancel_update"/>';
+    htmls+='</div>';
+    htmls+='</div>';
+    htmls+='</div>';
+    $(".pwd_win").show().html(htmls);
+    var sHeight = parseInt($(".pwd_win").css("height")) / 2;
+    $(".pwd_win").css({
+        "margin-top": "-" + sHeight + "px"
+    });
+}
+

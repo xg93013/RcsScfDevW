@@ -1,0 +1,23 @@
+package com.rcsit.scf.bsp.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * 融资跟踪
+ * Created by hmily on 2017/8/2.
+ */
+@Controller
+@RequestMapping(value = "/avf/financingTracking")
+public class AvfFinancingTrackingController extends BaseController{
+
+    /**
+     * 融资跟踪首页
+     * @param @RequestParam("identityType")UserIdentityType identityType
+     * @return
+     */
+    @RequestMapping("/financingTrackingIndex")
+    public String financingTrackingIndex(){
+        return "/avf/enterprise/finance_tracking";
+    }
+}

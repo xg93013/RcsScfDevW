@@ -1,0 +1,117 @@
+//初始融资机构-放款目录的表格
+EUI.LoanCollection = EUI.extend(EUI.CustomUI, {
+    renderTo: "",
+    height: 'auto',
+    initComponent: function () {
+        var _this = this;
+        _this.initGrid();
+        _this.addEvents();
+    },
+    initGrid: function () {
+        var g = this;
+        EUI.GridPanel({
+            renderTo: g.renderTo,
+            padding: 0, //设置表格的内边距
+            exportXls: false,
+            searchConfig: null,
+            showRefresh: false,
+            id: "approvalTab",
+            //autoLoad: true, //自动加载
+            height: 'auto',
+            gridCfg: {
+                rownumbers: false, //去掉表格序号
+                url:_ctxPath+"/avf/financingLoan/financingLoanList.json",//获取后端数据
+                rowNum: 10,//一页显示几条数据
+                mtype:"get",
+                loadonce:false,//true数据一次性加载,每页返回加载每页的数据
+                //shrinkToFit: false,//表格宽度自适应
+                colModel: [{
+                    label: "序号",
+                    name: "id", //列显示的名称
+                    index: "id", //传到服务器端用来排序的列名称
+                    hidden: true //隐藏不显示这一组
+                }, {
+                    label: "<span>融资需求编号</span>",
+                    name: "financingNeedsNo",
+                    index: "financingNeedsNo",
+
+                }, {
+                    label: "<span>供应商</span><b></b>",
+                    name: "supplyName",
+                    index: "supplyName",
+
+                }, {
+                    label: "<span>核心企业</span><b></b>",
+                    name: "companyName",
+                    index: "companyName",
+                }, {
+                    label: "<span>融资金额（元）</span><b></b>",
+                    name: "receivablesMoney",
+                    index: "receivablesMoney",
+                    formatter: function (value, id, rowdata) {
+                        return '<span class="font20">' + $.formatMoney(rowdata.receivablesMoney,2) + '</span>';
+                    }
+
+                },{
+                    //label: "<span>核心企业</span><b></b>",
+                    name: "financeStart",
+                    index: "financeStart",
+                    hidden:true,
+                },{
+                    label: "<span>期限</span><b></b>",
+                    name: "financeEnd",
+                    index: "financeEnd",
+                    formatter: function (value, id, rowdata) {
+                        var startTime = $.myTime.UnixToDate(rowdata.financeStart);
+                        var endTime = $.myTime.UnixToDate(rowdata.financeEnd);
+                        return '<span class="font20">' + getLimitTime(startTime, endTime) + '</span>个月';
+                    }
+
+                }, {
+                    label: "<span>状态</span><b></b>",
+                    name: "businessDealInfo",
+                    index: "businessDealInfo",
+                    /*formatter: function (value, id, rowdata) {
+                        if (parseInt(rowdata.id) % 2 == 0) {
+                            return '待补录';
+                        } else {
+                            return '核心企业确认';
+                        }
+
+                    }*/
+
+                }, {
+                    label: "操作",
+                    name: "businessDealStatus",
+                    index: "businessDealStatus",
+                    width: 180,
+                    formatter: function (value, id, rowdata) {
+                        if (parseInt(rowdata.businessDealStatus) == 5050) {
+                            return '<div class="btn_defend ml_25 financing_loan_make" data='+rowdata.id+'>补录</div>';
+                        } else {
+                            return '<div class="btn_detail ml_25 financing_loan_details" data='+rowdata.id+'>查看</div>';
+                        }
+
+                    }
+                }],
+                //data: g.loadData(),
+            }
+        });
+    },
+    loadData: function () {
+    },
+    afterRender: function () {
+        console.log('渲染完成');
+    },
+    addEvents: function () {
+
+        $('.financing_loan_make').live('click', function () {
+            var id = $(this).attr('data');
+            window.location.href =_ctxPath+ '/avf/financingLoan//financingLoanMakeUpPage?id='+id;
+        });
+        $('.financing_loan_details').live('click', function () {
+            var id = $(this).attr('data');
+            window.location.href =_ctxPath+ '/avf/financingLoan/financingLoanDetailsPage?id='+id;
+        });
+    },
+});

@@ -1,0 +1,166 @@
+var timer =10;
+$(function() {
+	//单选
+	/*$('.chioce_list ul li b').click(function() {
+		var _this = $(this);
+		var count = $('.chioce_list ul li b').length;
+		var count1 = 0; 
+		var count2 = 0;
+		if(_this.hasClass('b_1')) {
+			_this.removeClass('b_1').addClass('b_2');			
+		} else {
+			_this.removeClass('b_2').addClass('b_1');
+		}
+		count1 = $('.chioce_list ul li b.b_1').length;
+		count2 = $('.chioce_list ul li b.b_2').length;
+		if(count == count2){
+			$('.chioce_list ul li .all_chioce').removeClass('b_1').addClass('b_2');
+		}else{
+			$('.chioce_list ul li .all_chioce').removeClass('b_2').addClass('b_1');
+		}
+
+	});*/
+	/*全选按钮*/
+	/*$('.chioce_list ul li .all_chioce').click(function() {
+		var _this = $(this);
+		if(_this.hasClass('b_1')) {
+			_this.removeClass('b_1').addClass('b_2');
+			$('.chioce_list ul li b').removeClass('b_1').addClass('b_2');
+		} else {
+			_this.removeClass('b_2').addClass('b_1');
+			$('.chioce_list ul li b').removeClass('b_2').addClass('b_1');
+
+		}
+	});*/
+	/*$('.ui-jqgrid-htable th').live('mouseenter', function() {
+		$('.chioce').show();
+	});
+	$('.ui-jqgrid-htable th').live('mouseleave', function() {
+		$('.chioce').hide();
+	});*/
+	
+	//同意弹出弹出框
+
+	/*$('#agree').click(function(){
+		$('#overlay').css('display','block');
+		$('#loadingTip').css('display','block');
+		timer =10;
+		Countdown();
+	});*/
+
+
+		//期限转化成yyyy-mmm-dd - yyyy-mm-dd
+		$('.term').each(function () {
+			var _this = $(this);
+			var txtStartTime = _this.attr('data');
+			var txtEndTime  = _this.attr('fc-data');
+            var startTime = new Date(txtStartTime);
+            var endTime = new Date(txtEndTime);
+            var term;
+            if(txtStartTime != '' && txtEndTime != ''){
+                term = GetDateT(startTime)+' - '+GetDateT(endTime)
+			}else{
+            	term = '-- -- --';
+			}
+            _this.html(term);
+		});
+    	//金额转化成千分位
+    	$('.money').each(function () {
+    		var _this = $(this);
+    		var data = _this.attr('data');
+    		if(data != ''){
+                _this.html($.formatMoney(parseFloat(data),2));
+			}else{
+    			_this.html('--');
+			}
+
+        });
+    	//时间转化成yyyy-mmm-dd
+    	$('.time').each(function () {
+            var _this = $(this);
+            var data = _this.attr('data');
+            var time = new Date(data);
+            if(data != undefined){
+                _this.html(GetDateT(time));
+			}else{
+                _this.html('-- -- --');
+}
+        });
+    	//时间轴转化成月份间隔
+		$('.month').each(function () {
+			var _this =$(this);
+			var data = _this.attr('data');
+			var fcData = _this.attr('fc-data');
+            var startTime = new Date(data);
+            var endTime = new Date(fcData);
+			if(data !=undefined && fcData != undefined){
+				_this.html(getLimitTime(GetDateT(startTime),GetDateT(endTime)));
+			}else{
+				_this.html('--');
+			}
+		});
+    	//浮点数转发成小数两位
+		$('.rate').each(function () {
+            $(this).html(parseFloat($(this).attr('data')).toFixed(2));
+		});
+		//取消拒绝融资
+    	$('#finacialCancel').click(function () {
+			window.location.href=_ctxPath+"/avf/financingApprove/financingApproveListPage";
+        });
+    	//提交拒绝融资
+		$('#financialSubmit').click(function () {
+			var id = $('#refusedId').val();
+            $.get(_ctxPath + '/avf/financingApprove/doFinancingDemandReject.json',{id:id}, function(d, s) {
+                if(d.status == true){
+                    window.location.href=_ctxPath+"/avf/financingApprove/doFinancingDemandRejectPage?id="+id;
+				}else{
+                    messageDemo.messageError(d.msg);
+				}
+            });
+
+		});
+	//同意通知单
+	$('#agree').click(function () {
+		var _this = $(this);
+        EUI.Store({
+            url: _ctxPath+'/avf/notice/noticeConfirm.json',
+            params:{id:_this.attr('data')},
+            async:false,
+            success: function (d) {
+                $('#overlay').css('display','');
+                $('#loadingTip').css('display','');
+                Countdown();
+            },
+            failure: function (d) {
+                errorInfo(d.msg);
+                //messageDemo.messageError(d.msg);
+            }
+        });
+    });
+    $('.overlay').click(function(){
+        $('#overlay').css('display','none');
+        $('#loadingTip').css('display','none');
+        timer = 0;
+        Countdown();
+    });
+});
+
+//倒计时
+function Countdown() {
+    var clear;
+    if (timer >= 1) {
+        timer -= 1;
+        $('#second').text(timer);
+        clear = setTimeout(function() {
+            Countdown();
+        }, 1000);
+    }else{
+        clearInterval(clear);
+        $('#agree').css('display','none');
+        $('.confirm').css('display', 'block');
+        $('.showInfo  .list_2').addClass('list_2_over').removeClass('list_2');
+        $('.showInfo  .list_3_over_over').addClass('list_3').removeClass('list_3_over_over');
+        $('#overlay').css('display','none');
+        $('#loadingTip').css('display','none');
+    }
+}

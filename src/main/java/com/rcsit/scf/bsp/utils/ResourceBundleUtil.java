@@ -1,0 +1,98 @@
+package com.rcsit.scf.bsp.utils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.MessageFormat;
+import java.util.ResourceBundle;
+
+/**
+ * <h3>Class name</h3>
+ * <h4>Description</h4>
+ * <p/>
+ * <h4>Special Notes</h4>
+ *
+ * 基础信息获取工具类
+ *
+ */
+public class ResourceBundleUtil {
+    private static Logger logger = LoggerFactory.getLogger(ResourceBundleUtil.class);
+    protected static ResourceBundle bundle = ResourceBundle.getBundle("server");
+
+    public static String getString(String key) {
+        try {
+            return bundle.getString(key);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return key;
+    }
+
+    public static String getStringWithDefault(String key, String defaultStr) {
+        try {
+            return bundle.getString(key);
+        } catch (Exception e) {
+            key = defaultStr;
+        }
+        return key;
+    }
+
+    public static int getInt(String key) {
+        return Integer.parseInt(getString(key));
+    }
+
+    public static boolean getBoolean(String key) {
+        return Boolean.parseBoolean(getString(key));
+    }
+
+    public static String getString(String key, String resource) {
+        bundle = ResourceBundle.getBundle(resource);
+        try {
+            return bundle.getString(key);
+        } catch (Exception e) {
+            logger.error("messageKey" + key + "在messages文件当中不存在，直接返回messageKey" + key + "做为msg信息提示！！");
+            return key;
+        }
+    }
+
+    public static int getInt(String key, String resource) {
+        return Integer.parseInt(getString(key, resource));
+    }
+
+    public static boolean getBoolean(String key, String resource) {
+        return Boolean.parseBoolean(getString(key, resource));
+    }
+
+    @SuppressWarnings("static-access")
+    public static String getString(String key, Object... params) {
+        try {
+            String value = bundle.getString(key);
+            MessageFormat form = new MessageFormat(value);
+            return form.format(value, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "error";
+        }
+
+    }
+
+    /**
+     * @param key      需要获得的key值
+     * @param resource 资源文件名称
+     * @return 返回value值
+     */
+    @SuppressWarnings("static-access")
+    public static String getString(String key, String resource, Object... params) {
+        ResourceBundle bundles = ResourceBundle.getBundle(resource);
+        try {
+            String value = bundles.getString(key);
+            MessageFormat form = new MessageFormat(value);
+            return form.format(value, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "error";
+        }
+    }
+
+
+}

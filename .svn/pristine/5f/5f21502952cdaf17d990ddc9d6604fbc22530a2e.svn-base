@@ -1,0 +1,68 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<!--xg addcss-->
+	<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+	<link rel="stylesheet" href="/static/avf/css/supplyMain.css" />
+
+	<!--xg addjs-->
+	<script type="text/javascript" src="/static/base/js/public.js" ></script>
+	<script type="text/javascript" src="/static/base/js/common.js" ></script>
+	<script type="text/javascript" src="/static/avf/js/invoice_prepare.js" ></script>
+	<script>
+        EUI.onReady(function() {
+            new EUI.InvoicePrepare({
+                renderTo: "supply_ticket",
+                cfgId: "InvoicePre2"
+            });
+        });
+	</script>
+	<title>融资管理平台</title>
+</head>
+
+<body>
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li>首页</li>
+			<li><a href="javascript:void(0)">&nbsp;&gt;&nbsp;准备发票</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 step_content">
+			<c:set var="tab_state" scope="session" value="1"/>
+			<%@ include file="/base/tab_supplier.jsp"%>
+		<div class="rz_container">
+			<div class="re_con_left fl">
+				<p>总共：<span class="org_color">${waitNumber.totalInvoiceNumber}</span>张发票</p>
+				<p>总额度：<span class="font34 org_color">${waitNumber.totalMoneyNumber}</span>元</p>
+			</div>
+			<div class="re_con_right fr">
+
+				<div class="re_conr_items">
+					<a href="/avf/invoice/toAddInvoice?type=supplier" class="lr_tickets">手动录入发票</a>
+					<a href="javascript:void(0)" class="lr_tickets mg10" id="import_model">下载文件模板</a>
+				</div>
+				<div class="re_conr_items"><a href="javascript:void(0)" class="dr_ticket" id="import_ticket"><em></em><span>导入发票</span></a></div>
+			</div>
+		</div>
+		<div class="rz_result">
+			<div id="supply_ticket" ></div>
+		</div>
+	</div>
+
+</div>
+<!--main content end-->
+
+<!--footer-->
+<%@ include file="/base/footer.jsp"%>
+<!--footer end-->
+</body>
+</html>

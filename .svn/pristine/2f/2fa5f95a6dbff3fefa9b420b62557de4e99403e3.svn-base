@@ -1,0 +1,27 @@
+$("#agree_sheet").live("click", function () {
+    if($("#agree_sheet").hasClass("confirm_ok") == false){
+        var id = $(this).attr('data');
+        keySignpublicSeal();
+        var userName  = AztSignSealFrom.AztWebSignSealkeyPublic.ESAGetSealInformaiton("SignatureUser",0,1);
+        if(userName){
+            EUI.Store({
+                url: _ctxPath + "/avf/notice/noticeConfirm.json?id="+id,
+                type : "get",
+                success: function (msg) {
+                    showToPageInfo("成功确认通知单！","/avf/notice/noticesListPage?identityType=SUPPLIER");
+                },
+                failure: function (msg) {
+                    errorInfo(msg.msg);
+                }
+            });
+        }
+    }
+});
+//加载数字签章
+function keySignpublicSeal()
+{
+    AztSignSealFrom.AztWebSignSealkeyPublic.ESASetDataisEncrypt(1);	 //设置返回数据是否加密(1加密，否则不加密)
+    AztSignSealFrom.AztWebSignSealkeyPublic.ESASetPositionTay("jfdiv",2);	 //yfdiv text 设置印章签章ID为ONE的标签上，2标识印章中心点在标签0,0位置
+    AztSignSealFrom.AztWebSignSealkeyPublic.ESASignSeal(1,2,"10001","");	 //执行签章操作;保护的数据
+    AztSignSealFrom.AztWebSignSealkeyPublic.SignMove=true;                  //签章后是否允许移动
+}

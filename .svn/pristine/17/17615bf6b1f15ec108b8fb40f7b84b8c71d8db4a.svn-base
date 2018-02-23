@@ -1,0 +1,114 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+	<!--xg addcss-->
+	<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+
+	<!--xg addjs-->
+	<%--<script type="text/javascript" src="/static/base/js/jquery-2.0.0.min.js" ></script>--%>
+	<script type="text/javascript" src="/static/base/js/public.js" ></script>
+	<script type="text/javascript" src="/static/base/js/common.js" ></script>
+	<script type="text/javascript" src="/static/avf/js/invoice_prepare.js" ></script>
+	<script type="text/javascript">
+        EUI.onReady(function() {
+            var Finance_track = new EUI.Finance_track({
+                renderTo : "finance_track",
+                cfgId:"financeTrackTable"
+            });
+        });
+	</script>
+	<title></title>
+	</head>
+
+	<body>
+		<!--tab_list-->
+		<div class="container1200">
+			<ul class="tab_list">
+				<li><a href="/avf/invoice/toWaitPage?type=enterprise">首页</a></li>
+				<li><a href="/avf/invoice/toWaitPage?type=enterprise">&nbsp;&gt;&nbsp;融资跟踪</a></li>
+			</ul>
+		</div>
+		<!--tab_list end-->
+		<div class="container1200 step_content">
+			<c:set var="tab_state" scope="session" value="6"/>
+			<%@ include file="/base/tab_enterprise.jsp"%>
+			<div class="rz_result">
+				<div id="rz_box" ></div>
+			</div>
+		</div>
+		<div class="rz_result">
+			<div id="finance_track" ></div>
+		</div>
+		<!--<div class='track_box'>
+			<div class="track_title">
+				<div class="track_items w40"><input type="checkbox" class="checkbox track_all" /> </div>
+				<div class="track_items w80"><span class="track_year">2017年</span></div>
+				<div class="track_items w1000">
+					<div class="track_list">
+						<span class="track_list_items">应付凭证：1982333</span>
+						<span class="track_list_items">需求编号：1982333</span>
+						<span class="track_list_items">供应商名称：1982333</span>
+						<span class="track_list_items">金融机构名称：1982333</span>
+						<span class="track_list_items">到期日：1982333</span>
+					</div>
+					<div class="track_list no_border_bot">
+						<span class="track_list_items">应付凭证：1982333</span>
+						<span class="track_list_items">需求编号：1982333</span>
+						<span class="track_list_items">供应商名称：1982333</span>
+						<span class="track_list_items">金融机构名称：1982333</span>
+						<span class="track_list_items">到期日：1982333</span>
+					</div>
+				</div>
+				<div class="track_items track_down_item"><span class="sxf_btn icon_down track_down"></span></div>
+			</div>
+			<div class="track_down_box">
+				<div class="track_process">
+					<p>放款--日期：2017-11-27 金额：655,343,00（中国工商银行）</p>
+					<p>还款--日期：2017-11-27 金额：655,343,00</p>
+					<p>收款--日期：2017-11-27 金额：655,343,00（中国工商银行）</p>
+					<p>备注：放款延迟3天</p>
+				</div>
+				<div class="track_tickets">
+					<table class="track_tickets_table">
+						<thead>
+							<tr>
+								<td>序号</td>
+								<td>发票代码</td>
+								<td>发票号码</td>
+								<td>价税合计</td>
+								<td>金额</td>
+								<td>数额</td>
+								<td>所属公司</td>
+								<td>公司代码</td>
+								<td>开票日期</td>
+								<td>批次号</td>
+								<td>账款到期日</td>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td>1</td>
+								<td>2382323</td>
+								<td>123123123123</td>
+								<td>123</td>
+								<td>12323</td>
+								<td>3423</td>
+								<td>company</td>
+								<td>code</td>
+								<td>2017-01-01</td>
+								<td>2312</td>
+								<td>2017-02-02</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>-->
+		<%@ include file="/base/footer.jsp"%>
+	</body>
+
+</html>

@@ -1,0 +1,213 @@
+EUI.InvoicePrepare = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+	initComponent: function() {
+		var g = this;
+		// this.initTableData();
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			padding: 0, //设置表格的内边距
+			height: "auto",
+			id: g.cfgId,
+			gridCfg: g.initGridTable()
+		});
+		this.addEvents(); //
+		this.initWin(); //初始化弹出框
+		// EUI.getCmp(g.cfgId).setPostParams({
+		// 	Q_dfd:""
+		// },true);
+	},
+	addEvents: function() {
+		var g = this;
+		$(".deleteRow").live("click", function() {
+			//			$("#gradelist").deleteRow($(this).attr("data-id"));
+			//			console.log(g.deleteRow($(this).attr("data-id")));
+			g.deleteOneRow("gradelist", $(this).attr("data-id"));
+		});
+        //导入文件模板
+        $("#import_model").live("click", function() {
+            var htmls = '<span class="down_btn excel_down"></span>';
+            htmls += '<span class="down_btn txt_down"></span>';
+            g.showWin(htmls);
+        })
+        //导入发票
+        $("#import_ticket").live("click", function() {
+            var htmls = '<div class="import_line">';
+            htmls += '	<input type="text" placeholder="文件地址" class="importfile_input"/><input type="button" value="上传文件" class="importfile_btn"/>';
+            htmls += '	</div>';
+            htmls += '	<div class="import_line">';
+            htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+            htmls += '	<input type="button" value="保存" class="import_btn import_ok" id="import_ok"/>';
+            htmls += '	</div>';
+            g.showWin(htmls);
+        })
+        //取消保存
+        $(".black_win, .cancel_btn").live("click", function() {
+            g.closeWin();
+        });
+	},
+	//删除一行数据
+	deleteOneRow: function(tableId, rowId) {
+		var g = this;
+		var htmls = '	<div class="import_line">';
+		htmls += '<p class="del_info">确认删除信息？</p>';
+		htmls += '	</div>';
+		htmls += '	<div class="import_line">';
+		htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+		htmls += '	<input type="button" value="确定" class="import_btn import_ok" id="delete_ok"/>';
+		htmls += '	</div>';
+		g.showWin(htmls);
+		$("#delete_ok").live("click", function() {
+			//后端删除成功后删除表格内容
+			EUI.getCmp(tableId).deleteRow(rowId);
+		});
+	},
+	initGridTable: function() {
+		var g = this;
+		var cfgData = {};
+		//核心企业表格配置
+		if(g.cfgId == "InvoicePre1") {
+			//配置表格
+			cfgData = {
+				url:_ctxPath+"/test/table.json",//获取后端数据
+				rownumbers: false,
+				rowNum: "10",
+				colModel: [{
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					hidden: true //隐藏不显示这一组
+				}, {
+					label: "供应商<span class='down_icon'></span>",
+					name: "name",
+					index: "name"
+				}, {
+					label: "合计金额(元)<span class='down_icon'></span>",
+					name: "money",
+					index: "money",
+					formatter: function(value, id, rowdata) {
+						return '<span class="font20">' + rowdata.money + '</span>';
+					}
+				}, {
+					label: "数量(张)",
+					name: "nums",
+					index: "nums",
+					formatter: function(value, id, rowdata) {
+						return '<span class="font20">' + rowdata.nums + '</span>';
+					}
+				}, {
+					label: "状态<span class='down_icon'></span>",
+					name: "state",
+					index: "state"
+				}, {
+					label: "操作",
+					name: "operate",
+					index: "operate",
+					formatter: function(value, id, rowdata) {
+						return(rowdata.state == "0") ? '<a href="CheckTickView.html"  class="table_btn" data-id="' + rowdata.id + '">立即审核</a>' : '<a href="TicketProView.html"  class="btn_success" data-id="' + rowdata.id + '">查看详情</a>';
+					}
+				}, {
+					label: "",
+					name: "",
+					index: "",
+					width: 100,
+					formatter: function(value, id, rowdata) {
+						return '<div class="coop_a fl"><span class="deleteRow" data-id="' + rowdata.id + '">删除</span><span class="editRow" data-id="' + rowdata.id + '">编辑</span></div>';
+					}
+				}]
+			}
+		}
+		//供应商表格配置
+		if(g.cfgId == "InvoicePre2") {
+			cfgData = {
+				rownumbers: false,
+				loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+				colModel: [{
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					hidden: true //隐藏不显示这一组
+				}, {
+					label: "序号",
+					name: "num",
+					index: "num",
+					width: 80
+				}, {
+					label: "发票代码",
+					name: "ticketDm",
+					index: "ticketDm",
+					formatter: function(value, id, rowdata) {
+						return '<span>' + rowdata.ticketDm + '</span>';
+					}
+				}, {
+					label: "发票号码",
+					name: "ticketNum",
+					index: "ticketNum",
+					formatter: function(value, id, rowdata) {
+						return '<span>' + rowdata.ticketNum + '</span>';
+					}
+				}, {
+					label: "税价合计",
+					name: "sjSum",
+					index: "sjSum"
+				}, {
+					label: "金额",
+					name: "money",
+					index: "money",
+					formatter: function(value, id, rowdata) {
+						return '<span>' + rowdata.money + '</span>';
+					}
+				}, {
+					label: "税额",
+					name: "sjMoney",
+					index: "sjMoney"
+				}, {
+					label: "所属公司",
+					name: "sCompany",
+					index: "sCompany",
+					width: 300
+				}, {
+					label: "公司代码",
+					name: "companyNum",
+					index: "companyNum"
+				}, {
+					label: "开票日期",
+					name: "openDate",
+					index: "openDate"
+				}, {
+					label: "批次号",
+					name: "piciNum",
+					index: "piciNum"
+				}, {
+					label: "发票录入日期",
+					name: "entryDate",
+					index: "entryDate"
+				}, {
+					label: "操作",
+					name: "",
+					index: "",
+					width: 100,
+					formatter: function(value, id, rowdata) {
+						return '<div class="coop_a fl"><span class="deleteRow" data-id="' + rowdata.id + '">删除</span><span class="editRow" data-id="' + rowdata.id + '">编辑</span></div>';
+					}
+				}],
+				data: g.initTableData()
+			}
+		}
+		return cfgData;
+	},
+	initWin: function() {
+		var winHtmls = '<div class="black_win"></div><div class="show_win"></div>';
+		$("body").append(winHtmls);
+	},
+	showWin: function(htmls) {
+		$(".black_win").show();
+		$(".show_win").show().html(htmls);
+		var sHeight = parseInt($(".show_win").css("height")) / 2;
+		$(".show_win").css({
+			"margin-top": "-" + sHeight + "px"
+		});
+		console.log(sHeight);
+	},
+	closeWin: function() {
+		$(".black_win").hide().next(".show_win").hide();
+	}
+});

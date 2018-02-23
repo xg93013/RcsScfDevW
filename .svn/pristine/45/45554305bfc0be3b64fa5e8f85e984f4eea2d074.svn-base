@@ -1,0 +1,153 @@
+//初始融资机构-放款目录的表格
+EUI.LoanCollection = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	height: 'auto',
+	initComponent: function() {
+		var _this = this;
+		_this.initGrid();
+		_this.addEvents();
+	},
+	initGrid:function(){
+		var g = this;
+		EUI.GridPanel({
+			renderTo: g.renderTo,
+			
+				padding: 0, //设置表格的内边距
+				exportXls: false,
+				searchConfig: null,
+				showRefresh: false,
+				id: "approvalTab",
+				//autoLoad: true, //自动加载
+				height: 'auto',
+				gridCfg: {
+					rownumbers: false, //去掉表格序号
+					loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+					//shrinkToFit: false,//表格宽度自适应
+					colModel: [{
+						label: "序号",
+						name: "id", //列显示的名称
+						index: "id", //传到服务器端用来排序的列名称
+						hidden: true //隐藏不显示这一组
+					}, {
+						label: "<span>融资需求编号</span>",
+						name: "name",
+						index: "name",
+
+					}, {
+						label: "<span>供应商</span><b></b>",
+						name: "name1",
+						index: "name1",
+
+					}, {
+						label: "<span>核心企业</span><b></b>",
+						name: "name2",
+						index: "name2",
+					}, {
+						label: "<span>融资金额（元）</span><b></b>",
+						name: "name3",
+						index: "name3",
+						formatter: function(value, id, rowdata) {
+							return '<span class="font20">' + rowdata.name3 + '</span>';
+						}
+
+					}, {
+						label: "<span>期限</span><b></b>",
+						name: "name4",
+						index: "name4",
+						formatter: function(value, id, rowdata) {
+							return '<span>' + rowdata.name4 + '</span><br/>~<br/><span>' + rowdata.name4 + '</span>';
+						}
+
+					}, {
+						label: "<span>状态</span><b></b>",
+						name: "name5",
+						index: "name5",
+						formatter: function(value, id, rowdata) {
+							if(parseInt(rowdata.id) % 2 == 0) {
+								return '待补录';
+							} else {
+								return '核心企业确认';
+							}
+
+						}
+
+					}, {
+						label: "操作",
+						name: "name6",
+						index: "name6",
+						width: 180,
+						formatter: function(value, id, rowdata) {
+							if(parseInt(rowdata.name5) == 0) {
+								return '<div class="btn_defend ml_25">补录</div>';
+							} else if(parseInt(rowdata.name5) == 1) {
+								return '<div class="btn_detail ml_25">查看</div>';
+							} else if(parseInt(rowdata.name5) == 2) {
+								return '<div class="btn_detail di va">再次补录</div><div class="span_close di ml10">关<br/>闭</div>';
+							} else {
+								return '<div class="btn_detail di va">查看</div><div class="span_recall di ml10">撤<br/>回</div>';
+							}
+
+						}
+					}],
+					data: g.loadData(),
+				}
+		});
+	},
+	loadData:function(){
+		var data = [{
+				id: 1,
+				name: '520009894',
+				name1: '四川长虹网络有限公司',
+				name2: '核心企业A',
+				name3: '7678900.00',
+				name4: '2018-12-14',
+				name5: 0
+			},
+			{
+				id: 2,
+				name: '520009894',
+				name1: '四川长虹网络有限公司',
+				name2: '核心企业A',
+				name3: '7678900.00',
+				name4: '2018-12-14',
+				name5: 1
+			},
+			{
+				id: 3,
+				name: '520009894',
+				name1: '四川长虹网络有限公司',
+				name2: '核心企业A',
+				name3: '7678900.00',
+				name4: '2018-12-14',
+				name5: 2
+			},
+			{
+				id: 4,
+				name: '520009894',
+				name1: '四川长虹网络有限公司',
+				name2: '核心企业A',
+				name3: '7678900.00',
+				name4: '2018-12-14',
+				name5: 3
+			}
+		];
+		return data;
+	},
+	afterRender: function() {
+		console.log('渲染完成');
+	},
+	addEvents: function() {
+		var _self = this;
+		/*$('.del_table').live('click', function() {
+			var _this = $(this);
+			messageDemo.messageBox(function(){
+				var tableRowId = _this.attr('id');
+			    var gridPanel = EUI.getCmp("tablePrepareInvoice");
+			    gridPanel.deleteRow(tableRowId);
+			});
+		});*/
+		$('.btn_defend').live('click', function() {
+			window.location.href = 'extend_account.html';
+		});
+	},
+});

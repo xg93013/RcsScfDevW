@@ -1,0 +1,168 @@
+EUI.InvoiceAudit = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+    docNo:null,
+    invoiceId:null,
+    timer:3,
+	initComponent: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			padding: 0, //设置表格的内边距
+			overflow: "hidden",
+			height:"auto",
+			id: g.cfgId,
+			autoLoad: true, //自动加载
+			gridCfg: g.initGrid()
+		});
+		this.addEvents();
+        initWin(); //初始化弹出框
+	},
+	addEvents: function() {
+		var g = this;
+		//发票审核
+		$("#check_btn").live("click",function(){
+            var noPassReason;
+            var checkParams;
+            var radioVal = $('input:radio[name="check_radio"]:checked').val();
+            //可融资发票
+            if(radioVal == "1020"){
+                checkParams = {
+                    businessDealStatus:1020,
+                    id:g.invoiceId
+                }
+            }
+            //录入审核拒绝
+            if(radioVal == "1011"){
+                if($("#check_items").val() != 0){
+                    noPassReason = $("#check_items").val();
+                }else{
+                    noPassReason = $("#otherRea").val();
+                }
+                if($("#check_items").val() == 0 && $("#otherRea").val() == ""){
+                    showWin(errorInfo("请选择或者输入拒绝理由！"));
+                    return;
+				}
+                checkParams = {
+                    businessDealStatus:1011,
+                    id:g.invoiceId,
+                    dealInfo:noPassReason
+                }
+            }
+            // console.log(123);
+            EUI.Store({
+                url: _ctxPath + "/avf/invoice/invoiceExamine.json",
+                params:checkParams,
+                type : "post",
+                success: function (msg) {
+                    // myMask.hide();
+                    // g.getFeatureData(g.selectGroup.id);
+                    // g.win.close();
+					console.log(msg);
+                    var htmls = "<p style='margin:50px auto 10px;'><img src='/static/avf/images/success.png'></p>";
+					htmls += "<p style='margin:10px auto 50px;'>操作成功！<span class='toPageTime'>3</span>秒后跳至首页！</p>";
+                    showWin(htmls);
+                    g.timeToPage("/avf/invoice/toWaitPage?type=enterprise");
+                },
+                failure: function (msg) {
+                    // myMask.hide();
+                    // var htmls = "<div>"+msg.msg+"</div>";
+                    showWin(errorInfo("操作失败"));
+                }
+            });
+		});
+	},
+	//初始化配置
+	initGrid: function() {
+		var g = this;
+		//配置表格
+		var cfgData = {
+            url:_ctxPath+"/avf/invoice/invoiceDetail.json",//获取后端数据
+			postData:{
+            	docNo:this.docNo
+			},
+            rownumbers: false,
+            rowNum: 10,
+            loadonce: false,
+            mtype : "get",
+			colModel: [{
+				name: "id", //列显示的名称
+				index: "id", //传到服务器端用来排序的列名称
+				hidden: true //隐藏不显示这一组
+			}, {
+				label: "invoiceNo",
+				name: "invoiceNo",
+				index: "invoiceNo",
+				hidden: true
+			}, {
+				label: "invoiceCode",
+				name: "invoiceCode",
+				index: "invoiceCode",
+				hidden: true
+			}, {
+				label: "vatMoney",
+				name: "vatMoney",
+				index: "vatMoney",
+				hidden: true
+			}, {
+				label: "invoDate",
+				name: "invoDate",
+				index: "invoDate",
+				hidden: true
+			}, {
+				label: "maturityDate",
+				name: "maturityDate",
+				index: "maturityDate",
+				hidden: true
+			},{
+                label: "序号",
+                name: "id",
+                index: "id",
+				width:"50"
+			},{
+				label: "cloum1",
+				name: "cloum1",
+				index: "cloum1",
+				formatter: function(value, id, rowdata) {
+					return '<p class="tick_table">发票号码：</p><p class="tick_table"><span class="font36 color111">' + rowdata.invoiceNo + '</span></p>';
+				}
+			}, {
+				label: "cloum2",
+				name: "cloum2",
+				index: "cloum2",
+				formatter: function(value, id, rowdata) {
+					return '<p class="tick_table">发票代码：</p><p class="tick_table"><span class="font36 color111">' + rowdata.invoiceCode + '</span></p>';
+				}
+			}, {
+				label: "cloum3",
+				name: "cloum3",
+				index: "cloum3",
+				formatter: function(value, id, rowdata) {
+					return '<p class="tick_table">含税金额：</p><p class="tick_table"><span class="font36 color111">' + rowdata.vatMoney + '</span>元</p>';
+				}
+			}, {
+				label: "cloum4",
+				name: "cloum4",
+				index: "cloum4",
+				formatter: function(value, id, rowdata) {
+					return '<p class="tick_table"><span class="w100">开票日期：</span><span class="color111">' + rowdata.invoDate + '</span></p><p class="tick_table"><span class="w100">账款到期日：</span><span class="color111">' + rowdata.maturityDate + '</span></p>';
+				}
+			}]
+		}
+		return cfgData;
+	},
+	timeToPage:function(url){
+		var g = this;
+		var clear;
+        if(g.timer >= 1) {
+            g.timer -= 1;
+            $('.toPageTime').html(g.timer);
+            clear = setTimeout(function() {
+                g.timeToPage(url);
+            }, 1000);
+        } else {
+            clearInterval(clear);
+           	window.location.href = url;
+        }
+	}
+});

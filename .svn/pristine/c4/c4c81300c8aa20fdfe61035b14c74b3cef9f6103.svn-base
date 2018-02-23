@@ -1,0 +1,13 @@
+/**
+ * Created by Administrator on 2017/6/8.
+ */
+$(function () {
+    var startTime = new Date($('#time').attr('data'));
+    var endTime = new Date($('#time').attr('fc-data'));
+    GetDateT(startTime);
+    GetDateT(endTime);
+    $('#time').html(GetDateT(startTime)+'-'+GetDateT(endTime));
+    $('#totalMoney').html($.formatMoney(parseFloat($('#totalMoney').attr('data')),2));
+    $('#financialMoney').html($.formatMoney(parseFloat($('#financialMoney').attr('data')),2));
+    $('#rate').html(parseFloat($('#rate').attr('data')).toFixed(2)+'%');
+});

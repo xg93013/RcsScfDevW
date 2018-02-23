@@ -1,0 +1,58 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.exception.RequestErrorException;
+import com.rcsit.scf.bsp.model.avf.AvfAccountsRecTraNotice;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by hmily on 2017/5/26.
+ */
+public class AvfFinancingLoanHandler {
+
+    public JSONObject getFinancingLoanList(int page,int rows,String token ){
+        Map<String,Object> param = new HashMap<>();
+        param.put("page",page);
+        param.put("rows",rows);
+        param.put("token",token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_LOAN_LOANlIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return JSONObject.parseObject(jsonObject.getString("data"));
+    }
+
+    public AvfAccountsRecTraNotice getFinancingLoanDetails(String id ,String token){
+        Map<String,String> param = new HashMap<>();
+        param.put("token",token);
+        param.put("id",id);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_LOAN_LOANDETAIL, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return JSONObject.parseObject(jsonObject.getString("data"), new TypeReference<AvfAccountsRecTraNotice>() {
+        });
+
+    }
+
+    public void doFinancingLoanMakeup(String id ,String loanMoney, String loanDate, String token){
+        Map<String,String> param = new HashMap<>();
+        param.put("id",id);
+        param.put("loanMoney",loanMoney);
+        param.put("loanDate",loanDate);
+        param.put("token",token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_LOAN_MAKEUP, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+    }
+
+    public int waitMakeUpQuota(String token){
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_NOTICE_RECIEPT_MAKEUPQUOTA, "token=" + token);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return jsonObject.getInteger("data");
+    }
+}

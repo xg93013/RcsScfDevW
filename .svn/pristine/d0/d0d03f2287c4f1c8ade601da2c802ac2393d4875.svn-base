@@ -1,0 +1,105 @@
+package com.rcsit.scf.bsp.controller;
+
+import com.rcsit.scf.bsp.domain.ResponseModel;
+import com.rcsit.scf.bsp.dto.UraSysUserDto;
+import com.rcsit.scf.bsp.exception.DataErrorException;
+import com.rcsit.scf.bsp.handler.UraSysUserHandler;
+import com.rcsit.scf.bsp.model.ura.UraSysIdentity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Created by hmily on 2017/5/24.
+ */
+@Controller
+@RequestMapping(value = "/ura/user")
+public class UraSysUserController extends BaseController{
+
+    private UraSysUserHandler uraSysUserHandler = new UraSysUserHandler();
+
+    /**
+     * 登录
+     * @param loginName
+     * @param loginPwd
+     * @param model
+     * @return
+     */
+    @RequestMapping("/login")
+    public String  login(@RequestParam("loginName")String loginName, @RequestParam("loginPwd")String loginPwd, Model model, HttpServletResponse response, HttpServletRequest request){
+        UraSysUserDto userDto = uraSysUserHandler.doLogin(loginName, loginPwd);
+        Optional.ofNullable(userDto).orElseThrow(DataErrorException::new);
+        UraSysIdentity uraSysIdentity = userDto.getUraSysIdentity();
+        //新增cookie
+        addCookie(response,request,"token",userDto.getToken());
+        model.addAttribute("user",userDto);
+        //获取默认身份
+        if(null != uraSysIdentity){
+            return "avf/"+uraSysIdentity.getIdentityType().toLowerCase()+"/"+uraSysIdentity.getIdentityType().toLowerCase()+"_index";
+        }
+        //没有默认身份，跳转到身份选择
+        return "test";
+    }
+
+    /**
+     * 身份列表
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/identityList")
+    public ResponseModel identityList(){
+        List<UraSysIdentity> identityList = this.uraSysUserHandler.getIdentityList();
+        return ResponseModel.SUCCESS(identityList);
+    }
+
+    /**
+     * 选择身份登录
+     * @param token
+     * @param identityId
+     * @param model
+     * @return
+     */
+    //@ResponseBody
+    @RequestMapping("/loginWithIdentity")
+    public String loginWithIdentity(@CookieValue("token")String token, @RequestParam("identityId")String identityId, Model model){
+        UraSysUserDto userDto = uraSysUserHandler.loginWithIdentity(token, identityId);
+        Optional.ofNullable(userDto).orElseThrow(DataErrorException::new);
+        model.addAttribute("user",userDto);
+        return "avf/"+userDto.getUraSysIdentity().getIdentityType().toLowerCase()+"/"+userDto.getUraSysIdentity().getIdentityType().toLowerCase()+"_index";
+    }
+
+    /**
+     * 退出登录
+     * @param token
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/logout")
+    public ResponseModel logout(@CookieValue("token")String token){
+        uraSysUserHandler.logout(token);
+        return ResponseModel.SUCCESS();
+    }
+
+    /**
+     * 修改密码
+     * @param token
+     * @param oldPsw
+     * @param newPsw
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "/changePsw")
+    public ResponseModel changePsw(@CookieValue("token")String token,
+                                   @RequestParam("oldPsw")String oldPsw,
+                                   @RequestParam("newPsw")String newPsw){
+        uraSysUserHandler.changePsw(token, oldPsw, newPsw);
+        return ResponseModel.SUCCESS();
+    }
+}

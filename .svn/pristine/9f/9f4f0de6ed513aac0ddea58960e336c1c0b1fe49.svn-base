@@ -1,0 +1,21 @@
+$(function(){
+	var maturiDateId = $("#maturiDateId").val();
+    // var financeStart = $("#financeStart").val();
+    // var financeEnd = $("#financeEnd").val();
+    EUI.Store({
+        url: _ctxPath + "/avf/requite/repaymentCountDown.json",
+        params:{id:maturiDateId},
+        type : "get",
+        success: function (msg) {
+            //保存成功
+            if(msg.data < 0){
+                msg.data = 0;
+            }
+            $("#maturiDate").html(msg.data);
+        },
+        failure: function (data) {
+            //保存失败
+        }
+    });
+    // $("#limitTime").html(getLimitTime(financeStart,financeEnd));
+})

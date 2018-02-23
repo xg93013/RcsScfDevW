@@ -1,0 +1,286 @@
+EUI.InvoicePrepare = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+	initComponent: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			padding: 0, //设置表格的内边距
+			height: "auto",
+			id: g.cfgId,
+			gridCfg: g.initGridTable()
+		});
+		this.addEvents(); //
+		initWin(); //初始化弹出框
+		// EUI.getCmp(g.cfgId).setPostParams({
+		// 	page:"",
+		// 	rows:""
+		// },true);
+	},
+	addEvents: function() {
+		var g = this;
+		//删除一条发票信息
+		$(".deleteRow").live("click", function() {
+            var htmls = '	<div class="import_line">';
+            htmls += '<p class="del_info">确认删除信息？</p>';
+            htmls += '	</div>';
+            htmls += '	<div class="import_line">';
+            htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+            htmls += '	<input type="button" value="确定" class="import_btn import_ok" id="delete_ok"/>';
+            htmls += '	</div>';
+            showWin(htmls);
+            $("#delete_ok").live("click", function() {
+                //后端删除成功后删除表格内容
+                // EUI.Store({
+                //     url: _ctxPath + "/avf/invoice/invoiceExamine.json",
+                //     params:"",
+                //     type : "post",
+                //     success: function (msg) {
+                //         // myMask.hide();
+                //         // g.getFeatureData(g.selectGroup.id);
+                //         // g.win.close();
+                //         console.log(msg);
+                //         EUI.getCmp(g.cfgId).deleteRow($(this).attr("data-id"));
+                //     },
+                //     failure: function (msg) {
+                //         // myMask.hide();
+                //         var htmls = "<div>"+msg.msg+"</div>";
+                //         showWin(htmls);
+                //     }
+                // });
+
+            });
+		});
+        //下载文件模板
+        $("#import_model").live("click", function() {
+            var htmls = '<a href="/static/file/发票批量导入模板.xlsx" class="down_btn excel_down" download="发票批量导入模板.xlsx"></a>';
+            htmls += '<a href="/static/file/发票批量导入模板.xlsx"  class="down_btn txt_down" download="发票批量导入模板.xlsx"></a>';
+            showWin(htmls);
+        })
+        //导入发票
+        $("#import_ticket").live("click", function() {
+            var htmls = '<div class="import_line">';
+            htmls += '<form action="/avf/invoice/importInvoice.json" id= "import_form" name = "import_form" encType="multipart/form-data" method="post">';
+            htmls += '	<input type="text" placeholder="文件地址" id="f_file" class="importfile_input"/>';
+            htmls += ' <input type="file" name="file" class="hide_upload" id="t_file" onchange="f_file.value=this.value" hidefocus>';
+            htmls += ' <input type="button" value="上传文件" class="importfile_btn" onmouseover="fclick(t_file)"/>';
+            htmls += '	</div>';
+            htmls += '	<div class="import_line">';
+            htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+            htmls += '	<input type="button" value="保存" class="import_btn import_ok" id="import_ok"/>';
+            htmls += '<input type="submit" style="display: none" id="sub_import" />';
+            htmls += '	</div>';
+            htmls += '</form>';
+            showWin(htmls);
+        })
+        //取消保存
+        $(".black_win, .cancel_btn").live("click", function() {
+            closeWin();
+        });
+        //确定导入发票
+		$("#import_ok").live("click",function(){
+			if($("#f_file").val() != ""){
+				console.log("xgx");
+                var formData = new FormData($( "#import_form" )[0]);
+                $.ajax({
+                    url: _ctxPath+'/avf/invoice/importInvoice.json',
+                    type: 'POST',
+                    data: formData,
+                    async: true,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (msg) {
+                        alert(msg);
+                    },
+                    error: function (msg) {
+                        alert(msg);
+                    }
+                });
+                // $("#sub_import").click();
+			}
+			else{
+				$("#f_file").val("请选择上传文件！");
+			}
+		})
+	},
+    //文件上传真实按钮
+    fclick:function(){
+        with(obj) {
+            style.posTop = event.srcElement.offsetTop;
+            var x = event.x - offsetWidth / 2;
+            if(x < event.srcElement.offsetLeft) x = event.srcElement.offsetLeft;
+            if(x > event.srcElement.offsetLeft + event.srcElement.offsetWidth - offsetWidth) x = event.srcElement.offsetLeft + event.srcElement.offsetWidth - offsetWidth;
+            style.posLeft = x;
+        }
+    },
+	initGridTable: function() {
+		var g = this;
+		var cfgData = {};
+		//核心企业表格配置
+		if(g.cfgId == "InvoicePre1") {
+			//配置表格
+			cfgData = {
+				url:_ctxPath+"/avf/invoice/waitList.json",//获取后端数据
+				rownumbers: true,
+				rowNum: 10,
+                loadonce: false,
+                mtype : "get",
+				colModel: [{
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					hidden: true //隐藏不显示这一组
+				}, {
+					label: "供应商<span class='down_icon'></span>",
+					name: "supplyName",
+					index: "supplyName",
+                    formatter: function(value, id, rowdata) {
+						var url ="/pbm/verdor/verdorDetail?supplyCode="+rowdata.supplyCode;
+                        return '<a href="'+url+'">' + rowdata.supplyName + '</a>';
+                    }
+				},{
+					label:"录入编号",
+					name:"docNo",
+					index:"docNo",
+					hidden:true
+				},{
+                    label: "供应商代码",
+                    name: "supplyCode",
+                    index: "supplyCode",
+					hidden:true
+                }, {
+					label: "合计金额(元)<span class='down_icon'></span>",
+					name: "totalMoney",
+					index: "totalMoney",
+					formatter: function(value, id, rowdata) {
+						return '<span class="font20">' + rowdata.totalMoney + '</span>';
+					}
+				}, {
+					label: "数量(张)",
+					name: "invoiceTotalNumber",
+					index: "invoiceTotalNumber",
+					formatter: function(value, id, rowdata) {
+						return '<span class="font20">' + rowdata.invoiceTotalNumber + '</span>';
+					}
+				}, {
+					label: "状态<span class='down_icon'></span>",
+					name: "businessDealInfo",
+					index: "businessDealInfo"
+				}, {
+					label: "操作",
+                    name: "businessDealStatus",
+                    index: "businessDealStatus",
+					formatter: function(value, id, rowdata) {
+						//待审核
+						if(rowdata.businessDealStatus == "1010"){
+							var url = "/avf/invoice/toInvoiceDetailPage?type=true&id="+rowdata.id;
+							return '<a href="'+url+'"  class="table_btn" data-id="' + rowdata.id + '">立即审核</a>';
+						}
+						//录入审核拒绝
+						if(rowdata.businessDealStatus == "1011"){
+                            var url = "/avf/invoice/toInvoiceDetailPage?type=false&id="+rowdata.id;
+                            return '<a href="'+url+'"  class="btn_success" data-id="' + rowdata.id + '">查看详情</a>';
+						}
+						//审核通过
+                        if(rowdata.businessDealStatus == "1020"){
+                            url = "/avf/invoice/toInvoiceDetailPage?type=false&id="+rowdata.id;
+                            return '<a href="'+url+'"  class="btn_success" data-id="' + rowdata.id + '">查看详情</a>';
+                        }
+					}
+				}, {
+					label: "",
+					name: "",
+					index: "",
+					width: 100,
+					formatter: function(value, id, rowdata) {
+						return '<div class="coop_a fl"><span class="deleteRow" data-id="' + rowdata.id + '">删除</span><span class="editRow" data-id="' + rowdata.id + '">编辑</span></div>';
+					}
+				}]
+			}
+		}
+		//供应商表格配置
+		if(g.cfgId == "InvoicePre2") {
+			cfgData = {
+                url:_ctxPath+"/avf/invoice/waitList.json",//获取后端数据
+                rownumbers: true,
+                rowNum: 10,
+                loadonce: false,
+                mtype : "get",
+				colModel: [{
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					hidden: true //隐藏不显示这一组
+				}, {
+					label: "序号",
+					name: "docNo",
+					index: "docNo",
+					width: 80,
+					hidden:true
+				}, {
+					label: "发票代码",
+					name: "invoiceCode",
+					index: "invoiceCode",
+					formatter: function(value, id, rowdata) {
+						return '<span>' + rowdata.invoiceCode + '</span>';
+					}
+				}, {
+					label: "发票号码",
+					name: "invoiceNo",
+					index: "invoiceNo",
+					formatter: function(value, id, rowdata) {
+						return '<span>' + rowdata.invoiceNo + '</span>';
+					}
+				}, {
+					label: "税价合计",
+					name: "vatMoney",
+					index: "vatMoney"
+				}, {
+					label: "金额",
+					name: "taxFreeSum",
+					index: "taxFreeSum",
+					formatter: function(value, id, rowdata) {
+						return '<span>' + rowdata.taxFreeSum + '</span>';
+					}
+				}, {
+					label: "税额",
+					name: "vatSum",
+					index: "vatSum"
+				}, {
+					label: "所属公司",
+					name: "companyName",
+					index: "companyName",
+					width: 300,
+                    formatter: function(value, id, rowdata) {
+                        var url ="/pbm/company/companyDetail?companyCode="+rowdata.companyCode;
+                        return '<a href="'+url+'">' + rowdata.companyName + '</a>';
+                    }
+				}, {
+					label: "公司代码",
+					name: "companyCode",
+					index: "companyCode"
+				}, {
+					label: "开票日期",
+					name: "invoDate",
+					index: "invoDate"
+				}, {
+					label: "批次号",
+					name: "batchNumber",
+					index: "batchNumber"
+				}, {
+					label: "发票录入日期",
+					name: "invoDate",
+					index: "invoDate"
+				}, {
+					label: "操作",
+					name: "",
+					index: "",
+					width: 100,
+					formatter: function(value, id, rowdata) {
+						return '<div class="coop_a fl"><span class="deleteRow" data-id="' + rowdata.id + '">删除</span><span class="editRow" data-id="' + rowdata.id + '">编辑</span></div>';
+					}
+				}]
+			}
+		}
+		return cfgData;
+	}
+});

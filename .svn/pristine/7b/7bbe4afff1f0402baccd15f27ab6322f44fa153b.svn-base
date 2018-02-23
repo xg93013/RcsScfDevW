@@ -1,0 +1,53 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.exception.RequestErrorException;
+import com.rcsit.scf.bsp.model.avf.AvfAccountsRecTraNotice;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by hmily on 2017/5/27.
+ */
+public class AvfFinancingReceiptHandler {
+
+    public JSONObject getFinancingReceiptList(int page,int rows ,String token){
+        Map<String,Object> param = new HashMap<>();
+        param.put("page",page);
+        param.put("rows",rows);
+        param.put("token",token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_RECIEPT_RECIPTLIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if(! HttpClientUtil.isOk(jsonObject))
+            throw new RequestErrorException();
+        return JSONObject.parseObject(jsonObject.getString("data"));
+    }
+
+    public AvfAccountsRecTraNotice getFinancingReceiptDetails(String id ,String token){
+        Map<String,String> param = new HashMap<>();
+        param.put("id",id);
+        param.put("token",token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_RECIEPT_RECIPTDETAIL, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if(! HttpClientUtil.isOk(jsonObject))
+            throw new RequestErrorException();
+        return JSONObject.parseObject(jsonObject.getString("data"),new TypeReference<AvfAccountsRecTraNotice>(){});
+    }
+
+    public void doFinancingReceiptMakeup(String id ,String receivablesMoney,String receivablesDate,String token ){
+        Map<String,String> param = new HashMap<>();
+        param.put("id",id);
+        param.put("token",token);
+        param.put("receivablesMoney",receivablesMoney);
+        param.put("receivablesDate",receivablesDate);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_RECIEPT_MAKEUP, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if(! HttpClientUtil.isOk(jsonObject))
+            throw new RequestErrorException();
+    }
+
+}

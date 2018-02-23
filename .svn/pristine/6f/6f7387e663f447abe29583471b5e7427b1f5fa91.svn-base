@@ -1,0 +1,188 @@
+EUI.ExtendAccount = EUI.extend(EUI.CustomUI, {
+	renderTo: null,
+	//comboBoxBank: null,
+	data: null,
+	initComponent: function() {
+		/*this.comboBoxBank = new EUI.ComboBoxBank({
+			renderTo: this.renderTo
+		});*/
+		this.initGrid();
+		this.subMainForm();
+		this.getFormValue();
+		this.addEvents();
+	},
+	initHtml: function(data) {
+		var html = "";
+		for(var i = 0; i < data.length; i++) {
+
+		}
+		$("body").append(html);
+	},
+	initGrid: function() {
+		EUI.Container({
+			renderTo: this.renderTo,
+			layout: "border", //布局方式
+			padding: 20, //内边距
+			border: false, //是否显示边框，false为不显示
+			isOverFlow: false, //内容溢出时是否显示下拉滚动条，false为不显示
+			height: 317,
+			items: [{
+				xtype: "FormPanel",
+				region: "center",
+				id: "scanForm",
+				height: 277,
+				padding: 0,
+				layout: 'form',
+				items: [{
+						xtype: "FieldGroup",
+						title: "意向融资金额",
+						//width: 150,
+						height: 40,
+						//allowBlank: false, //是否可以为空
+						name: "name",
+						id: "name",
+						//unit: "元", // 单位
+						//value: '476,834.34',
+						labelWidth: 130,
+						items: ["<div class='date'><span id='money'>" + $.formatMoney(476834.34, 2) + "</span><span class='font16'>元</span></div>"]
+					},
+					{
+						xtype: "NumberField",
+						title: "意向融资金额",
+						width: 300,
+						height: 40,
+						precision: 2, //设置精度
+						//fullPrecision: false,
+						//allowBlank: false, //是否可以为空
+						name: "name1",
+						id: "name1",
+						unit: "元", // 单位
+						labelWidth: 130,
+
+					},
+					{
+						xtype: "FieldGroup",
+						title: "意向融资到期日",
+						//width: 332,
+						height: 40,
+						labelWidth: 130,
+						style: {
+							"margin-top": "20px",
+						},
+						items: ["<div class='date'><span id = 'date'>2018-12-14</span><span class='font16'>(约<font class='font20'>12</font>个月)</span></div>"]
+					},
+					{
+						xtype: "DateField",
+						title: "意向融资到期日",
+						format: "Y-m-d", // 采用年月日的格式
+						labelWidth: 130, //设置label的宽度
+						maxDate: null, // 设置能够选择的最大日期
+						minDate: "20170301", // 设置能够选择的最小日期，日期格式为"20170301"
+						width: 300,
+						height: 40,
+						listWidth: 150,
+						//allowBlank: false, //是否可以为空
+						name: "dateField", // 设置日期选择框的name,用于后台接受此name
+						id: "dateField",
+						value: new Date().format("yyyy-MM-dd"),
+						//msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+						triggerCss: "ux-date-trigger", // 日期选择触发的样式
+						triggerClickCss: "",
+						afterValid: function() { // 事件：对日期校验后的操作
+							console.log(this.getValue());
+						},
+						afterSelect: function(data) { // 事件：选中日期后做的操作
+							var a = EUI.getCmp("dateField").getValue();
+							console.log(a);
+						}
+					},
+				],
+
+			}],
+		});
+
+	},
+	//提交表单
+    subMainForm: function() {
+        $("#applyAccount").live("click", function() {
+            //表单验证通过
+            if(EUI.getCmp("scanForm").isValid()) {
+                var data = EUI.getCmp("scanForm").getFormValue();
+                var mask = EUI.LoadMask({
+                    msg: "正在保存，请稍后"
+                });
+                EUI.Store({
+                    url: _ctxPath + "/test/form.json",
+                    params: data,
+                    success: function (status) {
+                        mask.hide();
+                        EUI.ProcessStatus(status);
+                    },
+                    failure: function (response) {
+                        mask.hide();
+                        EUI.ProcessStatus(response);
+                    }
+                });
+            }
+            });
+            },
+	getFormValue: function() {
+		//申请融资
+		$('#applyAccount').click(function() {
+			$('#date').text();
+			$('#money').text();
+			var b = EUI.getCmp("dateField").getValue();
+			console.log(b);
+			var c = EUI.getCmp("name1").getValue();
+			console.log(c);
+		});
+
+	},
+	addEvents: function() {
+		//点击单选框
+		$('.radio b').click(function() {
+			var _this = $(this);
+			if(_this.hasClass('radio_1')) {
+				return false;
+			}
+			$('.radio b.radio_1').addClass('radio_2').removeClass('radio_1');
+			_this.addClass('radio_1').removeClass('radio_2');
+		});
+		this.addTabEvents();
+	},
+	addTabEvents: function() {
+
+	},
+	loadData: function() {
+		/*var g = this;
+		EUI.Stor({
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		})*/
+	},
+	showCount: function(data) {
+		$(".todo-count").text(data.count);
+	},
+	checkValid: function() {
+
+		return true;
+	},
+	getData: function() {
+		var data = {};
+		//TODO:
+		return data;
+	},
+	submit: function() {
+		if(!this.checkValid()) {
+			return;
+		}
+		EUI.Stor({
+			url: "",
+			params: this.getData(),
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		});
+	}
+});

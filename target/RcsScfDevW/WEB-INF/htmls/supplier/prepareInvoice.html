@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="../../../static/EUI/jqgrid/css/jquery-ui.min.css">
+		<link rel="stylesheet" href="../../../static/EUI/jqgrid/css/ui.jqgrid.min.css">
+		<link rel="stylesheet" href="../../../static/EUI/eui.css">
+		
+		<script type="text/javascript" src="../../../static/EUI/jquery-1.8.min.js"></script>
+		<script type="text/javascript" src="../../../static/EUI/eui.js"></script>
+		<script type="text/javascript" src="../../../static/EUI/eui_zh-cn.js" ></script>
+		<script type="text/javascript" src="../../../static/EUI/jqgrid/jquery.jqGrid.min.js" ></script>	
+		
+		<!--xg addcss-->
+		<link rel="stylesheet" href="../../../static/styles/css/base.css" />
+		<link rel="stylesheet" href="../../../static/styles/css/common.css" />
+		<link rel="stylesheet" href="../../../static/styles/css/IndexView.css" />
+		
+		<link rel="stylesheet" href="../../../static/styles/css/prepareInvoice.css" />
+		
+		<script type="text/javascript" src="../../../static/scripts/javascript/public.js"></script>
+		<script type="text/javascript" src="../../../static/scripts/supplierJs/prepareInvoice.js"></script>
+		
+		<title>融资管理平台-供应商-准备发票</title>
+		<script type="text/javascript">
+			EUI.onReady(function() {
+				var tablePrepareInvoice = new EUI.GridPanelPrepareInvoice({
+					renderTo : "tablePrepareInvoiceContent",
+					//padding: 5,
+				});
+			});
+		</script>
+	</head>
+
+	<body>		
+		<!--top_common-->
+		<div class="header_com">
+			<div class="header_container">
+				<div class="com_left fl mg25">
+					<img src="../../../static/styles/imgs/logo.png"  />
+				</div>
+				<div class="com_right fr mg25">
+					<div class="person_info fl">
+						<a>
+							<div class="info_graph fl"></div>
+							<!--登录成功-->
+							<div class="info_name fl">
+								<p class="font12">[核心企业]</p>
+								<p class="font18 mg10">用户名</p>
+							</div>
+							<!--未登录状态-->
+							<b></b>
+						</a>
+					</div>
+					<div class="hide_nlist">
+						<ul>
+							<li><a href="#">核心企业</a></li>
+							<li><a href="#">供应商</a></li>
+							<li><a href="#">金融机构</a></li>
+							<li><a href="#">系统管理</a></li>
+							<li><a href="#">密码修改</a></li>
+							<li><a href="#">用户中心</a></li>
+						</ul>
+					</div>
+					<div class="person_exit fl ml10">
+						<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--top_common end-->
+		
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li><a href="#">首页</a></li>
+					<li><a href="#">准备发票</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<div class="rz_nav">
+						<a href="#" class="tab_01_over"><div class="on_state" style="display: block;">1.准备发票</div><div class="off_state" style="display: none;"><p>1.准备发票</p><p class="font16">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="#" class="tab_02"><div class="on_state">2.申请融资</div><div class="off_state"><p>2.申请融资</p><p class="font16">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="#" class="tab_03"><div class="on_state">3.通知单</div><div class="off_state"><p>3.通知单</p><p class="font16">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="#" class="tab_04"><div class="on_state">4.还款</div><div class="off_state"><p>4.还款</p><p class="font16">待维护2项 已申请3项 已反馈2项</p></div></a>
+				</div>
+				<div class="rz_container">
+					<div class="re_con_left fl">
+						<p>待审核：<span class="org_color">4</span>项</p>
+						<p>供应商：<span>5</span>项</p>
+						<p>总额度：<span class="font34">1766123.00</span>元</p>
+					</div>
+					<div class="re_con_right fr">
+						
+						<div class="re_conr_items">
+							<a href="#" class="lr_tickets">手动录入发票</a>
+							<a href="#" class="lr_tickets mg10">导入文件模板</a>
+						</div>
+						<div class="re_conr_items"><a href="#" class="dr_ticket">+导入发票</a></div>
+					</div>
+				</div>
+				<div class="rz_result">
+					<div class="minHeight320" id="tablePrepareInvoiceContent" ></div>
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<div class="footer">
+			<p>绵阳市高新区XXXXX</p>
+			<p>@速信融版权所有</p>
+		</div>
+		<!--footer end-->
+	</body>
+</html>

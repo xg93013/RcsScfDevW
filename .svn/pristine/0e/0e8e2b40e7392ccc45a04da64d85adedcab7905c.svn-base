@@ -1,0 +1,23 @@
+package com.rcsit.scf.bsp.handler;
+
+
+import com.alibaba.fastjson.JSONObject;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.exception.RequestErrorException;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+
+/**
+ * Created by chenkai on 2017/5/27.
+ */
+public class PbmVerdorHandler {
+
+
+    public String doVerdorDetail(String supplyCode) {
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_PBM_VERDOR_DETAIL, "supplyCode="+supplyCode);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        return jsonObject.getString("data");
+    }
+}

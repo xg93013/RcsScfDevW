@@ -1,0 +1,155 @@
+.rz_result{
+	width:1160px;
+	/*height:500px;*/
+	/*height:auto;*/
+	margin:20px auto;
+}
+#notice_sheet{
+	width:1160px;
+	height:500px;
+	margin:20px auto;
+}
+.coop_a{
+	width:60px;
+}
+.ui-jqgrid tr.jqgrow td{
+	padding:10px 0;
+}
+
+/*通知单详情*/
+.sheet_list{
+	width:100%;
+	overflow: hidden;
+	margin-top:20px;
+	border-left: none;
+}
+.sheet_list .supply_items{
+	width:280px;
+	margin:0;
+	float: left;
+}
+.supply_items em{
+	margin:0 10px 0 0;
+}
+
+/*新闻详情*/
+
+.news_detail_box{
+	background:#fff;
+	margin-top:15px;
+}
+.news_detail_top{
+	width:1100px;
+	font-size: 20px;
+	font-weight: bold;
+	text-align: center;
+	border-bottom: 1px solid #dedede;
+	margin:40px 50px 20px;
+}
+.news_content p{
+	text-align: center;
+	margin-bottom: 20px;
+}
+.news_detail_top .news_date{
+	font-size: 12px;
+	color:#999;
+	margin:23px 0 10px 0;
+}
+.news_content{
+	width:1100px;
+	margin:0 50px;
+	font-size: 14px;
+	color:#101010;
+	line-height: 30px;
+	text-align: left;
+}
+
+.con_title{
+	width:1160px;
+	font-size: 16px;
+	margin:20px;
+}
+
+/*还款通知单*/
+#credit_table{
+	width:1160px;
+	height:500px;
+	margin:10px 20px;
+}
+.white_content{
+	width:1200px;
+	background:#fff;
+	margin:15px auto 50px;
+}
+.credit_top_con{
+	width:100%;
+	border-bottom: 1px solid #ccc;
+}
+.top_items_tab{
+	width:1160px;
+	margin:0 auto;
+	overflow: hidden;
+}
+.nums_label{
+	width:200px;
+	float: left;
+	margin:30px 0 10px 0;
+	font-size: 16px;
+	color:#666;
+}
+.top_items_tab .name_box{
+	width:380px;
+	float: left;
+	font-size: 16px;
+	margin:30px 0 40px 0;
+	color:#666;
+}
+.name_box .name_big{
+	font-size: 30px;
+	margin-top:10px;
+	color:#111;
+}
+.dash_border_bt{
+	border-bottom: 1px dashed #ccc;
+}
+
+/*收款详情*/
+#credit_detail_form{
+	margin:20px 0;
+}
+.ux-checkbox{
+	width:40px;
+}
+.step_content{
+	padding-bottom: 100px;
+}
+.ux-field .ux-field-text{
+	font-size: 18px;
+}
+.ok_add{
+	width:300px;
+	height:60px;
+	text-align: center;
+	line-height: 60px;
+	border-radius: 4px;
+	cursor: pointer;
+	font-size: 16px;
+	background:#fd7138;
+	color:#fff;
+	margin-bottom: 40px;
+}
+.ml106{
+	margin-left: 114px;
+}
+.confirm{
+	right:100px;
+}
+.show_sheet_info{
+	position: relative;
+}
+.wyzzk_top_right{
+	height:200px;
+}
+.whyzzk_money .font20{
+	color:#111;
+}

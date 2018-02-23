@@ -1,0 +1,183 @@
+EUI.Sheet = EUI.extend(EUI.CustomUI, {
+	renderTo: null,
+	//comboBoxBank: null,
+	height: 'auto',
+	data: null,
+	initComponent: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		/*this.comboBoxBank = new EUI.ComboBoxBank({
+			renderTo: this.renderTo
+		});*/
+		this.initGrid();
+		this.addEvents();
+	},
+	initHtml: function(data) {
+		var html = "";
+		for(var i = 0; i < data.length; i++) {
+
+		}
+		$("body").append(html);
+	},
+	initGrid: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		EUI.GridPanel({
+			renderTo: _this.renderTo,
+			padding: 0, //设置表格的内边距
+			exportXls: false,
+			searchConfig: null,
+			showRefresh: false,
+			id: "sheetTab",
+			//autoLoad: true, //自动加载
+			height: 'auto',
+			gridCfg: {
+                url:_ctxPath+"/avf/notice/noticesList.json",//获取后端数据
+                rowNum: 10,//一页显示几条数据
+                loadonce:false,//true数据一次性加载,每页返回加载每页的数据
+				//shrinkToFit: false,//表格宽度自适应
+				rownumbers: false, //去掉表格序号
+				colModel: [{
+					label: "序号",
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称						
+					hidden: true, //隐藏不显示这一组
+				}, {
+					label: "供应商",
+					name: "supplyShortName",
+					index: "supplyShortName",
+
+				}, {
+					label: "融资银行",
+					name: "finInsShortName",
+					index: "finInsShortName",
+
+				}, {
+					label: "银行利率（%）",
+					name: "bankRate",
+					index: "bankRate",
+                    formatter: function(value, id, rowdata) {
+                        return parseFloat(rowdata.bankRate).toFixed(2);
+                    }
+
+				},{
+                    label: "融资金额（元）",
+                    name: "financeMoney",
+                    index: "financeMoney",
+					width:200,
+					// align:'right',
+                    formatter: function(value, id, rowdata) {
+                        return '<span class="font20">￥' + $.formatMoney(rowdata.financeMoney,2) + '</span>';
+                    }
+
+                },{
+                    label: "融资比例（%）",
+                    name: "invoiceTotalMoney",
+                    index: "invoiceTotalMoney",
+                    formatter: function(value, id, rowdata) {
+                        return '<span class="font20">' + Math.round(rowdata.financeMoney/rowdata.invoiceTotalMoney*100) + '</span>';
+                    }
+
+                },{
+                    label: "融资起始日",
+                    name: "financeStart",
+                    index: "financeStart",
+                    formatter: function(value, id, rowdata) {
+                        return GetDateT(new Date(rowdata.financeStart));
+                    }
+					//hidden:true,
+                },{
+					label: "融资到期日",
+					name: "financeEnd",
+					index: "financeEnd",
+					formatter: function(value, id, rowdata) {
+						return GetDateT(new Date(rowdata.financeEnd));
+					}
+
+				}, {
+					label: "状态",
+					name: "businessDealInfo",
+					index: "businessDealInfo",
+					width:200,
+					// align:'left',
+
+				}, {
+					label: "操作",
+					name: "businessDealStatus",
+					index: "businessDealStatus",
+					width:200,
+					formatter: function(value, id, rowdata) {
+						if(parseInt(rowdata.businessDealStatus)  == 3020) {
+							return '<div class="btn_defend sheet_confirm" data='+rowdata.id+'>通知单确认</div>';
+						} else{
+							return '<div class="btn_detail lookDetail" data='+rowdata.id+'>查看明细</div>';
+						}
+							//return '<div class="btn_wait waitSupplier">等待供应商确认</div>';
+
+
+					}
+				},
+				/*{
+					label: "操作",
+					formatter: function(value, id, rowdata) {
+						return '<div class="del_sheet btn_div">删除</div><div class="edit_sheet btn_div">编辑</div>';
+
+					}
+					}*/
+				],
+				//data: _this.loadData(),
+			}
+		});
+	},
+	addEvents: function() {
+		//通知单确认
+        $(".sheet_confirm").live("click", function () {
+			var id = $(this).attr('data');
+			window.location.href =_ctxPath+ '/avf/notice/noticeConfirmPage?id='+id+'&identityType=ENTERPRISE';
+		});
+        //查看明细
+        $(".lookDetail").live("click", function () {
+            var id = $(this).attr('data');
+            window.location.href =_ctxPath+ '/avf/notice/noticeDetailPage?id='+id+'&identityType=ENTERPRISE';
+		});
+        //放款成交单
+        // $('.trade_ticket').click(function () {
+        //     errorInfo('放款成交单功能正在开发中');
+        // });
+	},
+	addTabEvents: function() {
+
+	},
+	loadData: function() {
+		/*var g = this;
+		EUI.Stor({
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		})*/
+	},
+	showCount: function(data) {
+		$(".todo-count").text(data.count);
+	},
+	checkValid: function() {
+
+		return true;
+	},
+	getData: function() {
+		var data = {};
+		//TODO:
+		return data;
+	},
+	submit: function() {
+		if(!this.checkValid()) {
+			return;
+		}
+		EUI.Stor({
+			url: "",
+			params: this.getData(),
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		});
+	}
+});

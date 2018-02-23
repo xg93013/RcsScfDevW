@@ -1,0 +1,63 @@
+package com.rcsit.scf.bsp.tag;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.exception.TokenErrorException;
+import com.rcsit.scf.bsp.handler.UraSysUserHandler;
+import com.rcsit.scf.bsp.model.ura.UraSysUser;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.record.formula.functions.T;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.tagext.SimpleTagSupport;
+import java.io.IOException;
+import java.util.Optional;
+
+/**
+ * Created by wangdayin on 2017/6/14.
+ */
+public class CurrentUserTag extends SimpleTagSupport {
+    private boolean writeName = true;
+    private String var = "currentUser";
+    private String defaultUserName = "匿名";
+    private String token;
+
+    @Override
+    public void doTag() throws JspException, IOException {
+        Optional.ofNullable(token).orElseThrow(TokenErrorException::new);
+        UraSysUser uraSysUser = new UraSysUserHandler().getCurrentUserInfo(token);
+        Optional.ofNullable(uraSysUser).ifPresent(sysUser -> {
+            try {
+                getJspContext().getOut().write(sysUser.getUserName());
+            } catch (IOException e) {
+                throw new TokenErrorException();
+            }
+        });
+
+    }
+
+    public void setWriteName(boolean writeName) {
+        this.writeName = writeName;
+    }
+
+    public void setVar(String var) {
+        this.var = var;
+    }
+
+    public void setDefaultUserName(String defaultUserName) {
+        this.defaultUserName = defaultUserName;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+}

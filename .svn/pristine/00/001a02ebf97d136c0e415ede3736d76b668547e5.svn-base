@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="../../../../static/base/EUI/jqgrid/css/jquery-ui.min.css" />
+		<link rel="stylesheet" href="../../../../static/base/EUI/jqgrid/css/ui.jqgrid.min.css" />
+		<link rel="stylesheet" href="../../../../static/base/EUI/eui.css" />
+		
+		<script type="text/javascript" src="../../../../static/base/EUI/jquery-1.8.min.js"></script>
+		<script type="text/javascript" src="../../../../static/base/EUI/eui.js"></script>
+		<script type="text/javascript" src="../../../../static/base/EUI/eui_zh-cn.js" ></script>
+		<script type="text/javascript" src="../../../../static/base/EUI/jqgrid/jquery.jqGrid.min.js" ></script>
+
+		<!--xg addcss-->
+		<link rel="Shortcut Icon" href="../../../../static/avf/images/logo2.ico" />
+		<link rel="stylesheet" href="../../../../static/avf/css/base.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/common.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/mainView.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/heart_commpany.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/supplyMain.css" />
+		<!--xg addjs-->
+		<script type="text/javascript" src="../../../../static/avf/js/common.js" ></script>
+		<script type="text/javascript" src="../../../../static/avf/js/credit_detail.js" ></script>
+		<script>
+			EUI.onReady(function() {
+				new EUI.FormPanelDemo({
+					renderTo : "credit_detail_form"
+				});
+			});
+		</script>
+		<title>融资管理平台</title>
+	</head>
+
+	<body>		
+		<!--弹出框-->
+		<!--<div class="black_win"></div>
+		<div class="show_win"></div>-->
+		<!--top_common-->
+		<div class="header_com">
+			<div class="header_container">
+				<div class="com_left fl mg10">
+					<img  src="../../../../static/avf/images/logo.png"/>
+				</div>
+				<div class="com_right fr mg10">
+					<div class="person_info fl">
+						<a>
+							<div class="info_graph fl"></div>
+							<!--登录成功-->
+							<div class="info_name fl">
+								<p class="font14">[核心企业]</p>
+								<p class="font18 mg10">用户名</p>
+							</div>
+							<!--未登录状态-->
+							<b></b>
+						</a>
+						<div class="hide_nlist">
+							<ul>
+								<li><a href="#">核心企业</a></li>
+								<li><a href="#">供应商</a></li>
+								<li><a href="#">金融机构</a></li>
+								<li><a href="#">系统管理</a></li>
+								<li><a href="#">密码修改</a></li>
+								<li><a href="#">用户中心</a></li>
+								<li><a href="#">融资配置</a></li>
+							</ul>
+						</div>
+					</div>
+					
+					<div class="person_exit fl ml10">
+						<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--top_common end-->
+		
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li>首页</li>
+					<li><a href="finance_credit.html">&nbsp;&gt;&nbsp;收款补录</a></li>
+					<li><a href="credit_detail.html">&nbsp;&gt;&nbsp;详情</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 white_content">
+				<div class="credit_top_con">
+					<div class="top_items_tab dash_border_bt">
+						<div class="nums_label">成交单号：<span class="color333">5024234</span></div>
+						<div class="nums_label">成交单号：<span class="color333">5024234</span></div>
+					</div>
+					<div class="top_items_tab">
+						<div class="name_box">
+							<p>供应商：</p>
+							<p class="name_big">供应商名称</p>
+						</div>
+						<div class="name_box">
+							<p>核心企业：</p>
+							<p class="name_big">核心企业名称</p>
+						</div>
+						<div class="name_box">
+							<p>资金提供方：</p>
+							<p class="name_big">工商银行</p>
+						</div>
+					</div>
+				</div>
+				
+				<!--收款表单-->
+				<div id="credit_detail_form"></div>
+				<div class="close_store ml106"><b class="b_1"></b><span>关闭储存</span></div>
+				<div class="btn_refuse ml106">
+					<div class="ok_add">确认补录</div>					
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--遮罩层开始-->
+		<div id="overlay" class="overlay" style="display: none;"></div>  
+	    <!-- Loading提示 DIV -->  
+	    <div id="loadingTip" class="loading_tip" style="display: none;">
+	     	<div class="loading_content">
+	     		<img src="../../../../static/avf/images/record.png"/>
+	     		<p> 补录成功...</p>
+	     	</div>
+	    </div>  
+	    <!--遮罩层结束-->
+		
+		<!--footer-->
+		<div class="footer">
+			<p>绵阳市高新区XXXXX</p>
+			<p>@速信融版权所有</p>
+		</div>
+		<!--footer end-->
+		<!--<button id="login_now">登录</button>-->
+	</body>
+</html>

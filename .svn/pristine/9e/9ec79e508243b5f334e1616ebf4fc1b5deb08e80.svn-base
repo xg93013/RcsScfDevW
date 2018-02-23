@@ -1,0 +1,166 @@
+package com.rcsit.scf.bsp.domain;
+
+
+
+import com.rcsit.scf.bsp.utils.ResourceBundleUtil;
+
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.Date;
+import java.util.function.Consumer;
+
+/**
+ * 公用返回对象
+ * @param <T>
+ */
+public class ResponseModel<T> implements Serializable {
+
+    private static final int STATUS_SUCCESS = 200;
+    private static final int STATUS_ERROR = 500;
+    private static final int STATUS_NOT_FOUND = 404;
+    private static final int STATUS_ACCESS_FORBIDDEN = 403;
+
+
+
+
+    private Date timestamp = Date.from(Instant.now());
+    private boolean status;
+    private String message;
+    private T data;
+
+    public ResponseModel(boolean status, String messageCode, T data) {
+        this.status = status;
+        this.message = ResourceBundleUtil.getString(messageCode,"messages");
+        this.data = data;
+    }
+
+    public ResponseModel() {
+    }
+
+    public static <T> ResponseModel<T> SUCCESS() {
+        return SUCCESS("message.success.default", null);
+    }
+
+    public static <T> ResponseModel<T> SUCCESS(String messageCode) {
+        return SUCCESS(messageCode, null);
+    }
+
+    public static <T> ResponseModel<T> SUCCESS(T data) {
+        return SUCCESS("message.success.default", data);
+    }
+
+    public static <T> ResponseModel<T> SUCCESS(String messageCode, T data) {
+        return new ResponseModel<>(true, messageCode, data);
+    }
+
+    public static <T> ResponseModel<T> ERROR() {
+        return ERROR("error.internal.error");
+    }
+
+    public static <T> ResponseModel<T> ERROR(String messageCode) {
+        return ERROR(false, messageCode, null);
+    }
+
+    public static <T> ResponseModel<T> ERROR(String messageCode, T data) {
+        return ERROR(false, messageCode, data);
+    }
+
+    public static <T> ResponseModel<T> ERROR(boolean status, String message) {
+        ResponseModel<T> model = new ResponseModel<>();
+        model.status = status;
+        model.message = message;
+        return model;
+    }
+
+    private static <T> ResponseModel<T> ERROR(boolean status, String messageCode, T data) {
+        return new ResponseModel<>(status, messageCode, data);
+    }
+
+    public static <T> ResponseModel<T> NOT_FOUND(String messageCode) {
+        return ERROR(false, messageCode, null);
+    }
+
+    public static <T> ResponseModel<T> NOT_FOUND() {
+        return NOT_FOUND("error.object.not.found");
+    }
+
+    public static <T> ResponseModel<T> ACCESS_FORBIDDEN() {
+        return ERROR(false, "error.access.forbidden", null);
+    }
+
+    public static <T> ResponseModel<T> SESSION_INVALID() {
+        return ERROR(false, "error.access.session.invalid", null);
+    }
+
+
+    @Override
+    public String toString() {
+        return "ResponseModel{" +
+                "timestamp=" + timestamp +
+                ", status=" + status +
+                ", message='" + message + '\'' +
+                ", data=" + data +
+                '}';
+    }
+
+    public void ifPresent(Consumer<T> consumer) {
+        if (this.data != null) {
+            consumer.accept(this.data);
+        }
+    }
+
+    public void successIfPresent(Consumer<T> consumer) {
+        if (this.status && this.data != null) {
+            consumer.accept(this.data);
+        }
+    }
+
+    public void success(Consumer<T> consumer) {
+        if (this.status) {
+            consumer.accept(this.data);
+        }
+    }
+
+    public void fail(Fallback<Integer, String, T> consumer) {
+        if (!this.status) {
+            consumer.accept(true, this.message, this.data);
+        }
+    }
+
+    public void failException() {
+        if (!this.status) {
+            throw new RuntimeException(this.message);
+        }
+    }
+
+    public <E extends RuntimeException> void failException(E e) {
+        if (!this.status) {
+            throw e;
+        }
+    }
+
+    @FunctionalInterface
+    public interface Fallback<B, M, D> {
+        void accept(Boolean status, M message, D data);
+    }
+
+    public boolean getStatus() {
+        return status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public boolean isSuccess() {
+        return status;
+    }
+}

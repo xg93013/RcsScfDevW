@@ -1,0 +1,90 @@
+/**
+ * Created by xionggang on 2017/8/1.
+ * des:核心企业发票详情
+ * jspPath:WEB-INF/views/avf/enterprise/invoice_detail.jsp
+ */
+EUI.InvoiceDetail = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+    docNo:null,
+	initComponent: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			xtype: "GridPanel",
+			width:"1160",
+			padding: 0, //设置表格的内边距
+			height:"auto",
+			id: g.cfgId,
+			autoLoad: true, //自动加载
+			gridCfg: g.initGrid()
+		});
+		this.addEvents();
+	},
+	addEvents: function() {
+        $("#jqgh_g_InvoiceDetail_rn").append("序号");
+	},
+	initGrid: function() {
+		var g = this;
+		//配置表格
+		var cfgData = {
+            url:_ctxPath+"/avf/invoice/invoiceDetail.json",//获取后端数据
+            postData:{
+                docNo:this.docNo
+            },
+			//rownumbers:false,
+			loadonce: false, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+            colModel: [{
+                name: "id", //列显示的名称
+                index: "id", //传到服务器端用来排序的列名称
+                hidden: true //隐藏不显示这一组
+            }, {
+                label: "批次号",
+                name: "batchNumber",
+                index: "batchNumber",
+            },{
+                label: "发票代码",
+                name: "invoiceCode",
+                index: "invoiceCode",
+            },{
+                label: "发票号码",
+                name: "invoiceNo",
+                index: "invoiceNo",
+            },{
+                label: "价税合计",
+                name: "vatMoney",
+                index: "vatMoney",
+                formatter: function(value, id, rowdata) {
+                    return '<span class="font18 bold">' + $.formatMoney(rowdata.vatMoney,2) + '</span>元';
+                }
+            },{
+                label: "金额",
+                name: "taxFreeSum",
+                index: "taxFreeSum",
+                formatter: function(value, id, rowdata) {
+                    return '<span class="font18 bold">' + $.formatMoney(rowdata.taxFreeSum,2) + '</span>元';
+                }
+            },{
+                label: "税额",
+                name: "vatSum",
+                index: "vatSum",
+                formatter: function(value, id, rowdata) {
+                    return '<span class="font18 bold">' + $.formatMoney(rowdata.vatSum,2) + '</span>元';
+                }
+            },{
+                label: "开票日期",
+                name: "invoDate",
+                index: "invoDate"
+            },{
+                label: "账款到期日",
+                name: "maturityDate",
+                index: "maturityDate",
+                width:200,
+                formatter:function(value,id,rowdata){
+                    return GetDateT(new Date(rowdata.maturityDate));
+                }
+            }]
+		}
+		return cfgData;
+	}
+});

@@ -1,0 +1,134 @@
+EUI.NoticeSheet = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+	initComponent: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			xtype: "GridPanel",
+			padding: 0, //设置表格的内边距
+			overflow: "hidden",
+			height:"auto",
+			id: g.cfgId,
+			autoLoad: true, //自动加载
+			gridCfg: g.initGrid()
+		});
+        initWin();
+		this.addEvents();
+	},
+	initGrid: function() {
+		var g = this;
+		//配置表格
+		var cfgData = {
+			url:_ctxPath+"/avf/notice/noticesList.json",
+			rowNum:10,
+			rownumbers: false,
+            mtype : "get",
+			loadonce: false, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+			colModel: [{
+				name: "id", //列显示的名称
+				index: "id", //传到服务器端用来排序的列名称
+				hidden: true //隐藏不显示这一组
+			},{
+				label: "核心企业",
+				name: "companyShortName",
+				index: "companyShortName",
+				formatter: function(value, id, rowdata) {
+					return '<span>' + rowdata.companyShortName + '</span>';
+				}
+			}, {
+				label: "融资银行",
+				name: "finInsShortName",
+				index: "finInsShortName",
+				formatter: function(value, id, rowdata) {
+					if(rowdata.finInsShortName == "" || rowdata.finInsShortName == undefined){
+						return "";
+					}else{
+                        return '<span>' + rowdata.finInsShortName + '</span>';
+					}
+
+				}
+			}, {
+				label: "银行利率(%)",
+				name: "bankRate",
+				index: "bankRate",
+				width:120
+			}, {
+				label: "融资金额(元)",
+				name: "financeMoney",
+				index: "financeMoney",
+				formatter: function(value, id, rowdata) {
+					return '<span class="font20">￥' + $.formatMoney(rowdata.financeMoney,2) + '</span>';
+				}
+			}, {
+				label: "融资比例(%)",
+				name: "financeProportion",
+				index: "financeProportion",
+				width:120,
+                formatter: function(value, id, rowdata) {
+                    return '<span class="font20">' + parseInt(rowdata.financeProportion) + '</span>';
+                }
+			}, {
+				label: "融资起始日",
+				name: "financeStart",
+				index: "financeStart",
+                formatter: function(value, id, rowdata) {
+                    return '<span class="font16">' +GetDateT(new Date(rowdata.financeStart)) + '<br/>';
+                }
+			}, {
+				label: "融资到期日",
+				name: "financeEnd",
+				index: "financeEnd",
+                formatter: function(value, id, rowdata) {
+                    return '<span class="font16">' +GetDateT(new Date(rowdata.financeEnd)) + '<br/>';
+                }
+			}, {
+				label: "状态",
+				name: "businessDealStatus",
+				index: "businessDealStatus",
+				width:100,
+				formatter: function(value, id, rowdata) {
+					return(rowdata.businessDealStatus == "3010") ? '等待供应商确认' : '已确认';
+				}
+			}, {
+				label: "操作",
+				name: "",
+				index: "",
+				width: 230,
+				formatter: function(value, id, rowdata) {
+                    var url = "/avf/notice/noticeConfirmPage?identityType=SUPPLIER&id="+rowdata.id;
+                    var detailUrl = "/avf/notice/noticeDetailPage?identityType=SUPPLIER&id="+rowdata.id;
+
+                    //_ctxPath+ '/avf/notice/noticeDetailPage?id='+id+'&identityType=ENTERPRISE'
+					return(rowdata.businessDealStatus == "3010") ? '<a href="'+url+'"  class="table_btn" data-id="' + rowdata.id + '">确认通知单</a>' : '<a href="'+detailUrl+'"  class="btn_success" data-id="' + rowdata.id + '">查看详情</a>';
+				}
+			}]
+		}
+		return cfgData;
+	},
+	addEvents: function() {
+		var g = this;
+		$(".deleteRow").live("click", function() {
+			//			$("#gradelist").deleteRow($(this).attr("data-id"));
+			//			console.log(g.deleteRow($(this).attr("data-id")));
+			g.deleteOneRow("gradelist", $(this).attr("data-id"));
+
+		});
+	},
+	//删除一行数据
+	deleteOneRow: function(tableId, rowId) {
+		var g = this;
+		var htmls = '	<div class="import_line">';
+		htmls += '<p class="del_info">确认删除信息？</p>';
+		htmls += '	</div>';
+		htmls += '	<div class="import_line">';
+		htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+		htmls += '	<input type="button" value="确定" class="import_btn import_ok" id="delete_ok"/>';
+		htmls += '	</div>';
+		showWin(htmls);
+		$("#delete_ok").live("click", function() {
+			//后端删除成功后删除表格内容
+			EUI.getCmp(tableId).deleteRow(rowId);
+		});
+	}
+});

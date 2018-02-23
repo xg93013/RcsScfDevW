@@ -1,0 +1,157 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="stylesheet" href="/static/avf/css/base.css" />
+		<link rel="stylesheet" href="/static/avf/css/common.css" />
+		
+		<link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+		<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+
+		<script type="text/javascript" src="/static/base/js/public.js" ></script>
+		<script type="text/javascript" src="/static/base/js/common.js" ></script>
+		<script type="text/javascript" src="/static/avf/js/finance_approval.js" ></script>
+		<title>首页-放款补录-详情</title>
+		<style>	
+			.ux-line-row {
+			    margin: 20px 0px;
+			}	
+			.btn_refuse .btn_submit{
+				width:314px;
+			}
+			.ux-unitfield-unit {
+			    margin-left: 5px;
+			    position: absolute;
+			    margin-top: 8px;
+			}
+			.ux-field {
+			    overflow: hidden;
+			}
+		</style>
+		<script type="text/javascript">
+			EUI.onReady(function() {
+				var formRecord = new EUI.formRecord({
+					renderTo : "recordForm",
+					//padding: 5,
+				});
+			});
+		</script>
+	</head>
+
+	<body>		
+		<!--top_common-->
+		<div class="header_com">
+			<div class="header_container">
+				<div class="com_left fl mg10">
+					<img src="/static/avf/images/logo.png"  />
+				</div>
+				<div class="com_right fr mg10">
+					<div class="person_info fl">
+						<a>
+							<div class="info_graph fl"></div>
+							<!--登录成功-->
+							<div class="info_name fl">
+								<p class="font12">[核心企业]</p>
+								<p class="font18 mg10">用户名</p>
+							</div>
+							<!--未登录状态-->
+							<b></b>
+						</a>
+					</div>
+					<div class="hide_nlist">
+						<ul>
+							<li><a href="#">核心企业</a></li>
+							<li><a href="#">供应商</a></li>
+							<li><a href="#">金融机构</a></li>
+							<li><a href="#">系统管理</a></li>
+							<li><a href="#">密码修改</a></li>
+							<li><a href="#">用户中心</a></li>
+						</ul>
+					</div>
+					<div class="person_exit fl ml10">
+						<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--top_common end-->
+		
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li><a href="#">首页</a></li>
+					<li><a href="#">&gt;&nbsp;放款补录</a></li>
+					<li><a href="#">&gt;&nbsp;详情</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<div class="wyzzk">
+					<div class="wyzzk_top_left">
+						<div class="whyzzk_company w1160">
+							<div class="w360 fl">
+								<input type="hidden" id="makeUpId" value="${financingLoanDetails.id}">
+								<span><label>成交单号：</label><font>${financingLoanDetails.noticeNo}</font></span>
+							</div>
+							<div class="w299 fl">
+								<span><label>合同单号：</label><font>${financingLoanDetails.noticeNo}</font></span>
+							</div>
+						</div>
+						<div class="whyzzk_money">
+							<div class="w360 fl">
+								<span>供应商：</span>
+								<span><label class="f30">${financingLoanDetails.supplyName}</label></span>
+							</div>
+							<div class="w450 fl">
+								<span class="w330">核心企业:</span>
+								<span class="w330"><label class="f30">${financingLoanDetails.companyName}</label></span>
+							</div>
+							<div class="fl">						
+								<span class="w330">资金提供方:</span>
+								<span class="w330"><label class="f30">${financingLoanDetails.finInsName}</label></span>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+				<div class="form">
+					<div class="record_form" style="height:165px;">
+						<div id="recordForm"></div>
+					</div>
+					<div class="close_store ml106"><b class="b_1"></b><span>关闭储存</span></div>
+					<div class="btn_refuse ml106">
+						<div class="btn_3 btn_submit" id="confirm_record">确认补录</div>					
+					</div>
+				</div>
+			
+			</div>
+			
+		</div>
+		
+		<!--遮罩层开始-->
+		<div id="overlay" class="overlay" style="display: none;"></div>  
+	    <!-- Loading提示 DIV -->  
+	    <div id="loadingTip" class="loading_tip" style="display: none;">  
+	     	<div class="loading_content">
+	     		<img src="/static/avf/images/record.png"/>
+	     		<p> 补录成功...</p>
+	     	</div>
+	    </div>  
+	    <!--遮罩层结束-->
+		<!--main content end-->
+		<!--footer-->
+		<div class="footer">
+			<p>绵阳市高新区XXXXX</p>
+			<p>@速信融版权所有</p>
+		</div>
+		<!--footer end-->
+	</body>
+</html>
+

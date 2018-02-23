@@ -1,0 +1,71 @@
+package com.rcsit.scf.bsp.controller;
+
+import com.alibaba.fastjson.JSONObject;
+import com.rcsit.scf.bsp.domain.PageModel;
+import com.rcsit.scf.bsp.handler.AvfAccountRPInfoHandler;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ * 应收应付账款
+ * Created by hmily on 2017/7/20.
+ */
+@Controller
+@RequestMapping(value = "/avf/accountRPInfo")
+public class AvfAccountRPInfoController extends BaseController {
+
+    private AvfAccountRPInfoHandler handler = new AvfAccountRPInfoHandler();
+
+    /**
+     * 应收应付账款页面
+     * @param
+     * @return
+     */
+    @RequestMapping(value = "/accountRPInfoPage")
+    public String accountRPInfoPage(){
+        return "avf/enterprise/rec_pay_money";
+    }
+
+
+    /**
+     * 应收应付账款数据
+     * @param page
+     * @param rows
+     * @param token
+     * @param keyWord
+     * @param query
+     * @return
+     */
+    @RequestMapping(value = "/accountRPInfoList")
+    @ResponseBody
+    public Object accountRPInfoList(@RequestParam(value = "page",defaultValue = "1")int page,
+                                    @RequestParam(value = "rows",defaultValue = "25") int rows ,
+                                    @CookieValue("token")String token,
+                                    @RequestParam(value = "keyWord",defaultValue = "")String keyWord,
+                                    @RequestParam(value = "query",defaultValue = "")String query) {
+        JSONObject jsonObject = this.handler.fingAccountsRPInfos(page, rows, token, keyWord, query);
+        return new PageModel<>(jsonObject);
+    }
+
+    /**
+     * 添加应收应付账款页面
+     * @return
+     */
+    @RequestMapping(value = "/addAccountRPInfoPage")
+    public String addAccountRPInfoPage(){
+        return "avf/enterprise/add_rec_pay_money";
+    }
+
+    /**
+     * 添加应收应付账款页面
+     * @return
+     */
+    @RequestMapping(value = "/editAccountRPInfoPage")
+    public String editAccountRPInfoPage(){
+        return "avf/enterprise/edit_rec_pay_money";
+    }
+
+}

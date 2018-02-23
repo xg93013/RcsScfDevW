@@ -1,0 +1,298 @@
+var timer = 10,dateYear = [];
+var start = 1991; // 指定开始年份
+var end = new Date().getFullYear(); // 获取当前年份
+for(var i = end; i >= start;i--){
+    if(i == end){
+        dateYear.push({dateYear:i,selected:'selected'});
+    }else{
+        dateYear.push({dateYear:i});
+    }
+
+}
+$(function() {
+	//单选
+	/*$('.chioce_list ul li b').click(function() {
+		var _this = $(this);
+		var count = $('.chioce_list ul li b').length;
+		var count1 = 0; 
+		var count2 = 0;
+		if(_this.hasClass('b_1')) {
+			_this.removeClass('b_1').addClass('b_2');			
+		} else {
+			_this.removeClass('b_2').addClass('b_1');
+		}
+		count1 = $('.chioce_list ul li b.b_1').length;
+		count2 = $('.chioce_list ul li b.b_2').length;
+		if(count == count2){
+			$('.chioce_list ul li .all_chioce').removeClass('b_1').addClass('b_2');
+		}else{
+			$('.chioce_list ul li .all_chioce').removeClass('b_2').addClass('b_1');
+		}
+
+	});*/
+	/*全选按钮*/
+	/*$('.chioce_list ul li .all_chioce').click(function() {
+		var _this = $(this);
+		if(_this.hasClass('b_1')) {
+			_this.removeClass('b_1').addClass('b_2');
+			$('.chioce_list ul li b').removeClass('b_1').addClass('b_2');
+		} else {
+			_this.removeClass('b_2').addClass('b_1');
+			$('.chioce_list ul li b').removeClass('b_2').addClass('b_1');
+
+		}
+	});*/
+	/*$('.ui-jqgrid-htable th').live('mouseenter', function() {
+		$('.chioce').show();
+	});
+	$('.ui-jqgrid-htable th').live('mouseleave', function() {
+		$('.chioce').hide();
+	});*/
+	
+	//同意弹出弹出框
+
+	/*$('#agree').click(function(){
+		$('#overlay').css('display','block');
+		$('#loadingTip').css('display','block');
+		timer =10;
+		Countdown();
+	});*/
+
+
+		//期限转化成yyyy-mmm-dd - yyyy-mm-dd
+		$('.term').each(function () {
+			var _this = $(this);
+			var txtStartTime = _this.attr('data');
+			var txtEndTime  = _this.attr('fc-data');
+            var startTime = new Date(txtStartTime);
+            var endTime = new Date(txtEndTime);
+            var term;
+            if(txtStartTime != '' && txtEndTime != ''){
+                term = GetDateT(startTime)+'~'+GetDateT(endTime)
+			}else{
+            	term = '-- -- --';
+			}
+            _this.html(term);
+		});
+    	//金额转化成千分位
+    	$('.money').each(function () {
+    		var _this = $(this);
+    		var data = _this.attr('data');
+    		if(data != ''){
+                _this.html($.formatMoney(parseFloat(data),2));
+			}else{
+    			_this.html('--');
+			}
+
+        });
+    	//时间转化成yyyy-mmm-dd
+    	$('.time').each(function () {
+            var _this = $(this);
+            var data = _this.attr('data');
+            var time = new Date(data);
+            if(data != undefined){
+                _this.html(GetDateT(time));
+			}else{
+                _this.html('-- -- --');
+}
+        });
+    	//时间轴转化成月份间隔
+		$('.month').each(function () {
+			var _this =$(this);
+			var data = _this.attr('data');
+			var fcData = _this.attr('fc-data');
+            var startTime = new Date(data);
+            var endTime = new Date(fcData);
+			if(data !=undefined && fcData != undefined){
+				_this.html(getLimitTime(GetDateT(startTime),GetDateT(endTime)));
+			}else{
+				_this.html('--');
+			}
+		});
+    	//浮点数转发成小数两位
+		$('.rate').each(function () {
+            $(this).html(parseFloat($(this).attr('data')).toFixed(2));
+		});
+		//浮点数四舍五入
+		$('.round').each(function () {
+			$(this).html(Math.round($(this).attr('data')));
+		});
+		//取消拒绝融资
+    	$('#finacialCancel').click(function () {
+			window.location.href=_ctxPath+"/avf/financingApprove/financingApproveListPage";
+        });
+    	//提交拒绝融资
+		$('#financialSubmit').click(function () {
+			var id = $('#refusedId').val();
+            $.get(_ctxPath + '/avf/financingApprove/doFinancingDemandReject.json',{id:id}, function(d, s) {
+                if(d.status == true){
+                    // showToPageInfo('',url)
+					$('.btn_refuse').css('display','none');
+					$('.refused').css('display','block');
+                    // window.location.href=_ctxPath+"/avf/financingApprove/doFinancingDemandRejectPage?id="+id;
+				}else{
+                    messageDemo.messageError(d.msg);
+				}
+            });
+
+		});
+/*	//同意通知单
+	$('#agree').click(function () {
+		var _this = $(this);
+        EUI.Store({
+            url: _ctxPath+'/avf/notice/noticeConfirm.json',
+            params:{id:_this.attr('data')},
+            async:false,
+            success: function (d) {
+                // showToPageInfo(d.msg,'/avf/notice/noticesListPage?identityType=ENTERPRISE');
+                //涉及通知单电子签章，下期优化
+                $('#overlay').css('display','');
+                $('#loadingTip').css('display','');
+                Countdown();
+            },
+            failure: function (d) {
+                errorInfo(d.msg);
+                //messageDemo.messageError(d.msg);
+            }
+        });
+    });
+    $('.overlay').click(function(){
+        $('#overlay').css('display','none');
+        $('#loadingTip').css('display','none');
+        timer = 0;
+        Countdown();
+    });*/
+});
+
+//倒计时
+var clear;
+function Countdown() {
+    if (timer >= 1) {
+        timer -= 1;
+        $('#second').text(timer);
+        clear = setTimeout(function() {
+            Countdown();
+        }, 1000);
+    }else{
+        clearInterval(clear);
+        $('#agree').css('display','none');
+        $('.confirm').css('display', 'block');
+        // $('.showInfo  .list_2').addClass('list_2_over').removeClass('list_2');
+        $('.showInfo  .list_2_over_over').addClass('list_2').removeClass('list_2_over_over');
+        $('#overlay').css('display','none');
+        $('#loadingTip').css('display','none');
+    }
+}
+//设置状态追加
+function tabHeadSearch() {
+    var g = this;
+	this.appendState = function (ele,obj) {
+        var htmlLi = '',html = '';
+        var thEle = $('#'+ele);
+        var tabEle = ele.split('_');
+        var offset = thEle.offset();//获取相对于body的绝对定位
+        var eleWidth = thEle.width();
+        var eleHeight = thEle.height();
+        if ($('#search_'+ele).length == 0){
+            for(var key in obj){
+                htmlLi +='<li  data ='+obj[key].statusCode+' class='+(key == 0?"li_active":"")+'><span>'+obj[key].statusDetail+'</span></li>';
+            }
+            html = '<div class="chioce pos_supplier_'+tabEle[1]+'"  id="search_'+ele+'" style="display: none;"><div class="chioce_list"><ul class="box_shadow">'+ htmlLi+
+                '</ul></div></div>';
+            $('body').append(html);
+            var searchWidth = $('.pos_supplier_'+tabEle[1]).width();
+            offset.top = offset.top + eleHeight;
+            offset.left = offset.left + (eleWidth - searchWidth)/2;
+            $('#search_'+ele).offset(offset);
+        }
+        // $('#search_'+ele).toggle();//显示、隐藏
+    };
+    this.stateSearch = function (self,tab,objQuery) {
+        // $(document).on('click','.pos_supplier li',function () {
+            var _this = self;
+            // _this.parents('.pos_supplier').toggle();//显示、隐藏
+            _this.siblings().removeClass('li_active');
+            _this.addClass('li_active');
+            // var businessDealStatus = $('.pos_supplier li.li_active').attr('data');
+            // if(businessDealStatus == '0'){
+            //     return;
+            // }
+            EUI.getCmp(tab).setPostParams({
+                // 'query':JSON.stringify({'businessDealStatus':businessDealStatus})
+                'query':JSON.stringify(objQuery),
+            },true);
+        // });
+    };
+    this.sorting = function (tab,self,name) {
+		// $('.sorting').click(function () {
+			var _self = self;
+			if(_self.hasClass('desc')){
+                EUI.getCmp(tab).setPostParams({
+                    'order': JSON.stringify([{'name':name,'orderBy':'ASC'}])
+                },true);
+                _self.removeClass('desc').addClass('asc');
+			}else if(_self.hasClass('asc')){
+                EUI.getCmp(tab).setPostParams({
+                    'order': JSON.stringify([{'name':name,'orderBy':'DESC'}])
+                },true);
+                _self.removeClass('asc').addClass('desc');
+			}else{
+                EUI.getCmp(tab).setPostParams({
+                    'order': JSON.stringify([{'name':name,'orderBy':'DESC'}])
+                },true);
+                _self.removeClass('no_sort').addClass('desc');
+            }
+        // });
+    };
+    //显示、隐藏
+    this.showHide = function (dom) {
+        if(dom.css('display') == 'none'){
+            dom.css('display','block');
+        }else{
+            dom.css('display','none');
+        }
+    };
+    //点击执行
+    //gTdName --追加的表格名称'g_recPayMoneyTab_' objData--所有数据源 tab显示数据的表格id,ajaxData与后台发生交互的字段
+    this.clickElement = function (objData,tab,ajaxData) {
+        //追加状态
+        var dom = $('body');
+        $('#'+tab+' .b_state').click(function () {
+            var data = $(this).attr('data');
+            for(var key in objData){
+                g.appendState('g_'+tab+'_'+data,objData[key]);
+            }
+            dom = $('#search_g_'+tab+'_'+data);
+            g.showHide(dom);
+        });
+        //状态查询
+        $(document).on('click','.pos_supplier_'+tab+' li',function () {
+            var self = $(this);
+            var businessDealStatus = self.attr('data');
+            var obj = {};
+            obj[ajaxData] = businessDealStatus;
+            if(businessDealStatus == 'null'){
+                g.stateSearch(self,tab);
+            }else{
+                g.stateSearch(self,tab,obj);
+            }
+            g.showHide(dom);
+        });
+        //排序
+        $('#'+tab+' .sorting').click(function () {
+            var self = $(this);
+            var name = self.attr('data');
+            g.sorting(tab,self,name);
+        });
+    }
+}
+var tabHeadSearch = new tabHeadSearch();
+
+//加载数字签章
+function keySignpublicSeal()
+{
+    AztSignSealFrom.AztWebSignSealkeyPublic.ESASetDataisEncrypt(1);	 //设置返回数据是否加密(1加密，否则不加密)
+    AztSignSealFrom.AztWebSignSealkeyPublic.ESASetPositionTay("jfdiv",2);	 //yfdiv text 设置印章签章ID为ONE的标签上，2标识印章中心点在标签0,0位置
+    AztSignSealFrom.AztWebSignSealkeyPublic.ESASignSeal(1,2,"10001","");	 //执行签章操作;保护的数据
+    AztSignSealFrom.AztWebSignSealkeyPublic.SignMove=true;                  //签章后是否允许移动
+}

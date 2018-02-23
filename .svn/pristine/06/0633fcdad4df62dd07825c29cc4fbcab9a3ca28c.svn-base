@@ -1,0 +1,19 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>融资管理平台</title>
+	</head>
+
+	<body>
+		<!--footer-->
+		<div class="footer">
+			<p>友情链接：中国人民银行 |</p>
+			<p>四川虹信智远软件有限公司 版权所有　　Copyright www.sxrfinance.com All right reserved.　 　 蜀ICP备13007670号-1</p>
+			<p>地址：四川省绵阳市涪城区绵安路35号（绵阳科技城软件产业园） 电话：0816-2680591</p>
+		</div>
+	</body>
+
+</html>

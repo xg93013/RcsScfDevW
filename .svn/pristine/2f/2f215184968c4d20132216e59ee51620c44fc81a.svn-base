@@ -1,0 +1,139 @@
+EUI.FinanceDetail = EUI.extend(EUI.CustomUI, {
+		renderTo: "",
+		height: 'auto',
+		width: 1180,
+		initComponent: function() {
+			var _this = this;
+			_this.initGrid();
+			_this.addEvents();
+		},
+		initGrid:function(){
+			var g = this;
+			EUI.GridPanel({
+				renderTo: g.renderTo,
+				style: {
+					'padding': '0px',
+					'overflow': 'inherit',
+				},
+
+				height: 'auto',
+				width: 1160,
+				padding: 0, //设置表格的内边距
+				exportXls: false,
+				searchConfig: null,
+				showRefresh: false,
+				id: "tabShowFinance",
+				//autoLoad: true, //自动加载
+				//height: 400,
+				gridCfg: {
+					rownumbers: false, //去掉表格序号
+					loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+					shrinkToFit: false, //表格宽度不自适应
+					height:'auto',
+					colModel: [{
+						label: "序号",
+						name: "id", //列显示的名称
+						index: "id", //传到服务器端用来排序的列名称
+						width: 50,
+						//hidden:true,
+
+						//hidden: true //隐藏不显示这一组
+					}, {
+						label: "发票代码",
+						name: "name",
+						index: "name",
+						width: 89,
+
+					}, {
+						label: "发票号码",
+						name: "name1",
+						index: "name1",
+						width: 89,
+
+					}, {
+						label: "价格合计",
+						name: "name2",
+						index: "name2",
+						width: 100,
+					}, {
+						label: "金额",
+						name: "name3",
+						index: "name4",
+						width: 100,
+
+					}, {
+						label: "税额",
+						name: "name4",
+						index: "name4",
+						width: 100,
+
+					}, {
+						label: "所属公司",
+						name: "name5",
+						index: "name5",
+						width: 100,
+
+					}, {
+						label: "公司代码",
+						name: "name6",
+						index: "name6",
+						width: 105,
+
+					}, {
+						label: "开票日期",
+						name: "name7",
+						index: "name7",
+						width: 112,
+
+					}, {
+						label: "批次号 ",
+						name: "name8",
+						index: "name8",
+						width: 110,
+
+					}, {
+						label: "发票录入日期",
+						name: "name9",
+						index: "name9",
+						width: 148,
+					}],
+					data: g.loadData(),
+				}
+
+			});
+		},
+		loadData:function(){
+			var invoice = [{
+				id: 1,
+				name: '234567689',
+				name1: '23456748',
+				name2: '7678900',
+				name3: '7678900',
+				name4: '7678900',
+				name5: '',
+				name6: '',
+				name7: '',
+				name8: '',
+				name9: '2017-09-08 18:45',
+				name10: '2017-09-08 18:45'
+			}];
+			return invoice;
+		},
+		afterRender: function() {
+			console.log('渲染完成');
+		},
+		addEvents: function() {
+			var _self = this;
+			/*$('.del_table').live('click', function() {
+				var _this = $(this);
+				messageDemo.messageBox(function(){
+					var tableRowId = _this.attr('id');
+				    var gridPanel = EUI.getCmp("tablePrepareInvoice");
+				    gridPanel.deleteRow(tableRowId);
+				});
+			});*/
+			/*$('.btn_defend').live('click', function() {
+				window.location.href = 'extend_account.html';
+			});*/
+		},
+	});

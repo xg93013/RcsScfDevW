@@ -1,0 +1,28 @@
+$(function(){
+    $.ajax({
+        type: 'get',
+        url: _ctxPath+"/avf/statistical/verifyQuota.json",
+        success: function(data){
+            $(".tab_01_sum").html(data.wait.bideNumber);
+            // $(".tab_01_pass").html(data.wait.confirmNumber);
+            // $(".tab_01_back").html(data.wait.feedbackNumber);
+            $(".tab_02_sum").html(0);
+            // $(".tab_02_pass").html(data.demand.confirmNumber);
+            // $(".tab_02_back").html(data.demand.feedbackNumber);
+            // $(".tab_02_back").html(data.demand.feedbackNumber);
+            $(".tab_03_sum").html(data.demand.bideNumber);
+            $(".tab_04_sum").html(data.needConfirmQuota);
+            $(".tab_05_sum").html(data.bideRepayment);
+            $(".tab_06_sum").html(0);
+            // var tab_sum = $(".tab_sum");
+            $(".tab_sum").each(function(){
+                if($(this).html() == "0"){
+                    $(this).remove();
+                }
+            });
+        },
+        error:function(){
+
+        }
+    });
+})

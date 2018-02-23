@@ -1,0 +1,166 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+
+	<!--xg addcss-->
+	<link rel="Shortcut Icon" href="../../../../static/avf/images/logo2.ico" />
+	<link rel="stylesheet" href="../../../../static/avf/css/base.css" />
+	<link rel="stylesheet" href="../../../../static/avf/css/common.css" />
+
+	<link rel="stylesheet" href="../../../../static/avf/css/commom_heart.css" />
+	<link rel="stylesheet" href="../../../../static/avf/css/heart_commpany.css" />
+	<link rel="stylesheet" href="../../../../static/avf/css/supplyMain.css" />
+
+	<!--xg addjs-->
+	<script type="text/javascript" src="../../../../static/avf/js/common.js" ></script>
+	<title>融资管理平台</title>
+</head>
+
+<body>
+<!--弹出框-->
+<!--<div class="black_win"></div>
+<div class="show_win"></div>-->
+<!--top_common-->
+<div class="header_com">
+	<div class="header_container">
+		<div class="com_left fl mg10">
+			<img  src="../../../../static/avf/images/logo.png"/>
+		</div>
+		<div class="com_right fr mg10">
+			<div class="person_info fl">
+				<a>
+					<div class="info_graph fl"></div>
+					<!--登录成功-->
+					<div class="info_name fl">
+						<p class="font14">[核心企业]</p>
+						<p class="font18 mg10">用户名</p>
+					</div>
+					<!--未登录状态-->
+					<b></b>
+				</a>
+				<div class="hide_nlist">
+					<ul>
+						<li><a href="#">核心企业</a></li>
+						<li><a href="#">供应商</a></li>
+						<li><a href="#">金融机构</a></li>
+						<li><a href="#">系统管理</a></li>
+						<li><a href="#">密码修改</a></li>
+						<li><a href="#">用户中心</a></li>
+						<li><a href="#">融资配置</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="person_exit fl ml10">
+				<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+			</div>
+		</div>
+	</div>
+</div>
+<!--top_common end-->
+
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li>首页</li>
+			<li>&nbsp;&gt;&nbsp;核心企业</li>
+			<li><a href="notice_sheet.html">&nbsp;&gt;&nbsp;通知单列表</a></li>
+			<li><a href="confirm_sheet.html">&nbsp;&gt;&nbsp;确认通知单</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 step_content">
+		<div class="wyzzk">
+			<div class="wyzzk_top_left fl">
+				<div class="whyzzk_company">
+					<div class="w360 fl">
+						<span class="span_1">供应商的公司名称</span>
+					</div>
+					<div class="w299 fl">
+						<span class="font16">供应商：供应商的公司名称</span>
+					</div>
+					<div class="fl">
+						<span class="font16">到期日：2017-03-04</span>
+					</div>
+				</div>
+				<div class="whyzzk_money">
+					<div class="w360 fl">
+						<span>开户行名称</span>
+						<span class="font20">中国银行绵阳支行</span>
+					</div>
+					<div class="w299 fl">
+						<span>账号名称:</span>
+						<span class="font20">四川长虹电器股份有限公司</font></span>
+					</div>
+					<div class="fl">
+						<span>账号：</span>
+						<span class="font20">125357231</span>
+					</div>
+				</div>
+			</div>
+			<div class="wyzzk_top_right fr">
+				<p class="p_1"><span class="f20 lh30">发票总计(3张)：</span><br/><font class="f36">3,500,890.00</font><font class="f16">元</font></p>
+			</div>
+		</div>
+		<div class="showInfo">
+
+
+			<div class="show_sheet">
+				<p class="f24 lh60">申请通过，请确认以下应收账款转让通知单！</p>
+				<div class="show_sheet_info">
+					<div class="show_sheet_info_top">
+						<div class="confirm">
+							<img src="../../../../static/avf/images/icon_2.png">
+						</div>
+						<div class="w288 fl">
+							<label>金额：</label>
+							<span><font class="font_f30">476.890.24</font><font>元</font></span>
+						</div>
+						<div class="w294 fl">
+							<label>期限：</label>
+							<span class="w307"><font class="font_f30">10</font><font>个月</font></span>
+						</div>
+						<div class="w294 fl">
+							<label>起始日：</label>
+							<span>2017-01-01</span>
+						</div>
+						<div class="w176 fl">
+							<label>到期日：</label>
+							<span>2017-01-01</span>
+						</div>
+					</div>
+					<div class="show_sheet_info_bottom">
+						<span class="w316"><label>平台账款编号：</label><font>C231241515133161161</font></span>
+						<span class="w490 tc"><label>企业账款编号：</label><font>C231241515133161161</font></span>
+						<span class="w236 tr"><label>账款来源：</label><font>核心企业系统上传</font></span>
+					</div>
+				</div>
+
+				<div class="btn_form mg20">
+					<span class="btn_submit" id="agree" style="background-color:#00b9f2;border: 1px solid #00b9f2;">同&nbsp;意</span>
+				</div>
+			</div>
+
+			<!--<div id='date'></div>-->
+		</div>
+	</div>
+
+</div>
+<!--main content end-->
+
+<!--footer-->
+<div class="footer">
+	<p>绵阳市高新区XXXXX</p>
+	<p>@速信融版权所有</p>
+</div>
+<!--footer end-->
+<!--<button id="login_now">登录</button>-->
+</body>
+</html>

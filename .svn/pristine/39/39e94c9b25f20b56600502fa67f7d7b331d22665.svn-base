@@ -1,0 +1,420 @@
+/*融资信息供应商css开始*/
+.wyzzk{
+	overflow: hidden;
+	border-bottom: 1px solid #bababa;
+}
+.wyzzk span label{
+	font-size:16px;
+	color: #666;
+}
+.wyzzk span font{
+	font-size:16px;
+	color: #333;
+}
+.wyzzk span.span_1{
+	font-size:26px;
+	color:#333;
+}
+.wyzzk p{
+	line-height: 30px;
+}
+.wyzzk_top_right{
+	width: 279px;
+    height: 255px;
+    background-color: #1f8fde;
+    color: #fff;
+}
+.whyzzk_company{
+	border-bottom: 1px dashed #bababa;
+	width:871px;
+}
+.whyzzk_company span label b{
+	display: inline-block;
+	width:19px;
+	height:19px;
+}
+.whyzzk_company span label b.b_1{
+	background: url(../images/icon.png) -5px 0 no-repeat;
+}
+.whyzzk_company span label b.b_2{
+	background: url(../images/icon.png) -33px 0px no-repeat;
+}
+.whyzzk_company span label b.b_3{
+	background: url(../images/icon.png) -85px 0 no-repeat;
+}
+.whyzzk_company span label b.b_4{
+	background: url(../images/icon.png) -59px 0 no-repeat;
+}
+.whyzzk_money span{
+	font-size:16px;
+	color: #666;
+}
+.whyzzk_money span font{
+	color: #333;
+}
+.whyzzk_money span label.f30{
+	font-size:26px;
+}
+.whyzzk_money span label.f20 {
+    font-size: 20px;
+}
+.whyzzk_money,.whyzzk_company{
+	margin: 20px 0px 0px 20px;
+	padding-bottom: 20px;
+    overflow: auto;
+}
+.whyzzk_money span,.whyzzk_company span{
+	height: 35px;
+    line-height: 35px;
+	display: block;
+}
+
+.whyzzk_explain{
+	padding: 0px 25px 10px 25px;
+    overflow: auto;
+}
+.whyzzk_company span label b{
+	vertical-align: text-bottom;
+}
+.w360{
+	width:360px;
+}
+.w299{
+	width:275px;
+}
+.whyzzk_explain a,.whyzzk_explain span{
+	display: inline-block;
+}
+.whyzzk_explain a{
+	color: #3b61b9;
+	font-size:16px;
+}
+.wyzzk_top_right a{
+	color: #fff;
+}
+.wyzzk_top_right .p_1{
+	margin-left: 20px;
+    margin-top: 55px;
+}
+.wyzzk_top_right .p_2 {
+    margin-top: 91px;
+    margin-left: 165px;
+}
+
+.w369{
+	width:369px;
+}
+.w226{
+	width:226px;
+}
+.w294{
+	width:294px;
+}
+.w330{
+	width:330px;
+}
+.f36{
+	font-size:36px;
+}
+.f30{
+	font-size:30px;
+}
+.f20{
+	font-size:20px;
+}
+.f24{
+	font-size:24px;
+}
+.f26{
+	font-size:26px;
+}
+.f16{
+	font-size: 16px;
+}
+.lh30{
+	line-height: 30px;
+}
+.lh40{
+	line-height: 40px;
+}
+.mt20{
+	margin-top: 20px;
+}
+.mt35{
+	margin-top: 35px;
+}
+.color333{
+	color: #333;
+}
+.color666{
+	color: #666;
+}
+.colorfd7138{
+	color: #fd7138;
+}
+.lf177{
+	left:179px;
+}
+.lf373{
+	left:376px;
+}
+.lf569{
+	left:574px;
+}
+.lf766{
+	left:772px;
+}
+.di{
+	display: inline-block;
+}
+.va{
+	vertical-align: text-bottom;
+}
+.whyzzk_money span label.cfd7138{
+	color: #fd7138;
+}
+.ui-common-table {
+	font-size: 16px;
+}
+/*融资信息供应商css结束*/
+/*融资信息流程css开始*/
+.w196{
+	width:196px;
+}
+.w192{
+	width:192px;
+}
+.w214{
+	width:214px;
+}
+.l0{
+	left:0px;
+}
+.r0{
+	right: 0px;
+}
+.mt15{
+	margin-top: 15px;
+}
+.ml_25{
+	margin-left: -25px;
+}
+.btn_refuse.mt35{
+	margin-top: 35px;
+}
+.tl{
+	text-align: left;
+}
+.tr{
+	text-align: right;
+}
+.tc{
+	text-align: center;
+}
+.lh60{
+	line-height: 60px;
+}
+.showInfo{
+	width:1160px;	
+	margin: 20px auto 0px auto;
+}
+.showInfo_list{
+	height:56px;
+	line-height: 56px;
+	position: relative;
+}
+.showInfo_list a{
+	
+	display: inline-block;
+	text-align: center;
+	position: absolute;
+	
+}
+.showInfo_list a.list_1,.showInfo_list a.list_2,.showInfo_list a.list_3{
+	color: #fff;
+	font-size: 20px;
+}
+.showInfo_list a.list_1_over,.showInfo_list a.list_2_over,.showInfo_list a.list_3_over,.showInfo_list a.list_1_over_over,.showInfo_list a.list_2_over_over,.showInfo_list a.list_3_over_over{
+	color: #333;
+	font-size: 16px;
+}
+.showInfo_list a.list_1{
+	background: url(../images/progress_bg_34.png) no-repeat;
+}
+.showInfo_list a.list_1_over{
+	background: url(../images/progress_bg_31.png) no-repeat;
+}
+.showInfo_list a.list_1_over_over{
+	background: url(../images/progress_bg_36.png) no-repeat;
+}
+.showInfo_list a.list_2{
+	background: url(../images/progress_bg_45.png) no-repeat;	
+}
+.showInfo_list a.list_2_over{
+	background: url(../images/progress_bg_42.png) no-repeat;
+}
+.showInfo_list a.list_2_over_over{
+	background: url(../images/progress_bg_47.png) no-repeat;
+}
+
+.showInfo_list a.list_3{
+	background: url(../images/progress_bg_54.png) no-repeat;	
+}
+.showInfo_list a.list_3_over{
+	background: url(../images/progress_bg_52.png) no-repeat;
+}
+.showInfo_list a.list_3_over_over{
+	background: url(../images/progress_bg_56.png) no-repeat;
+}
+.showInfo_list_span{
+	font-size: 16px;
+	color: #333;
+	margin: 10px auto;
+}
+.showInfo_list_span span{
+	display: inline-block;
+	width:188px;
+	text-align: center;
+	line-height: 30px;
+	vertical-align: middle;
+}
+/*融资信息流程css结束*/
+/*选择框的样式开始*/
+.chioce{
+	position: absolute;
+	z-index: 101;
+}
+.pos_supplier{
+	margin-top: 64px;
+    margin-left: 221px;
+}
+.chioce_list ul{
+	border:1px solid #e2e2e2;
+	border-radius: 5px;
+	background-color: #fff;
+}
+.chioce_list ul li{
+	list-style: none;
+	display: block;
+	width:221px;
+	height: 45px;
+	line-height: 45px;
+	text-align: left;
+	color: #333;
+	font-size: 16px;
+	border-bottom: 1px solid #BABABA;
+	padding: 0px 10px;
+}
+.chioce_list ul li .serach_ipt{
+	border: 0px;
+    font-size: 16px;
+    color: #999;
+    margin-left: 5px;
+    width: 190px;
+    height: 30px;
+    line-height: 30px;
+}
+.box_shadow{  
+  -webkit-box-shadow:0 0 10px #ddd;  
+  -moz-box-shadow:0 0 10px #ddd;  
+  box-shadow:0 0 10px #ddd;  
+}  
+.triangle{
+	background: url(../images/chioce_bg1.png) no-repeat 0px 0px;
+    width: 25px;
+    height: 11px;
+    display: inline-block;
+    position: absolute;
+    left: 100px;
+    top: -9px;
+}
+.chioce_list ul li span.all_chioce{
+	display: inline-block;
+	vertical-align: text-bottom;
+}
+.chioce_list ul li b,.chioce_list ul li span.serach_icon{
+	
+    display: inline-block; 
+    text-align: center;
+    vertical-align: text-bottom;
+    margin-right: 5px;
+}
+.chioce_list ul li .b_1,.chioce_list ul li .b_2{	
+	width: 21px;
+    height: 21px; 
+    line-height: 21px;
+}
+.chioce_list ul li .b_1{
+	background: url(../images/icon.png) no-repeat -388px 0px; 
+	
+}
+.chioce_list ul li .b_2{
+	background: url(../images/icon.png) no-repeat -412px 0px;
+}
+.chioce_list ul li span.serach_icon{
+	background: url(../images/icon.png) no-repeat -432px 0px;
+	width: 23px;
+    height: 23px;
+    line-height: 23px;
+    margin-right: 0px;
+    
+}
+/*选择框的样式结束*/
+/*按钮样式*/
+.btn{
+	height:40px;
+	line-height: 40px;
+	text-align: center;
+	border-radius: 5px;
+	display: inline-block;
+	vertical-align: middle;
+}
+.btn_div{
+	color: #3b61b9;
+	font-size: 16px;
+	line-height: 25px;
+	cursor: pointer;
+}
+.btn_1,.btn_2,.ux-trigger-box,.dr_ticket{
+	cursor: pointer;
+}
+.ui-jqgrid tr.ui-row-ltr td{
+	text-overflow: ellipsis;
+}
+.btn_1{
+	border-radius: 5px;
+	border: 1px solid #bababa;
+	color: #333;
+	display: inline-block;
+	text-align: center;
+}
+.btn_2{
+	background-color: #00b9f2;
+	border-radius: 5px;
+	border: 1px solid #00b9f2;
+	color: #fff;
+	display: inline-block;
+	text-align: center;
+}
+.btn_3{
+	background-color: #fd7138;
+	border-radius: 5px;
+	border: 1px solid #fd7138;
+	color: #fff;
+	display: inline-block;
+	text-align: center;
+}
+
+::-webkit-input-placeholder { /* WebKit browsers */
+color:#ececec;
+}
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+color:#ececec;
+}
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+color:#ececec;
+}
+:-ms-input-placeholder { /* Internet Explorer 10+ */
+color:#ececec;
+}
+/*按钮样式*/

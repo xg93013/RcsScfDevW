@@ -1,0 +1,118 @@
+//发票详情
+EUI.InvoiceDetail = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+    docNo:null,
+	//	height:"auto",
+	initComponent: function() {
+		var g = this;
+//		EUI.Container({
+//			renderTo: this.renderTo,
+//			items: [{
+//				xtype: "GridPanel",
+//				padding: 0, //设置表格的内边距
+//				overflow: "hidden",
+//				//				height:"auto",
+//				id: g.cfgId,
+//				autoLoad: true, //自动加载
+//				gridCfg: g.initGrid()
+//			}]
+//		});
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			xtype: "GridPanel",
+			width:"1160",
+			padding: 0, //设置表格的内边距
+			// overflow: "hidden",
+			height:"auto",
+			id: g.cfgId,
+			autoLoad: true, //自动加载
+			gridCfg: g.initGrid()
+		});
+		this.addEvents();
+	},
+	addEvents: function() {
+
+	},
+	initGrid: function() {
+		var g = this;
+		//配置表格
+		var cfgData = {
+            url:_ctxPath+"/avf/invoice/invoiceDetail.json",//获取后端数据
+            postData:{
+                docNo:this.docNo
+            },
+			//		rownumbers:false,
+			loadonce: false, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+			colModel: [{
+				name: "id", //列显示的名称
+				index: "id", //传到服务器端用来排序的列名称
+				hidden: true //隐藏不显示这一组
+			}, {
+				label: "invoiceCode",
+				name: "invoiceCode",
+				index: "invoiceCode",
+				hidden: true
+			}, {
+				label: "invoiceNo",
+				name: "invoiceNo",
+				index: "invoiceNo",
+				hidden: true
+			}, {
+				label: "vatMoney",
+				name: "vatMoney",
+				index: "vatMoney",
+				hidden: true
+			}, {
+				label: "taxFreeSum",
+				name: "taxFreeSum",
+				index: "taxFreeSum",
+				hidden: true
+			}, {
+				label: "vatSum",
+				name: "vatSum",
+				index: "vatSum",
+				hidden: true
+			}, {
+				label: "invoDate",
+				name: "invoDate",
+				index: "invoDate",
+				hidden: true
+			}, {
+				label: "maturityDate",
+				name: "maturityDate",
+				index: "maturityDate",
+				hidden: true
+			}, {
+				label: "cloum1",
+				name: "cloum1",
+				index: "cloum1",
+				formatter: function(value, id, rowdata) {
+					return '<p class="tick_table">发票代码：<span class="color111">' + rowdata.invoiceCode + '</span></p><p class="tick_table">发票号码：<span class="color111">' + rowdata.invoiceNo + '</span></p>';
+				}
+			}, {
+				label: "cloum2",
+				name: "cloum2",
+				index: "cloum2",
+				formatter: function(value, id, rowdata) {
+					return '<p class="tick_table">价税合计：</p><p class="tick_table"><span class="font36 color111">' + $.formatMoney(rowdata.vatMoney,2) + '</span>元</p>';
+				}
+			}, {
+				label: "cloum3",
+				name: "cloum3",
+				index: "cloum3",
+				formatter: function(value, id, rowdata) {
+					return '<p class="tick_table"><span class="w100">税额：</span><span class="color111">' + $.formatMoney(rowdata.vatSum,2) + '</span>元</p><p class="tick_table"><span class="w100">金额：</span><span class="color111">' + $.formatMoney(rowdata.taxFreeSum,2) + '</span>元</p>';
+				}
+			}, {
+				label: "cloum4",
+				name: "cloum4",
+				index: "cloum4",
+				formatter: function(value, id, rowdata) {
+					return '<p class="tick_table"><span class="w100">开票日期：</span><span class="color111">' + rowdata.invoDate + '</span></p><p class="tick_table"><span class="w100">账款到期日：</span><span class="color111">' + GetDateT(new Date(rowdata.maturityDate)) + '</span></p>';
+				}
+			}]
+		}
+		return cfgData;
+	}
+});

@@ -1,0 +1,63 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: winfred
+  Date: 2017/6/16
+  Time: 9:54
+  To change this template use File | Settings | File Templates.
+--%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+         contentType="text/html; charset=UTF-8" %>
+<link rel="stylesheet" href="/static/avf/css/common.css"/>
+<html>
+<head>
+    <script type="text/javascript" src="/static/avf/js/tab_financial.js" ></script>
+    <%--<jsp:include page="/base/base.jsp"></jsp:include>--%>
+    <title>Title</title>
+</head>
+<body>
+<div class="rz_nav supply_rz_nav">
+    <a href="/avf/financingApprove/financingApproveListPage"
+       class="<c:if test="${tab_state=='1'}">tab_01_over</c:if><c:if test="${tab_state!='1'}">tab_01</c:if>">
+        <div class="on_state" style="display:
+        <c:if test="${tab_state=='1'}">block</c:if>
+        <c:if test="${tab_state!='1'}">none</c:if>;">1.融资审批
+        </div>
+        <div class="off_state" style="display:
+        <c:if test="${tab_state=='1'}">none</c:if>
+        <c:if test="${tab_state!='1'}">block</c:if>;"><p><span class="msg_num">1.融资审批<span class="approveQuota">0</span></span></p>
+            <p class="font13">待处理<label class="approveQuota">0</label>项</p></div>
+    </a>
+    <a href="/avf/financingLoan/financingLoanListPage"
+       class="<c:if test="${tab_state=='2'}">tab_02_over</c:if><c:if test="${tab_state!='2'}">tab_02</c:if>">
+        <div class="on_state" style="display:
+        <c:if test="${tab_state=='2'}">block</c:if>
+        <c:if test="${tab_state!='2'}">none</c:if>;">2.放款补录
+        </div>
+        <div class="off_state" style="display:
+        <c:if test="${tab_state=='2'}">none</c:if>
+        <c:if test="${tab_state!='2'}">block</c:if>;"><p><span class="msg_num">2.放款补录<span class="loanQuato">0</span></span></p>
+            <p class="font13">待补录<label class="loanQuato">0</label>项</p></div>
+    </a>
+    <a href="/avf/financingReceipt/financingReceiptPage"
+       class="<c:if test="${tab_state=='3'}">tab_03_over</c:if><c:if test="${tab_state!='3'}">tab_03</c:if>">
+        <div class="on_state" style="display:
+        <c:if test="${tab_state=='3'}">block</c:if>
+        <c:if test="${tab_state!='3'}">none</c:if>">3.收款补录
+        </div>
+        <div class="off_state" style="display:
+        <c:if test="${tab_state=='3'}">none</c:if>
+        <c:if test="${tab_state!='3'}">block</c:if>;"><p><span class="msg_num">3.收款补录<span class="receiptQuato">0</span></span></p>
+            <p class="font13">待补录<label class="receiptQuato">0</label>项</p></div>
+    </a>
+    <a href="#"
+       class="<c:if test="${tab_state=='4'}">tab_04_over</c:if><c:if test="${tab_state!='4'}">tab_04</c:if>">
+        <div class="on_state">4.融资跟踪</div>
+        <div class="off_state" style="display:
+        <c:if test="${tab_state=='4'}">none</c:if>
+        <c:if test="${tab_state!='4'}">block</c:if>"><p><span class="msg_num">4.融资跟踪<span style="background:#999;">0</span></span></p>
+            <p class="font13">总0项</p></div>
+    </a>
+</div>
+</body>
+</html>

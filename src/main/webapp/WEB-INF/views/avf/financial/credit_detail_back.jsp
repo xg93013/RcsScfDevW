@@ -1,0 +1,124 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<!--xg addcss-->
+
+	<link rel="stylesheet" href="../../../../static/avf/css/commom_heart.css" />
+	<link rel="stylesheet" href="../../../../static/avf/css/heart_commpany.css" />
+	<link rel="stylesheet" href="../../../../static/avf/css/supplyMain.css" />
+
+	<script type="text/javascript" src="../../../../static/base/js/common.js" ></script>
+	<script type="text/javascript" src="../../../../static/avf/js/finance_approval.js" ></script>
+	<title>首页-收款补录-详情</title>
+	<style>
+		.wyzzk {
+			border-bottom:0px;
+		}
+	</style>
+</head>
+
+<body>
+<!--top_common-->
+<div class="header_com">
+	<div class="header_container">
+		<div class="com_left fl mg10">
+			<img src="../../../../static/avf/images/logo.png"  />
+		</div>
+		<div class="com_right fr mg10">
+			<div class="person_info fl">
+				<a>
+					<div class="info_graph fl"></div>
+					<!--登录成功-->
+					<div class="info_name fl">
+						<p class="font12">[核心企业]</p>
+						<p class="font18 mg10">用户名</p>
+					</div>
+					<!--未登录状态-->
+					<b></b>
+				</a>
+				<div class="hide_nlist">
+					<ul>
+						<li><a href="#">核心企业</a></li>
+						<li><a href="#">供应商</a></li>
+						<li><a href="#">金融机构</a></li>
+						<li><a href="#">系统管理</a></li>
+						<li><a href="#">密码修改</a></li>
+						<li><a href="#">用户中心</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="person_exit fl ml10">
+				<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+			</div>
+		</div>
+	</div>
+</div>
+<!--top_common end-->
+
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li><a href="#">首页</a></li>
+			<li><a href="#">&gt;&nbsp;收款补录</a></li>
+			<li><a href="#">&gt;&nbsp;详情</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 step_content">
+		<div class="wyzzk">
+			<div class="wyzzk_top_left">
+				<div class="whyzzk_company w1160">
+					<div class="w360 fl">
+						<span><label>成交单号：</label><font>570008742</font></span>
+					</div>
+					<div class="w450 fl">
+						<span><label>合同单号：</label><font>570008742</font></span>
+					</div>
+					<div class="fl">
+						<span><label>状态：</label><font class="cfd7138">已关闭</font></span>
+					</div>
+				</div>
+				<div class="whyzzk_money">
+					<div class="w360 fl">
+						<span>供应商：</span>
+						<span><label class="f30">供应商名称</label></span>
+					</div>
+					<div class="w450 fl">
+						<span class="w330">核心企业:</span>
+						<span class="w330"><label class="f30">核心企业的公司名称名称</label></span>
+					</div>
+					<div class="fl">
+						<span class="w330">资金提供方:</span>
+						<span class="w330"><label class="f30">工商银行</label></span>
+					</div>
+					<div class="w360 fl mt20">
+						<span>融资金额：</span>
+						<span><label class="f30">47689000</label></span>
+					</div>
+					<div class="w450 fl mt20">
+						<span class="w330">融资期限:</span>
+						<span class="w330"><label class="f30">2018.12.14~2018.09.30</label></span>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+	</div>
+
+</div>
+<!--main content end-->
+<!--footer-->
+<%--<%@ include file="/base/footer.jsp"%>--%>
+<!--footer end-->
+</body>
+</html>
+

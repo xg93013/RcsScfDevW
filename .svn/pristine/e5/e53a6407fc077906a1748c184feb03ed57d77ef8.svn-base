@@ -1,0 +1,88 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<!--xg addcss-->
+	<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+	<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+	<link rel="stylesheet" href="/static/avf/css/supplyMain.css" />
+	<!--xg addjs-->
+	<script type="text/javascript" src="/static/avf/js/credit_add.js" ></script>
+	<script>
+        EUI.onReady(function() {
+            new EUI.creditAddForm({
+                renderTo : "credit_add_form"
+            });
+        });
+	</script>
+	<title>融资管理平台</title>
+</head>
+
+<body>
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li>首页</li>
+			<li><a href="/avf/financingReceipt/financingReceiptPage">&nbsp;&gt;&nbsp;收款补录</a></li>
+			<li><a href="javascript:void(0)">&nbsp;&gt;&nbsp;详情</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 white_content">
+		<div class="credit_top_con">
+			<div class="top_items_tab dash_border_bt">
+				<input type="hidden" value="${financingReceiptDetails.id}" id="addId">
+				<div class="nums_label">成交单号：<span class="color333">${financingReceiptDetails.noticeNo}</span></div>
+				<div class="nums_label">合同编号：<span class="color333">${financingReceiptDetails.noticeNo}</span></div>
+			</div>
+			<div class="top_items_tab">
+				<div class="name_box">
+					<p>供应商：</p>
+					<p class="name_big">${financingReceiptDetails.supplyName}</p>
+				</div>
+				<div class="name_box">
+					<p>核心企业：</p>
+					<p class="name_big">${financingReceiptDetails.finInsName}</p>
+				</div>
+				<div class="name_box">
+					<p>资金提供方：</p>
+					<p class="name_big">${financingReceiptDetails.groupCompanyName}</p>
+				</div>
+				<input type="hidden" value="${financingReceiptDetails.financeMoney}" id="financeMoney"/>
+				<input type="hidden" value="${financingReceiptDetails.financeEnd}" id="financeEnd"/>
+			</div>
+		</div>
+
+		<!--收款表单-->
+		<div id="credit_add_form"></div>
+		<div class="close_store ml106"><b class="b_1"></b><span>关闭储存</span></div>
+		<div class="btn_refuse ml106">
+			<div class="ok_add" id="sub_credit">确认补录</div>
+		</div>
+	</div>
+
+</div>
+<!--main content end-->
+
+<!--遮罩层开始-->
+<div id="overlay" class="overlay" style="display: none;"></div>
+<!-- Loading提示 DIV -->
+<div id="loadingTip" class="loading_tip" style="display: none;">
+	<div class="loading_content">
+		<img src="/static/avf/images/record.png"/>
+		<p> 补录成功...</p>
+	</div>
+</div>
+<!--遮罩层结束-->
+
+<!--footer-->
+<%@ include file="/base/footer.jsp"%>
+<!--footer end-->
+</body>
+</html>

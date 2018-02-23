@@ -1,0 +1,79 @@
+<%--
+	User:xionggang
+	Date:2017/08/30
+	Time:10:20
+	des:金融机构收款补录列表页
+--%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+		<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+		<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+		<link rel="stylesheet" href="/static/avf/css/supplyMain.css" />
+		
+		<!--xg addjs-->
+		<script type="text/javascript" src="/static/base/js/public.js" ></script>
+		<script type="text/javascript" src="/static/base/js/common.js" ></script>
+		<script type="text/javascript" src="/static/avf/js/finance_credit.js" ></script>
+		<script>
+			EUI.onReady(function(){
+				new EUI.FinanceCredit({
+					renderTo: "credit_table",
+					cfgId: "creditList"
+				});
+			})
+		</script>
+		<title>融资管理平台</title>
+	</head>
+
+	<body>
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li><a href="/avf/financingApprove/financingApproveListPage">首页</a></li>
+					<li><a href="/avf/financingReceipt/financingReceiptPage">&nbsp;&gt;&nbsp;收款补录</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<c:set var="tab_state" scope="session" value="4"/>
+				<%@ include file="/base/tab_financial.jsp"%>
+				<div class="rz_container">
+					<div class="re_con_left fl">
+						<p>待补录<span class="font20 org_color">${waitMakeUpQuota}</span>项</p>
+					</div>
+					<div class="re_con_right fr">
+						<div class="search_module fl">
+							<div class="search_blur fl">
+								<input type="text" />
+								<div class="search_btns"><span class="sxf_btn icon_search"></span></div>
+							</div>
+							<a href="javascript:void(0)" class="blueBg" id="detail_query">高级查询</a>
+							<a href="javascript:void(0)" class="blueBg" id="detail_fresh">刷新</a>
+						</div>
+					</div>
+				</div>
+				<!--收款补录列表-->
+				<div class="rz_result">
+					<div id="credit_table"></div>
+				</div>
+				
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<%--<%@ include file="/base/footer.jsp"%>--%>
+		<!--footer end-->
+	</body>
+</html>

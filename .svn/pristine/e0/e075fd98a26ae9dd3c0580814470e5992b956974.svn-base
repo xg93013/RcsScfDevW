@@ -1,0 +1,85 @@
+<%@ page import="java.net.URLDecoder" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<%
+    Cookie[] cookies = request.getCookies();
+    if(cookies!=null&&cookies.length!=0) {
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equalsIgnoreCase("userName"))
+                request.setAttribute("userName", URLDecoder.decode(cookie.getValue(), "utf-8"));
+            if (cookie.getName().equalsIgnoreCase("userIdentity"))
+                request.setAttribute("userIdentity", URLDecoder.decode(cookie.getValue(), "utf-8"));
+            if (cookie.getName().equalsIgnoreCase("identityList"))
+                request.setAttribute("identityList", URLDecoder.decode(cookie.getValue(), "utf-8"));
+        }
+    }
+%>
+<html>
+<head>
+    <jsp:include page="/base/base.jsp"></jsp:include>
+
+    <!--xg addcss-->
+    <%--<link rel="stylesheet" href="/static/avf/css/mainView.css" />--%>
+    <script type="text/javascript" src="/static/avf/js/common.js"></script>
+    <script type="text/javascript" src="/static/avf/js/newWin.js"></script>
+    <title>速信融云平台</title>
+
+</head>
+
+<body>
+<div id="content" style="background: white;">
+
+
+    <!--top_common-->
+    <div class="header_com">
+        <div class="header_container">
+            <div class="com_left fl mg10">
+                <img src="/static/avf/images/logo.png"/>
+            </div>
+            <div class="com_right fr mg10">
+                <div class="person_info fl">
+                    <a>
+                        <div class="info_graph fl"><img src="/static/avf/images/default_graph.png"/></div>
+                        <!--登录成功-->
+                        <div class="info_name fl">
+                            <p class="font14"><c:out value="${userName}"/></p>
+                            <p class="font14 mg10"><c:out value="${userIdentity}"/></p>
+                        </div>
+                        <!--未登录状态-->
+                        <b></b>
+                    </a>
+                    <span id="identityList" style="display:none">${identityList}</span>
+                    <div class="hide_nlist">
+                        <ul>
+                            <%--<li>--%>
+                                <%--<a href=""></a>--%>
+                            <%--</li>--%>
+                            <%--<li>--%>
+                                <%--<a href="#">系统管理</a>--%>
+                            <%--</li>--%>
+                            <%--<li>--%>
+                                <%--<a href="#">密码修改</a>--%>
+                            <%--</li>--%>
+                            <%--<li>--%>
+                                <%--<a href="#">用户中心</a>--%>
+                            <%--</li>--%>
+                            <%--<li>--%>
+                                <%--<a href="#">融资配置</a>--%>
+                            <%--</li>--%>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="person_exit fl ml10">
+                    <a href="javascript:void(0)" class="exit_link font14" id="exit_login">退出</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--top_common end-->
+</div>
+</div>
+</body>
+
+</html>

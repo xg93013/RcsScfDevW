@@ -1,0 +1,74 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<!--xg addcss-->
+	<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+	<link rel="stylesheet" href="/static/avf/css/supplyMain.css" />
+
+	<script type="text/javascript" src="/static/avf/js/common.js" ></script>
+	<title>融资管理平台</title>
+</head>
+
+<body>
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li>首页</li>
+			<li><a href="PersonView.html">&nbsp;&gt;&nbsp;供应商管理</a></li>
+			<li><a href="SupplyView.html">&nbsp;&gt;&nbsp;核心企业详情</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 step_content height_box">
+		<div class="supply_top">
+			<div class="supply_t_l">
+				<p class="font36">供应商公司名称</p>
+			</div>
+			<div class="supply_t_r sheet_list">
+				<div class="supply_items"><em class="sup_person"></em>联系人：<span>xgwend</span></div>
+				<div class="supply_items"><em class="sup_zuoji"></em>座&emsp;机：<span>028-2912334</span></div>
+				<div class="supply_items"><em class="sup_phone"></em>手&emsp;机：<span>13452023123</span></div>
+				<div class="supply_items end_items"><em class="sup_email"></em>邮&emsp;箱：<span>shasfas@safas.cn</span></div>
+			</div>
+		</div>
+		<!--supply list-->
+		<div class="supply_list">
+			<ul>
+				<li>法定代表人：<span>123.90</span></li>
+				<li>所有制性质：<span>股份制</span></li>
+				<li>是否上市公司：<span>上市</span></li>
+				<li>邮编：<span>610000</span></li>
+				<li>地址：<span>四川省绵阳市XXX街XX路23号</span></li>
+				<li>经营范围：<span>建材零件生产加工</span></li>
+			</ul>
+			<ul>
+				<li>供应商代码：<span>0002312345</span></li>
+				<li>组织机构代码：<span>0002312345</span></li>
+				<li>征信机构代码：<span>02312345</span></li>
+				<li>社会统一信用代码：<span>02312345</span></li>
+			</ul>
+			<ul>
+				<li>币种：<span>人民币</span></li>
+				<li>基本开户行：<span>0002312345</span></li>
+				<li>开户行行号：<span>02312345</span></li>
+				<li>开户行账号：<span>02312345</span></li>
+			</ul>
+		</div>
+	</div>
+
+</div>
+<!--main content end-->
+
+<!--footer-->
+<%@ include file="/base/footer.jsp"%>
+<!--footer end-->
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: winfred
+  Date: 2017/6/16
+  Time: 9:54
+  To change this template use File | Settings | File Templates.
+--%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+         contentType="text/html; charset=UTF-8" %>
+<link rel="stylesheet" href="/static/avf/css/common.css"/>
+<html>
+<head>
+    <%--<jsp:include page="/base/base.jsp"></jsp:include>--%>
+    <title>Title</title>
+</head>
+<body>
+<div class="rz_nav supply_rz_nav">
+    <a href="/avf/invoice/toWaitPage?type=supplier"
+       class="<c:if test="${tab_state=='1'}">tab_01_over</c:if><c:if test="${tab_state!='1'}">tab_01</c:if>">
+        <div class="on_state" style="display:
+        <c:if test="${tab_state=='1'}">block</c:if>
+        <c:if test="${tab_state!='1'}">none</c:if>;">1.准备发票
+        </div>
+        <div class="off_state" style="display:
+        <c:if test="${tab_state=='1'}">block</c:if>
+        <c:if test="${tab_state!='1'}">none</c:if>;"><p><span class="msg_num">1.准备发票<span>1</span></span></p>
+            <p class="font13">待维护2项 已申请3项 已反馈2项</p></div>
+    </a>
+    <a href="/avf/financingDemand/toDemandPage?type=supplier"
+       class="<c:if test="${tab_state=='2'}">tab_02_over</c:if><c:if test="${tab_state!='2'}">tab_02</c:if>">
+        <div class="on_state" style="display:
+        <c:if test="${tab_state=='2'}">block</c:if>
+        <c:if test="${tab_state!='2'}">none</c:if>;">2.申请融资
+        </div>
+        <div class="off_state" style="display:
+        <c:if test="${tab_state=='2'}">none</c:if>
+        <c:if test="${tab_state!='2'}">block</c:if>;"><p><span class="msg_num">2.申请融资<span>1</span></span></p>
+            <p class="font13">待维护2项 已申请3项 已反馈2项</p></div>
+    </a>
+    <a href="/avf/notice/noticesListPage?identityType=SUPPLIER"
+       class="<c:if test="${tab_state=='3'}">tab_03_over</c:if><c:if test="${tab_state!='3'}">tab_03</c:if>">
+        <div class="on_state" style="display:
+        <c:if test="${tab_state=='3'}">block</c:if>
+        <c:if test="${tab_state!='3'}">none</c:if>">3.通知单
+        </div>
+        <div class="off_state" style="display:
+        <c:if test="${tab_state=='3'}">none</c:if>
+        <c:if test="${tab_state!='3'}">block</c:if>;"><p><span class="msg_num">3.通知单<span>1</span></span></p>
+            <p class="font13">待维护2项 已申请3项 已反馈2项</p></div>
+    </a>
+    <a href="#"
+       class="<c:if test="${tab_state=='4'}">tab_04_over</c:if><c:if test="${tab_state!='4'}">tab_04</c:if>">
+        <div class="on_state" style="display:
+        <c:if test="${tab_state=='4'}">block</c:if>
+        <c:if test="${tab_state!='4'}">none</c:if>"><p><span class="msg_num">4.融资跟踪</span></div>
+        <div class="off_state" style="display:
+        <c:if test="${tab_state=='4'}">none</c:if>
+        <c:if test="${tab_state!='4'}">block</c:if>"><p><span class="msg_num">4.融资跟踪<span>1</span></span></p>
+            <p class="font13">待维护2项 已申请3项 已反馈2项</p></div>
+    </a>
+</div>
+</body>
+</html>

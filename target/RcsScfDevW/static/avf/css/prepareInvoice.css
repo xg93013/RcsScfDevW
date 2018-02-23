@@ -1,0 +1,12 @@
+.minHeight320{
+	height:400px;
+}
+.coop_span span {
+	text-decoration: underline;
+	display: block;
+	cursor: pointer;
+	font-size: 16px;
+    margin: 0 auto;
+    line-height: 26px;
+    color: #00B9F2;
+}

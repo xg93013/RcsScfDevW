@@ -1,0 +1,408 @@
+var timeOut = 5;
+var pageUrl = "";
+$(function() {
+	showPersonList();
+    shoIidentityList();
+    initPwdWin();
+    initWin();
+    //用户退出
+    $("#exit_login").live("click",function(){
+        $.ajax({
+            type: 'get',
+            url: _ctxPath+"/ura/user/logout.json",
+            success: function(data){
+                if(data.status == true){
+                	window.location.href = "/";
+				}
+            },
+            error:function(){
+                window.location.href = "/";
+            }
+        });
+    });
+    //修改密码
+	$(".update_pwd_link").live("click",function(){
+        showPwdWin();
+	});
+    //提交修改密码
+	$(".save_update").live("click",function(){
+        var errImg = "<img src='/static/login/images/errors.png'/>";
+        var passwdEg = /^[a-zA-Z0-9_][a-zA-Z0-9_]{5,15}$/;
+		var oldPsw = $("#oldPsw");
+        var newPsw = $("#newPsw");
+        var renewPsw = $("#renewPsw");
+        if(!passwdEg.test(oldPsw.val()) || oldPsw.val() == ""){
+            oldPsw.parent(".update_items").addClass("red_border");
+            oldPsw.next(".update_msg").removeClass("right_msg").addClass("err_msg");
+            $(".info_text").html(errImg+"<span>请输入正确密码！</span>");
+            return false;
+		}else {
+            oldPsw.parent(".update_items").removeClass("red_border");
+            oldPsw.next(".update_msg").removeClass("err_msg").addClass("right_msg");
+        }
+        if(!passwdEg.test(newPsw.val()) || newPsw.val() == ""){
+            newPsw.parent(".update_items").addClass("red_border");
+            newPsw.next(".update_msg").removeClass("right_msg").addClass("err_msg");
+            $(".info_text").html(errImg+"<span>请输入正确新密码！</span>");
+            return false;
+        }else {
+            newPsw.parent(".update_items").removeClass("red_border");
+            newPsw.next(".update_msg").removeClass("err_msg").addClass("right_msg");
+        }
+        if(renewPsw.val() != newPsw.val()){
+            renewPsw.next(".update_msg").removeClass("right_msg").addClass("err_msg");
+            renewPsw.parent(".update_items").addClass("red_border");
+            $(".info_text").html(errImg+"<span>两次密码输入不一致！</span>");
+            return false;
+        }else {
+            renewPsw.parent(".update_items").removeClass("red_border");
+            renewPsw.next(".update_msg").removeClass("err_msg").addClass("right_msg");
+        }
+        $.ajax({
+            type: 'get',
+            url: _ctxPath+"/ura/user/changePsw.json",
+            data: {oldPsw:oldPsw.val(),newPsw:newPsw.val()},
+            success: function(data){
+                if(data.status == true){
+                    var htmls = "<p style='margin:50px auto 10px;'><img src='/static/avf/images/success.png'></p>";
+                    htmls += "<p style='margin:10px auto 50px;font-weight:bold;font-size:20px;'>密码修改成功！</p><p style='margin:0 auto 30px;'><span class='toPageTime'>3</span>秒后跳至首页！</p>";
+                   	$(".pwd_win").empty().append(htmls);
+                    timeToPage("/");
+                }else{
+                    $(".pwd_win").empty().append(errorInfo("修改失败！"));
+				}
+            },
+            error:function(data){
+                $(".pwd_win").empty().append(errorInfo("修改失败！"));
+            }
+        });
+	});
+
+    //关闭弹窗
+    $(".close_b").live("click", function() {
+        closeWin();
+        closePwdWin();
+        timeOut = 0;
+        if(pageUrl!=""){
+            window.location.href = pageUrl;
+        }
+    });
+
+	//同意弹出弹出框
+	// var timer = 60;
+	// $('#agree').click(function() {
+	// 	$('#overlay').css('display', 'block');
+	// 	$('#loadingTip').css('display', 'block');
+	// 	timer = 60;
+	// 	Countdown();
+	// });
+	// $('.overlay').click(function() {
+	// 	$('#overlay').css('display', 'none');
+	// 	$('#loadingTip').css('display', 'none');
+	// 	timer = 0;
+	// 	Countdown();
+	// });
+	// //倒计时
+	// function Countdown() {
+	// 	var clear;
+	// 	if(timer >= 1) {
+	// 		timer -= 1;
+	// 		$('#second').text(timer);
+	// 		clear = setTimeout(function() {
+	// 			Countdown();
+	// 		}, 1000);
+	// 	} else {
+	// 		clearInterval(clear);
+	// 		$('#overlay').css('display', 'none');
+	// 		$('#loadingTip').css('display', 'none');
+	// 	}
+	// }
+	//时间区间
+	$(".limitTime").each(function(){
+		var startTime = $(this).attr("data-st") == "" ? "-- -- --": $(this).attr("data-st");
+		var endTime = $(this).attr("data-end") == "" ? "-- -- --":$(this).attr("data-end");
+		$(this).html(getLimitTime(startTime,endTime));
+	});
+});
+//下拉菜单
+function showPersonList() {
+	$(".person_info").mouseenter(function() {
+		$(".hide_nlist").show();
+	});
+	$(".person_info").mouseleave(function() {
+		$(".hide_nlist").hide();
+	});
+}
+//初始化共用窗口
+function initWin() {
+    var winHtmls = '<div class="black_win blackCom"></div><div class="show_win showComWin"></div>';
+    $("body").append(winHtmls);
+}
+//显示共用弹窗
+function showWin(htmls) {
+    var addHtmls = "<div class='position_box'><div class='content_box'>"+htmls+"</div><div class='close_b'></div></div>";
+    closePwdWin();
+    $(".blackCom").show();
+    $(".showComWin").show().empty().html(addHtmls);
+    var sHeight = parseInt($(".showComWin").css("height")) / 2;
+    $(".showComWin").css({
+        "margin-top": "-" + sHeight + "px"
+    });
+}
+//关闭修改密码弹出窗
+function closePwdWin(){
+    $(".black_pwd").hide();
+    $(".pwd_win").hide();
+}
+//初始化修改密码弹出窗
+function initPwdWin() {
+    var winHtmls = '<div class="black_win black_pwd"></div><div class="show_win pwd_win"></div>';
+    $("body").append(winHtmls);
+}
+//修改密码结构生成
+function showPwdWin(){
+    $(".black_pwd").show();
+    var htmls = "";
+    htmls+='<div class="update_pwd_box">';
+    htmls+='<p class="update_title">密码修改</p>';
+    htmls+='<div class="update_items">';
+    htmls+='<span>原始密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="oldPsw" id="oldPsw"/>';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="update_items">';
+    htmls+='<span>新密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="newPsw" id="newPsw" />';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="update_items">';
+    htmls+='<span>重复新密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="renewPsw" id="renewPsw"/>';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="info_text update_pwd_info"></div>';
+    htmls+='<div class="update_bnt">';
+    htmls+='<input type="button" value="保存" class="save_update"/>';
+    htmls+='</div>';
+    htmls+='</div>';
+    var addHtmls = "<div class='position_box'><div class='content_box'>"+htmls+"</div><div class='close_b'></div></div>";
+    $(".pwd_win").show().html(addHtmls);
+    var sHeight = parseInt($(".pwd_win").css("height")) / 2;
+    $(".pwd_win").css({
+        "margin-top": "-" + sHeight + "px"
+    });
+}
+//关闭共用窗口
+function closeWin() {
+    // $();
+    $(".black_win").hide().next(".show_win").hide();
+}
+//定时跳转页面提示信息
+function showToPageInfo(msg,url){
+    var htmls = "<p style='margin:50px auto 10px;'><img src='/static/avf/images/success.png'></p>";
+    htmls += "<p style='margin:10px auto 50px;'>"+msg+"<span class='toPageTime'>5</span>秒后跳转！</p>";
+    showWin(htmls);
+    timeToPage(url);
+}
+//删除提示框
+function delInfoWin(storeUrl,tableId,id,func){
+    $(".showComWin").empty();
+    var htmls = '	<div class="import_line">';
+    htmls += '<p class="del_info">是否确认删除信息？</p>';
+    htmls += '	</div>';
+    htmls += '	<div class="import_line">';
+    htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+    htmls += '	<input type="button" value="确定" class="import_btn import_ok" id="delete_ok"/>';
+    htmls += '	</div>';
+    showWin(htmls);
+    $("#delete_ok").on("click", function() {
+        //后端删除成功后删除表格内容
+        EUI.Store({
+            url: storeUrl,
+            type : "post",
+            success: function (msg) {
+                // closeWin();
+                seccessInfo("删除成功！");
+                // window.location.href = pageUrl;
+                EUI.getCmp(tableId).deleteRow(id);
+                console.log(Object.prototype.toString.call(func));
+                if(Object.prototype.toString.call(func) == "[object Function]"){
+                    new func();
+                }
+            },
+            failure: function (data) {
+                errorInfo("删除失败！");
+            }
+        });
+    });
+    //取消保存
+    $(".cancel_btn").live("click", function() {
+        closeWin();
+    });
+}
+//是否确定操作提示框
+function dealInfoWin(title,func){
+    var flag = false;
+    var htmls = '	<div class="import_line">';
+    htmls += '<p class="del_info">'+title+'</p>';
+    htmls += '	</div>';
+    htmls += '	<div class="import_line">';
+    htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+    htmls += '	<input type="button" value="确定" class="import_btn import_ok" id="delete_ok1"/>';
+    htmls += '	</div>';
+    showWin(htmls);
+    $("#delete_ok1").live("click", function() {
+        if(Object.prototype.toString.call(func) == "[object Function]"){
+            new func();
+            closeWin();
+        }
+    });
+    //取消保存
+    $(".cancel_btn").live("click", function() {
+        closeWin();
+    });
+    return flag;
+}
+//操作成功提示信息
+function seccessInfo(msg){
+    if(msg == "" || msg == undefined){
+        msg = "操作成功!";
+    }
+	var htmls = "<p style='margin:50px auto 30px;'><img src='/static/avf/images/success.png'></p>";
+	htmls+="<p style='margin:30px auto 30px;'>"+msg+"</p>";
+	showWin(htmls);
+}
+//操作失败提示信息
+function errorInfo(msg){
+    var htmls = "<p style='margin:50px auto 30px;'><img src='/static/avf/images/waring.png'></p>";
+    htmls+="<p style='margin:30px auto 30px;'>"+msg+"</p>";
+    showWin(htmls);
+}
+//获取时间差
+function getLimitTime(startTime,endTime){
+    if(startTime == "-- -- --" || endTime == "-- -- --"){
+        return "--";
+    }else{
+        var startDate=new Date(startTime.replace("-", "/").replace("-", "/"));
+        var endDate=new Date(endTime.replace("-", "/").replace("-", "/"));
+        var number = 0;
+        var yearToMonth = (endDate.getFullYear() - startDate.getFullYear()) * 12;
+        number += yearToMonth;
+        var monthToMonth = endDate.getMonth() - startDate.getMonth();
+        number += monthToMonth;
+        //两日期相差天数
+        var diffDate=(endDate-startDate)+1*24*60*60*1000;
+        //计算出两个日期字符串之间的相差的天数
+        var days=parseInt(diffDate/(1*24*60*60*1000));
+        return  days;
+        // alert( + " 人月 ");
+        // return parseInt(number  + 1);
+    }
+}
+//展示菜单
+function shoIidentityList(){
+    var listJson = JSON.parse($("#identityList").html());
+    var htmls = "";
+    for(var i=0; i<listJson.length; i++)
+    {
+        var url = "/ura/user/loginWithIdentity?identityId="+listJson[i].id;
+        htmls += '<li><a href="'+url+'">'+listJson[i].identityDesc+'</a></li>';
+    }
+    htmls += '<li><a href="javascript:void(0)" class="update_pwd_link">修改密码</a></li>';
+    $(".hide_nlist ul").append(htmls);
+}
+
+//定时跳转
+function timeToPage(url){
+    var clear;
+    if(timeOut >= 1) {
+        timeOut -= 1;
+        $('.toPageTime').html(timeOut);
+        clear = setTimeout(function() {
+            timeToPage(url);
+        }, 1000);
+    } else {
+        clearInterval(clear);
+        window.location.href = url;
+    }
+}
+//高级查询
+function searchWin(){
+    var htmls = "";
+    htmls+='<div class="main_search_box">';
+    htmls+='<p class="update_title">高级查询</p>';
+    htmls+='<div class="search_items">';
+    htmls+='<span>原始密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="oldPsw" id="oldPsw"/>';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="search_items">';
+    htmls+='<span>新密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="newPsw" id="newPsw" />';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="search_items">';
+    htmls+='<span>重复新密码：</span>';
+    htmls+='<input type="password" value="" placeholder="" class="renewPsw" id="renewPsw"/>';
+    htmls+='<div class="update_msg"></div>';
+    htmls+='</div>';
+    htmls+='<div class="info_text update_pwd_info"></div>';
+    htmls+='<div class="update_bnt">';
+    htmls+='<input type="button" value="保存" class="save_update"/>';
+    htmls+='</div>';
+    htmls+='</div>';
+    showWin(htmls);
+}
+//获取当前时间，格式“yyyy-MM-dd HH:MM:SS”
+function getNowFormatDate() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+        + " " + date.getHours() + seperator2 + date.getMinutes()
+        + seperator2 + date.getSeconds();
+    return currentdate;
+}
+function valideCertificate(id){
+    var bitchNumValidate = 0;
+    $("input[name='"+id+"']").live("blur",function(){
+        var payableCertificate = EUI.getCmp(id).getValue();
+        EUI.Store({
+            url: _ctxPath + "/avf/accountRPInfo/hasVoucherNo.json?payableCertificate="+payableCertificate,
+            // params:{"voucherNo":batchNum},
+            type : "get",
+            success: function (msg) {
+                //请求成功
+                if(msg.data == true){//存在凭证
+                    bitchNumValidate = 1;
+                    if($(".remarks").length != 0){
+                        $(".remarks").html("凭证号已经存在");
+                    }else{
+                        $("#"+id).append("<div class='remarks'>凭证号已经存在</div>");
+                    }
+
+                }else{
+                    //不存在凭证
+                    bitchNumValidate = 0;
+                    if($(".remarks") != ""){
+                        $(".remarks").remove();
+                    };
+                }
+            },
+            failure: function (msg) {
+                //请求失败
+            }
+        });
+    })
+    return bitchNumValidate;
+
+}
+

@@ -1,0 +1,76 @@
+//发票录入
+EUI.FormPanelDemo = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	subData: "", //提交企业信息及发票信息
+	initComponent: function() {
+		var g = this;
+		EUI.Container({
+			renderTo: this.renderTo,
+			width: 550,
+			height: "auto",
+			items: [{
+				xtype: "FormPanel",
+				itemspace: 20,
+				height: "auto",
+				id: "redit_detail_form",
+				items: [{
+						xtype: "NumberField",
+						title: "放款金额",
+						labelWidth: 100,
+						width: 260,
+						height: 35,
+						unit: '元',
+						//displayText: "请输入数字,只能输入正数",
+						hintText: "金额不能大于融资金额",
+						//value: 1.298,
+						maxValue: Number.MAX_VALUE, // 允许输入的最大值
+						minValue: Number.NEGATIVE_INFINITY, // 允许输入的最小值
+						precision: 2, // 输入的数据精确到多少位，默认值0表示精确到个位
+						allowNegative: false, // 设置是否可以输入负数，false为不能输入负数
+						allowChar: "0123456789", // 允许输入的数字
+						fullPrecision: true// 若填写的数据没有达到需要精确的位数，则用0自动补齐
+					} , {
+						xtype: "DateField",
+						title: "放款日期",
+						format: "Y-m-d", // 采用年月日的格式
+						labelWidth: 100, //设置label的宽度
+						maxDate: null, // 设置能够选择的最大日期
+						minDate: "20170301", // 设置能够选择的最小日期，日期格式为"20170301"
+						width: 260,
+						height: 40,
+						listWidth: 150,
+						//allowBlank: false, //是否可以为空
+						name: "dateField", // 设置日期选择框的name,用于后台接受此name
+						id: "dateField",
+						value: new Date().format("yyyy-MM-dd"),
+						//msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+						triggerCss: "ux-date-trigger", // 日期选择触发的样式
+						triggerClickCss: "",
+						afterValid: function() { // 事件：对日期校验后的操作
+							console.log(this.getValue());
+						},
+						afterSelect: function(data) { // 事件：选中日期后做的操作
+							var a = EUI.getCmp("dateField").getValue();
+							console.log(a);
+						}
+					}
+				]
+			}]
+		});
+		g.setLabelWidth();
+	},
+	//提交所有信息
+	subMainForm: function() {
+		$("#submit_ticket_form").live("click", function() {
+			if(EUI.getCmp("redit_detail_form").isValid()) {
+				console.log(EUI.getCmp("redit_detail_form").getFormValue());
+			}
+		})
+	},
+	setLabelWidth: function() {
+		$(".ux-field-label span").css({
+			"float": "none",
+			"margin-right": "10px"
+		});
+	}
+});

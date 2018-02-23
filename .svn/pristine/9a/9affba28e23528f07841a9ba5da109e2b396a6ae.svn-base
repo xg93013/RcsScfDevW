@@ -1,0 +1,351 @@
+/**
+ * Created by Administrator on 2017/8/1.
+ */
+EUI.reyPayMoneyForm = EUI.extend(EUI.CustomUI, {
+    renderTo: null,
+    //comboBoxBank: null,
+    height:'auto',
+    data: null,
+    initComponent: function () {
+        /*this.comboBoxBank = new EUI.ComboBoxBank({
+         renderTo: this.renderTo
+         });*/
+        this.initGrid();
+        this.addEvents();
+        this.subMainForm();
+        this.getFormValue();
+
+    },
+    initHtml: function (data) {
+        var html = "";
+        for (var i = 0; i < data.length; i++) {
+
+        }
+        $("body").append(html);
+    },
+    initGrid: function () {
+        EUI.Container({
+            renderTo: this.renderTo,
+            layout: "border", //布局方式
+            // padding: 20, //内边距
+            border: false, //是否显示边框，false为不显示
+            isOverFlow: false, //内容溢出时是否显示下拉滚动条，false为不显示
+            height: 'auto',
+            items: [{
+                xtype: "FormPanel",
+                region: "center",
+                id: "scanForm",
+                height: 120,
+                padding: 0,
+                layout: 'form',
+                items: [ {
+                    xtype: "DateField",
+                    title: "会计年度",
+                    format: "Y", // 采用年月日的格式
+                    labelWidth: 120, //设置label的宽度
+                    //maxDate: null, // 设置能够选择的最大日期
+                    // minDate: new Date($('#financeEnd').val()).format('yyyyMMdd'), // 设置能够选择的最小日期，日期格式为"20170301"
+                    width: 206,
+                    height: 40,
+                    listWidth: 150,
+                    allowBlank: false, //是否可以为空
+                    name: "intentionFterm", // 设置日期选择框的name,用于后台接受此name
+                    id: "intentionFterm",
+                    value: new Date().format('yyyy'),
+                    //msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+                    // triggerCss: "ux-date-trigger", // 日期选择触发的样式
+                    // triggerClickCss: "",
+                    // afterValid: function () { // 事件：对日期校验后的操作
+                    //    // console.log(EUI.getCmp("intentionFterm").getValue());
+                    // },
+                    afterSelect: function (data) { // 事件：选中日期后做的操作
+                        var a = EUI.getCmp("intentionFterm").getValue();
+                        console.log(a);
+                    }
+                },{
+                        xtype: "TextField",
+                        title: "应付凭证号",
+                        width: 210,
+                        height: 40,
+                        allowBlank: false, //是否可以为空
+                        // value:$('#intentionMoney').val(),
+                        name: "intentionFmoney",
+                        id: "intentionFmoney",
+                        labelWidth: 120,
+                        // validateText: "请输入正确的12位发票代码！",
+                        // displayText: "发票代码",
+                        // validater: function(value) {
+                        //     var reg = /\b\d{12}\b/;
+                        //     if(reg.test(value)) {
+                        //         return true;
+                        //     } else {
+                        //         return false;
+                        //     }
+                        // }
+
+                    },{
+                    xtype: "TextField",
+                    title: "行项号",
+                    width: 210,
+                    height: 40,
+                    allowBlank: false, //是否可以为空
+                    // value:$('#intentionMoney').val(),
+                    name: "intentionFmoney1",
+                    id: "intentionFmoney1",
+                    labelWidth: 120,
+                },{
+                    xtype: "ComboBox",
+                    title: "供应商名称",
+                    field: ["companyCode"], // 表示哪些值需要提交到后端
+                    name: "companyName",
+                    id: "companyCode",
+                    labelWidth: 120,
+                    //title: "一年级",
+                    displayText: "请选择所属供应商",
+                    height: 40,
+                    width: 200,
+                    //listHeight:45,
+                    async: true, // 是否异步，true为异步
+                    store: {
+                        url: _ctxPath+"/avf/financingRelConfigure/findRelBySupplyCode.json",
+                    }, // 从后台获取数据的地址
+                    editable: false, // 是否可编辑
+                    loadMask: true, // 是否有遮罩层
+                    showSearch: false, // 是否展开下拉框
+                    searchText: "name", // 下拉框的内容
+                    canClear: true,
+                    // value : "一年级一班",
+                    beforeSelect: function (data) {
+                        console.log(data);
+                    },
+                    afterSelect: function (d) {
+                        var companyCode = d.data.companyCode;
+                        $('#companyCode').val(companyCode);
+                        selectData = [];
+                        /*初始化表格数据 数量 价格*/
+                        EUI.getCmp("tabFinancial2").setDataInGrid([]);
+                        $('#invoiceNum').text('0');
+                        $('#allMoney').text('0.00');
+                        $('.check_all').removeClass('back_check_2').addClass('back_check_1');
+                        /*eui附加表格请求参数*/
+                        EUI.getCmp('tabFinancial1').setPostParams({
+                            companyCode:d.data.companyCode,
+                        },true);
+
+                    }
+                },{
+                    xtype: "FieldGroup",
+                    title: "是否添加发票明细",
+                    //width: 332,
+                    height: 40,
+                    labelWidth: 158,
+                    style: {
+                        "margin-top": "20px",
+                    },
+                    items: ['<div class="radio">'+
+                    '<p><b class="radio_2" data="0"></b><span>是</span><b class="radio_1" data="1"></b><span>否</span></p>'+
+                    '</div>']
+                },{
+                    xtype: "ComboBox",
+                    title: "批次号",
+                    field: ["companyCode1"], // 表示哪些值需要提交到后端
+                    name: "companyName1",
+                    id: "companyCode1",
+                    labelWidth: 120,
+                    //title: "一年级",
+                    displayText: "请选择批次号",
+                    height: 40,
+                    width: 200,
+                    //listHeight:45,
+                    async: true, // 是否异步，true为异步
+                    store: {
+                        url: _ctxPath+"/avf/financingRelConfigure/findRelBySupplyCode.json",
+                    }, // 从后台获取数据的地址
+                    editable: false, // 是否可编辑
+                    loadMask: true, // 是否有遮罩层
+                    showSearch: false, // 是否展开下拉框
+                    searchText: "name", // 下拉框的内容
+                    canClear: true,
+                    // value : "一年级一班",
+                    beforeSelect: function (data) {
+                        console.log(data);
+                    },
+                    afterSelect: function (d) {
+                        var companyCode = d.data.companyCode;
+                        $('#companyCode').val(companyCode);
+                        selectData = [];
+                        /*初始化表格数据 数量 价格*/
+                        EUI.getCmp("tabFinancial2").setDataInGrid([]);
+                        $('#invoiceNum').text('0');
+                        $('#allMoney').text('0.00');
+                        $('.check_all').removeClass('back_check_2').addClass('back_check_1');
+                        /*eui附加表格请求参数*/
+                        EUI.getCmp('tabFinancial1').setPostParams({
+                            companyCode:d.data.companyCode,
+                        },true);
+
+                    }
+                },
+
+                ],
+
+            }],
+        });
+        clearFloat();
+    },
+    //提交表单
+    subMainForm: function () {
+        //申请融资
+        $("#applyAccount").live("click", function () {
+            if( $('.radio b.radio_1').attr('data') == 0){
+                //$('#date').text();
+                //$('#money').text();
+                var data = {isPast:true,intentionFmoney:$.unformatMoney($('#money').text()),intentionFterm:$('#intentionTime').text(),id:$('#demandHeadId').val()}
+            }else{
+                if (!EUI.getCmp("scanForm").isValid()) {
+                    //messageDemo.messageError('请输入融资金额');
+                    errorInfo('融资金额或期限不能为空！');
+                    return;
+                }
+                var data = EUI.getCmp("scanForm").getFormValue();
+                data.isPast = false;//同意或修改的标志
+                data.id = $('#demandHeadId').val();//同意或修改的标志
+            }
+            //表单验证通过
+            /*if (EUI.getCmp("scanForm").isValid()) {
+             var data = EUI.getCmp("scanForm").getFormValue();
+             data.agree = $('.radio b.radio_1').attr('data');//同意或修改的标志
+             var mask = EUI.LoadMask({
+             msg: "正在保存，请稍后"
+             });*/
+            EUI.Store({
+                url: _ctxPath + "/avf/financingDemand/maintainExtendMoney.json",
+                params: data,
+                success: function (status) {
+                    //mask.hide();
+                    showToPageInfo(status.msg,_ctxPath +"/avf/financingDemand/toDemandPage?type=enterprise");
+                    // EUI.ProcessStatus(status);
+                    // messageDemo.messageSuccess(status.msg,function () {
+                    //     window.location.href= _ctxPath +"/avf/financingDemand/toDemandPage?type=enterprise";
+                    // });
+
+                },
+                failure: function (response) {
+                    // mask.hide();
+                    errorInfo(response.msg);
+                    // EUI.ProcessStatus(response);
+                    // messageDemo.messageError(response.msg);
+                }
+            });
+            /*}*/
+        });
+        //取消申请融资
+        $("#accountCancel").live("click", function () {
+            window.location.href= _ctxPath +"/avf/financingDemand/toDemandPage?type=enterprise";
+        });
+    },
+    getFormValue: function () {
+        //申请融资
+        /*$('#applyAccount').click(function () {
+         $('#date').text();
+         $('#money').text();
+         var b = EUI.getCmp("dateField").getValue();
+         console.log(b);
+         var c = EUI.getCmp("name1").getValue();
+         console.log(c);
+         });*/
+
+    },
+    addEvents: function () {
+        //点击单选框
+        $('.radio b').click(function () {
+            var _this = $(this);
+            $('.radio b.radio_1').addClass('radio_2').removeClass('radio_1');
+            _this.addClass('radio_1').removeClass('radio_2');
+            if ($('.radio b.radio_1').attr('data') == 1) {
+                $('#showInfoForm').css('display', '');
+            } else {
+                $('#showInfoForm').css('display', 'none');
+                return false;
+            }
+
+        });
+        this.addTabEvents();
+    },
+    addTabEvents: function () {
+
+    },
+    loadData: function () {
+        /*var g = this;
+         EUI.Stor({
+         success: function(response) {
+         g.showCount(response.data);
+         }
+         })*/
+    },
+    showCount: function (data) {
+        $(".todo-count").text(data.count);
+    },
+    checkValid: function () {
+
+        return true;
+    },
+    getData: function () {
+        var data = {};
+        //TODO:
+        return data;
+    },
+    submit: function () {
+        if (!this.checkValid()) {
+            return;
+        }
+        EUI.Stor({
+            url: "",
+            params: this.getData(),
+            success: function (response) {
+                g.showCount(response.data);
+            }
+        });
+    }
+});
+EUI.NumberFinanceTerm = EUI.extend(EUI.CustomUI, {
+    renderTo: "",
+    // height: 50,
+    width: 320,
+    initComponent: function () {
+        var g = this;
+        EUI.Container({
+            renderTo: this.renderTo,
+            items: [{
+                xtype : "DateField",
+                title: "意向融资期限",
+                //format : "Y-m-d", // 采用年月日的格式
+                labelWidth: 141,
+                width: 297,
+                height: 40,
+                name : "dateField", // 设置日期选择框的name,用于后台接受此name
+                id : "dateField",
+                style: {
+                    'text-align': 'right',
+                    'float': 'none'
+                },
+                allowBlank: false, //是否可以为空
+                //listWidth : 210, // 设置日期列表的宽度，默认为210
+                //maxDate : null, // 设置能够选择的最大日期
+                minDate : String(new Date().format("yyyyMMdd")), // 设置能够选择的最小日期，日期格式为"20170301"
+                //value : new Date().format("yyyy-MM-dd"),
+                msg : "选择的日期范围未在设置之内", // 对不符合的日期设置提示消息
+                //triggerCss : "ux-date-trigger", // 日期选择触发的样式
+                //triggerClickCss : "",
+                // afterValid : function() { // 事件：对日期校验后的操作
+                //     console.log(this.getValue());
+                // },
+                beforeSelect : function(data) {// 事件：选中日期后做的操作
+                    // var a = EUI.getCmp("dateField").getValue();
+                    // console.log(a);
+                }
+            }]
+        });
+        // clearFloat();
+    },
+});

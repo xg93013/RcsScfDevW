@@ -1,0 +1,146 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="Shortcut Icon" href="../../../../static/avf/images/logo2.ico" />
+		<link rel="stylesheet" href="../../../../static/avf/css/base.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/common.css" />
+	
+		<link rel="stylesheet" href="../../../../static/avf/css/heart_commpany.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/commom_heart.css" />
+		
+		<!--xg addjs-->
+		<script type="text/javascript" src="../../../../static/avf/js/common.js" ></script>
+		<script type="text/javascript" src="../../../../static/base/js/public.js" ></script>
+		<script type="text/javascript" src="../../../../static/avf/js/add_finance.js" ></script>
+		<title>供应商-申请融资-新增融资申请</title>
+		
+		<style>
+			.ux-field .ux-field-text {
+			    font-size: 16px;
+			    color: #999;
+			}
+			.ux-trigger-box {
+			    padding: 0px 5px;
+			    margin-top: 15px;
+			}
+			.ui-jqgrid .ui-jqgrid-htable th div {
+			    overflow: visible;
+			}
+			.ux-combo-list-item {
+			    padding: 11px 5px;
+			}
+		</style>
+		
+		<script type="text/javascript">
+			EUI.onReady(function() {
+				var addFinance1 = new EUI.AddFinance1({
+					renderTo : "rzInvoice1",
+					renderTo1 : "comboSupplier",
+				});
+				/*var tabAddFinance2 = new EUI.tabAddFinance2({
+					renderTo : "rzInvoice2",
+					//padding: 5,
+				});
+				var comboBoxSupplier = new EUI.ComboBoxSupplier({
+					renderTo : "comboSupplier"
+				});*/
+			});
+		</script>
+	</head>
+
+	<body>		
+		<!--弹出框-->
+		<!--<div class="black_win"></div>
+		<div class="show_win"></div>-->
+		<!--top_common-->
+		<div class="header_com">
+			<div class="header_container">
+				<div class="com_left fl mg10">
+					<img  src="../../../../static/avf/images/logo.png"/>
+				</div>
+				<div class="com_right fr mg10">
+					<div class="person_info fl">
+						<a>
+							<div class="info_graph fl"></div>
+							<!--登录成功-->
+							<div class="info_name fl">
+								<p class="font14">[核心企业]</p>
+								<p class="font18 mg10">用户名</p>
+							</div>
+							<!--未登录状态-->
+							<b></b>
+						</a>
+						<div class="hide_nlist">
+							<ul>
+								<li><a href="#">核心企业</a></li>
+								<li><a href="#">供应商</a></li>
+								<li><a href="#">金融机构</a></li>
+								<li><a href="#">系统管理</a></li>
+								<li><a href="#">密码修改</a></li>
+								<li><a href="#">用户中心</a></li>
+								<li><a href="#">融资配置</a></li>
+							</ul>
+						</div>
+					</div>
+					
+					<div class="person_exit fl ml10">
+						<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--top_common end-->
+	
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li>首页</li>
+					<li><a href="PersonView.html">&nbsp;&gt;&nbsp;申请融资列表</a></li>
+					<li><a href="add_finance.html">&nbsp;&gt;&nbsp;新增融资申请</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<div class="container1188">	
+					<div class="mb20" >
+						<div id="comboSupplier"></div>
+					</div>
+					<ul class="ul_list"><li class="li_1">所有发票</li><li class="ml20">已选<font>x</font>张发票，总金额<font>xxxx</font>元</li></ul>   
+					<div id="ul_tab_0">
+						<div class="rz_result">
+							<div id="rzInvoice1"></div>
+						</div>
+					</div>
+					<div id="ul_tab_1">
+						<div class="rz_result">
+							<div id="rzInvoice2"></div>
+						</div>
+					</div>
+					
+					<div class="btn_next">
+						<div class="btn_1 btn_return fl">返回</div>
+						<div class="btn_2 btn_confirm fl ml20" id="confirm_next">确认</div>					
+					</div>
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<div class="footer">
+			<p>绵阳市高新区XXXXX</p>
+			<p>@速信融版权所有</p>
+		</div>
+		<!--footer end-->
+		<!--<button id="login_now">登录</button>-->
+	</body>
+</html> 

@@ -1,0 +1,232 @@
+EUI.Finance_track = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+	track_check_item:0,
+	initComponent: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			xtype: "GridPanel",
+			padding: 0, //设置表格的内边距
+			overflow: "hidden",
+			height:"auto",
+			id: g.cfgId,
+			width:"1160",
+			autoLoad: true, //自动加载
+			gridCfg: g.initGrid()
+		});
+		g.addEvent();
+	},
+	addEvent:function(){
+		var g = this;
+		$(".track_down_item").live("click",function(){
+			if($(this).find(".track_down").hasClass("icon_down")){
+				$(this).find(".track_down").removeClass("icon_down").addClass("icon_up");
+				$(this).parent().next(".track_down_box").show();
+                $(this).parent().parent().parent().parent().siblings().find(".track_down_box").hide();
+                $(this).parent().parent().parent().parent().siblings().find(".track_down").removeClass("icon_up").addClass("icon_down");
+			}else{
+				$(this).find(".track_down").removeClass("icon_up").addClass("icon_down");
+				$(this).parent().next(".track_down_box").hide();
+			}
+		});
+		$(".track_box").parent("td").attr("title","");
+		//统计选中
+		$(".track_check").live("click",function(){
+            if($(this).hasClass("default_checkbox")){
+                $(this).removeClass("default_checkbox").addClass("checked_checkbox");
+            }else{
+                $(this).removeClass("checked_checkbox").addClass("default_checkbox");
+            }
+			g.getAllCheckItem();
+
+			$(".total_check").html(g.track_check_item);
+		});
+	},
+	initData: function() {
+		var ticketData = [{
+			voucherNo: "1",
+			financingNeedsNo: "123214",
+			supplyShortName: "suppyName",
+			finInsShortName: "fanaiace",
+			financeMoney: "1230",
+			financeStart: "2017-03-12",
+			financeEnd: "2017-03-22",
+			financeRate:"4.8",
+			financePer:"12",
+			financePercent:"12",
+			intentionFterm:"12"
+		},{
+			voucherNo: "1",
+			financingNeedsNo: "123214",
+			supplyShortName: "suppyName",
+			finInsShortName: "fanaiace",
+			financeMoney: "1230",
+			financeStart: "2017-03-12",
+			financeEnd: "2017-03-22",
+			financeRate:"4.8",
+			financePer:"12",
+			financePercent:"12",
+			intentionFterm:"12"
+		}];
+		return ticketData;
+	},
+	initGrid: function() {
+		var g = this;
+		//配置表格
+		var cfgData = {
+//          url:_ctxPath+"/avf/requite/repaymentList.json",//获取后端数据
+            rownumbers: false,
+            rowNum: 10,
+//          mtype : "get",
+			loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+			colModel: [{
+				label: "应付凭证",
+				name: "voucherNo", //列显示的名称
+				index: "voucherNo", //传到服务器端用来排序的列名称
+				hidden: true, //隐藏不显示这一组
+			}, {
+                label: "需求编号",
+                name: "financingNeedsNo", //列显示的名称
+                index: "financingNeedsNo", //传到服务器端用来排序的列名称
+                hidden: true //隐藏不显示这一组
+            },{
+				label: "供应商名称",
+				name: "supplyShortName",
+				index: "supplyShortName",
+				hidden: true //隐藏不显示这一组
+			}, {
+				label: "金融机构名称",
+				name: "finInsShortName",
+				index: "finInsShortName",
+				hidden: true //隐藏不显示这一组
+			},{
+                label: "融资金额",
+                name: "financeMoney",
+                index: "financeMoney",
+                hidden: true //隐藏不显示这一组
+            },{
+                label: "融资开始日",
+                name: "financeStart",
+                index: "financeStart",
+                hidden: true //隐藏不显示这一组
+            }, {
+				label: "融资到期日",
+				name: "financeEnd",
+				index: "financeEnd",
+                hidden: true //隐藏不显示这一组
+			},{
+				label: "融资利率",
+				name: "financeRate",
+				index: "financeRate",
+                hidden: true //隐藏不显示这一组
+			},{
+				label: "融资利息",
+				name: "financePer",
+				index: "financePer",
+                hidden: true //隐藏不显示这一组
+			},{
+				label: "融资比例",
+				name: "financePercent",
+				index: "financePercent",
+                hidden: true //隐藏不显示这一组
+			},{
+				label: "期限",
+				name: "intentionFterm",
+				index: "intentionFterm",
+                hidden: true //隐藏不显示这一组
+			},{
+                label: "",
+                name: "",
+                index: "",
+                title:"123",
+				width:1160,
+				formatter:function(value, id, rowdata){
+                	var htmls = "";
+                	htmls+='<div class="track_box">';
+						htmls+='<div class="track_title">';
+							htmls+='<div class="track_items w40"><span class="default_checkbox track_check" data-id="1"></span> </div>';
+							htmls+='<div class="track_items w80"><span class="track_year">2017年</span></div>';
+							htmls+='<div class="track_items w1000">';
+								htmls+='<div class="track_list">';
+									htmls+='<span class="track_list_items">应付凭证：123</span>';
+									htmls+='<span class="track_list_items">需求编号：CB12314</span>';
+									htmls+='<span class="track_list_items">空调公司</span>';
+									htmls+='<span class="track_list_items wp15">工行</span>';
+									htmls+='<span class="track_list_items">到期日：2018-05-20</span>';
+								htmls+='</div>';
+								htmls+='<div class="track_list no_border_bot">';
+									htmls+='<span class="track_list_items">融资金额：871，923</span>';
+									htmls+='<span class="track_list_items">融资利率：7.68%</span>';
+									htmls+='<span class="track_list_items">融资利息：13</span>';
+									htmls+='<span class="track_list_items wp15">融资比例：89%</span>';
+									htmls+='<span class="track_list_items">期限：2013-02-01~2018-01-01</span>';
+								htmls+='</div>';
+							htmls+='</div>';
+							htmls+='<div class="track_items track_down_item"><span class="sxf_btn icon_down track_down"></span></div>';
+						htmls+='</div>';
+						htmls+='<div class="track_down_box">';
+							htmls+='<div class="track_process">';
+								htmls+='<p>放款--日期：2017-11-27 金额：655,343,00（中国工商银行）</p>';
+								htmls+='<p>还款--日期：2017-11-27 金额：655,343,00</p>';
+								htmls+='<p>收款--日期：2017-11-27 金额：655,343,00（中国工商银行）</p>';
+								htmls+='<p>备注：放款延迟3天</p>';
+							htmls+='</div>';
+							htmls+='<div class="track_tickets">';
+								htmls+='<table class="track_tickets_table">';
+									htmls+='<thead>';
+										htmls+='<tr>';
+											htmls+='<td>序号</td>';
+											htmls+='<td>发票代码</td>';
+											htmls+='<td>发票号码</td>';
+											htmls+='<td>价税合计</td>';
+											htmls+='<td>金额</td>';
+											htmls+='<td>数额</td>';
+											htmls+='<td>所属公司</td>';
+											htmls+='<td>公司代码</td>';
+											htmls+='<td>开票日期</td>';
+											htmls+='<td>批次号</td>';
+											htmls+='<td>账款到期日</td>';
+										htmls+='</tr>';							
+									htmls+='</thead>';
+									htmls+='<tbody>';
+										htmls+='<tr>';
+											htmls+='<td>1</td>';
+											htmls+='<td>2382323</td>';
+											htmls+='<td>123123123123</td>';
+											htmls+='<td>123</td>';
+											htmls+='<td>12323</td>';
+											htmls+='<td>3423</td>';
+											htmls+='<td>company</td>';
+											htmls+='<td>code</td>';
+											htmls+='<td>2017-01-01</td>';
+											htmls+='<td>2312</td>';
+											htmls+='<td>2017-02-02</td>';
+										htmls+='</tr>';
+									htmls+='</tbody>';
+								htmls+='</table>';
+							htmls+='</div>';
+						htmls+='</div>';
+					htmls+='</div>';
+                	return htmls;
+				}
+			}],
+			data: g.initData()
+		}
+		return cfgData;
+	},
+	//统计选择的项目
+	getAllCheckItem:function(){
+		var g = this;
+        g.track_check_item = 0;
+        $(".track_check").each(function(i,element){
+			if($(this).hasClass("checked_checkbox")){
+                g.track_check_item ++;
+			}
+		});
+        // $("[class='.track_check']:checked").each(function(index, element) {
+        //     g.track_check_item ++;
+        // });
+        // console.log(g.track_check_item);
+	}
+});

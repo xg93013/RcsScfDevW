@@ -1,0 +1,139 @@
+EUI.FinanceCredit = EUI.extend(EUI.CustomUI, {
+    renderTo: "",
+    cfgData: "",
+    cfgId: "",
+    initComponent: function() {
+        var g = this;
+        EUI.GridPanel({
+            renderTo: this.renderTo,
+            xtype: "GridPanel",
+            padding: 0, //设置表格的内边距
+            overflow: "hidden",
+            height:"auto",
+            id: g.cfgId,
+            autoLoad: true, //自动加载
+            gridCfg: g.initGrid()
+        });
+        this.addEvents();
+    },
+    initData: function() {
+        var tableData = [{
+            id: "1",
+            num: "67245",
+            name: "四川虹信软件有限公司",
+            mainEnterprise: "核心企业",
+            rzMoney: "1238，412",
+            dateLimit: "1",
+            state: "0"
+        }, {
+            id: "1",
+            num: "67245",
+            name: "四川虹信软件有限公司",
+            mainEnterprise: "核心企业",
+            rzMoney: "1238，412",
+            dateLimit: "1",
+            state: "1"
+        }];
+        return tableData;
+    },
+    initGrid: function() {
+        var g = this;
+        //配置表格
+        //配置表格
+        var cfgData = {
+            url:_ctxPath+"/avf/financingReceipt/financingReceiptList.json",//获取后端数据
+            rownumbers: false,
+            rowNum: 10,
+            loadonce: false,
+            mtype : "get",
+            colModel: [{
+                name: "id", //列显示的名称
+                index: "id", //传到服务器端用来排序的列名称
+                hidden: true //隐藏不显示这一组
+            }, {
+                label: "融资需求编号",
+                name: "financingNeedsNo",
+                index: "financingNeedsNo"
+            }, {
+                label: "供应商<span class='down_icon'></span>",
+                name: "supplyName",
+                index: "supplyName"
+            }, {
+                label: "核心企业<span class='down_icon'></span>",
+                name: "companyName",
+                index: "companyName",
+            },{
+                label:"融资开始日",
+                name:"financeStart",
+                index:"financeStart",
+                hidden:true
+            }, {
+                label: "融资金额(元)<span class='down_icon'></span>",
+                name: "financeMoney",
+                index: "financeMoney",
+                formatter: function(value, id, rowdata) {
+                    return '<span class="font20">' + $.formatMoney(rowdata.financeMoney,2) + '</span>';
+                }
+            }, {
+                label: "期限<span class='down_icon'></span>",
+                name: "financeTerm",
+                index: "financeTerm",
+                formatter: function(value, id, rowdata) {
+                    return '<span class="font20">'+getLimitTime(GetDateT(new Date(rowdata.financeStart)),GetDateT(new Date(rowdata.financeTerm)))+'</span>天';
+                }
+            }, {
+                label: "状态<span class='down_icon'></span>",
+                name: "businessDealStatus",
+                index: "businessDealStatus",
+                formatter: function(value, id, rowdata) {
+                    if( 5050 < parseInt(rowdata.businessDealStatus) && parseInt(rowdata.businessDealStatus) < 7050 ){
+                        return '<span data-id="' + rowdata.id + '">待补录</span>';
+                    }else{
+                        return '<span data-id="' + rowdata.id + '">已收款</span>';
+                    }
+                }
+            }, {
+                label: "操作",
+                name: "operate",
+                index: "operate",
+                formatter: function(value, id, rowdata) {
+                    var addUrl = "/avf/financingReceipt/financingReceiptMakeupPage?id="+rowdata.id;
+                    var detailUrl = "/avf/financingReceipt/financingReceiptDetails?id="+rowdata.id;
+                    return( 5050 < rowdata.businessDealStatus && rowdata.businessDealStatus < 7050) ? '<a href="'+addUrl+'"  class="table_btn" data-id="' + rowdata.id + '">补录</a>' : '<a href="'+detailUrl+'"  class="btn_success" data-id="' + rowdata.id + '">详情</a>';
+                }
+            }, {
+                label: "",
+                name: "",
+                index: "",
+                width: 100,
+                formatter: function(value, id, rowdata) {
+                    return '<div class="coop_a fl"><span class="deleteRow" data-id="' + rowdata.id + '">关闭</span>';
+                }
+            }]
+        }
+        return cfgData;
+    },
+    addEvents: function() {
+        var g = this;
+        $(".deleteRow").live("click", function() {
+            g.deleteOneRow("gradelist", $(this).attr("data-id"));
+
+        });
+    },
+    //删除一行数据
+    deleteOneRow: function(tableId, rowId) {
+        var g = this;
+        var htmls = '	<div class="import_line">';
+        htmls += '<p class="del_info">确认删除信息？</p>';
+        htmls += '	</div>';
+        htmls += '	<div class="import_line">';
+        htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+        htmls += '	<input type="button" value="确定" class="import_btn import_ok" id="delete_ok"/>';
+        htmls += '	</div>';
+        showWin(htmls);
+        $("#delete_ok").live("click", function() {
+            //后端删除成功后删除表格内容
+            EUI.getCmp(tableId).deleteRow(rowId);
+        });
+    }
+});

@@ -1,0 +1,85 @@
+package com.rcsit.scf.bsp.controller;
+
+import com.alibaba.fastjson.JSONObject;
+import com.rcsit.scf.bsp.domain.PageModel;
+import com.rcsit.scf.bsp.domain.ResponseModel;
+import com.rcsit.scf.bsp.handler.AvfFinancingReceiptHandler;
+import com.rcsit.scf.bsp.model.avf.AvfAccountsRecTraNotice;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.lang.reflect.InvocationTargetException;
+
+/**金融机构-收款补录
+ * Created by hmily on 2017/5/11.
+ */
+@Controller
+@RequestMapping(value = "/avf/financingReceipt")
+public class AvfFinancingReceiptController extends BaseController {
+
+    private AvfFinancingReceiptHandler avfFinancingReceiptHandler = new AvfFinancingReceiptHandler();
+
+    /**
+     * 收款补录列表
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "/financingReceiptList")
+    public Object financingReceiptList(@RequestParam(value = "page", defaultValue = "1")int page, @RequestParam(value = "rows",defaultValue = "25") int rows , @CookieValue("token")String token){
+        JSONObject financingReceiptList = avfFinancingReceiptHandler.getFinancingReceiptList(page, rows, token);
+        return new PageModel<>(financingReceiptList);
+    }
+
+    /**
+     * 收款补录列表页面
+     * @return
+     */
+    @RequestMapping("/financingReceiptPage")
+    public String financingReceiptPage(@CookieValue("token")String token, Model model){
+        int waitMakeUpQuota = avfFinancingReceiptHandler.waitMakeUpQuota(token);
+        model.addAttribute("waitMakeUpQuota",waitMakeUpQuota);
+        return "/avf/financial/finance_credit";
+    }
+
+
+    /**
+     * 查看收款补录详情
+     * @return
+     */
+    //ResponseBody
+    @RequestMapping(value = "/financingReceiptDetails")
+    public String financingReceiptDetails(@RequestParam("id")String id,@CookieValue("token")String token,Model model){
+        AvfAccountsRecTraNotice financingReceiptDetails = avfFinancingReceiptHandler.getFinancingReceiptDetails(id, token);
+        model.addAttribute("financingReceiptDetails",financingReceiptDetails);
+        return "/avf/financial/credit_detail_other";
+    }
+
+
+    /**
+     * 收款补录页面
+     * @return
+     */
+    @RequestMapping("/financingReceiptMakeupPage")
+    public String financingReceiptMakeupPage(@RequestParam("id")String id,@CookieValue("token")String token,Model model){
+        AvfAccountsRecTraNotice financingReceiptDetails = avfFinancingReceiptHandler.getFinancingReceiptDetails(id, token);
+        model.addAttribute("financingReceiptDetails",financingReceiptDetails);
+        return "/avf/financial/credit_add";
+    }
+
+    /**
+     * 收款补录操作
+     */
+    @ResponseBody
+    @RequestMapping(value = "/financingReceiptMakeup")
+    public ResponseModel doFinancingReceiptMakeup(@RequestParam("id")String id,
+                                                @RequestParam("receivablesMoney")String receivablesMoney,
+                                                @RequestParam("receivablesDate")String receivablesDate,
+                                                @CookieValue("token")String token) throws InvocationTargetException, IllegalAccessException {
+        avfFinancingReceiptHandler.doFinancingReceiptMakeup(id, receivablesMoney, receivablesDate, token);
+        return ResponseModel.SUCCESS();
+    }
+}

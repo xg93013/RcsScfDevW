@@ -1,0 +1,133 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.domain.PageModel;
+import com.rcsit.scf.bsp.exception.AccessNotAcceptException;
+import com.rcsit.scf.bsp.exception.RequestErrorException;
+import com.rcsit.scf.bsp.model.avf.AvfFinInvoiceInfo;
+import com.rcsit.scf.bsp.model.avf.AvfFinancingDemandHead;
+import com.rcsit.scf.bsp.model.avf.AvfFinancingDemandInfo;
+import com.rcsit.scf.bsp.model.avf.AvfWaitFinInvoiceInfo;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by hmily on 2017/5/25.
+ */
+public class AvfFinancingApproveHandler {
+
+    /**
+     * 金融机构融资审批列表
+     *
+     * @param page
+     * @param rows
+     * @param token
+     * @return
+     */
+    public JSONObject financingApproveList(int page, int rows, String token) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("page", page);
+        param.put("rows", rows);
+        param.put("token", token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_APPROVE_APPROVELIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new AccessNotAcceptException();
+        }
+        JSONObject dataJson = JSONObject.parseObject(jsonObject.getString("data"));
+        return dataJson;
+    }
+
+    /**
+     * 查看融资申请抬头详情
+     *
+     * @param id
+     * @param token
+     * @return
+     */
+    public AvfFinancingDemandHead getFinancingApproveHeadDetails(String id, String token) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("token", token);
+        param.put("id", id);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_DEMANDHEAD_DETAIL, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new AccessNotAcceptException();
+        }
+        AvfFinancingDemandHead avfFinancingDemandHead = JSONObject.parseObject(jsonObject.getString("data"), new TypeReference<AvfFinancingDemandHead>() {
+        });
+        return avfFinancingDemandHead;
+    }
+
+    /**
+     * 融资审批拒绝
+     *
+     * @param id
+     * @param token
+     */
+    public void doFinancingDemandReject(String id, String token) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("token", token);
+        param.put("id", id);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_FINANCING_REJECT, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new AccessNotAcceptException();
+        }
+    }
+
+    /**
+     * 查看融资需求下，融资详情
+     *
+     * @param id
+     * @param token
+     * @return
+     */
+    public List<AvfFinancingDemandInfo> getFinancingApproveInfoDetails(String id, String token) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("token", token);
+        param.put("id", id);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_DEMANINFO_DETAIL, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new AccessNotAcceptException();
+        }
+        List<AvfFinancingDemandInfo> demandInfoList = JSONObject.parseObject(jsonObject.getString("data"), new TypeReference<List<AvfFinancingDemandInfo>>() {
+        });
+        return demandInfoList;
+    }
+
+    /**
+     * 融资需求发票详情
+     * @param id
+     * @param token
+     * @return
+     */
+    public List<AvfFinInvoiceInfo> getFinancingInvoiceDetail(String id, String token) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("token", token);
+        param.put("id", id);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCING_INVOICE_INFO, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new AccessNotAcceptException();
+        }
+        List<AvfFinInvoiceInfo> invoiceInfos = JSONObject.parseObject(jsonObject.getString("data"), new TypeReference<List<AvfFinInvoiceInfo>>() {
+        });
+        return invoiceInfos;
+    }
+
+    public int waitDealQuota(String token){
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_FINANCING_WAITQUATO, "token=" + token);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if(!HttpClientUtil.isOk(jsonObject)){
+            throw new RequestErrorException();
+        }
+        return jsonObject.getInteger("data");
+    }
+}

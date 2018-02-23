@@ -1,0 +1,192 @@
+package com.rcsit.scf.bsp.model.avf;
+
+import com.rcsit.scf.bsp.domain.Domain;
+
+import java.math.BigDecimal;
+
+/**
+ * 待融资发票抬头
+ * Created by chenkai on 2017/5/5.
+ */
+public class AvfWaitFinInvoiceHead extends Domain {
+    //录入编号
+    private String docNo;
+    //企业集团代码
+    private String groupCompanyCode;
+    //企业集团名称
+    private String groupCompanyName;
+    //企业集团简称
+    private String groupCompanyShortName;
+    //公司代码
+    private String companyCode;
+    //公司名称
+    private String companyName;
+    //公司简称
+    private String companyShortName;
+    //供应商代码
+    private String supplyCode;
+    //供应商名称
+    private String supplyName;
+    //供应商简称
+    private String supplyShortName;
+    //备注说明
+    private String remarks;
+    //业务处理状态
+    private int businessDealStatus;
+    //业务处理描述
+    private String businessDealInfo;
+    //处理信息
+    private String dealInfo;
+    //应付账款凭证
+    private String payableCertificate;
+    //合计金额
+    private BigDecimal totalMoney;
+    //发票数量
+    private int invoiceTotalNumber;
+    //序列
+    private int sequenceIndex;
+
+    public String getDocNo() {
+        return docNo;
+    }
+
+    public void setDocNo(String docNo) {
+        this.docNo = docNo;
+    }
+
+    public String getGroupCompanyCode() {
+        return groupCompanyCode;
+    }
+
+    public void setGroupCompanyCode(String groupCompanyCode) {
+        this.groupCompanyCode = groupCompanyCode;
+    }
+
+    public String getGroupCompanyName() {
+        return groupCompanyName;
+    }
+
+    public void setGroupCompanyName(String groupCompanyName) {
+        this.groupCompanyName = groupCompanyName;
+    }
+
+    public String getGroupCompanyShortName() {
+        return groupCompanyShortName;
+    }
+
+    public void setGroupCompanyShortName(String groupCompanyShortName) {
+        this.groupCompanyShortName = groupCompanyShortName;
+    }
+
+    public String getCompanyCode() {
+        return companyCode;
+    }
+
+    public void setCompanyCode(String companyCode) {
+        this.companyCode = companyCode;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getCompanyShortName() {
+        return companyShortName;
+    }
+
+    public void setCompanyShortName(String companyShortName) {
+        this.companyShortName = companyShortName;
+    }
+
+    public String getSupplyCode() {
+        return supplyCode;
+    }
+
+    public void setSupplyCode(String supplyCode) {
+        this.supplyCode = supplyCode;
+    }
+
+    public String getSupplyName() {
+        return supplyName;
+    }
+
+    public void setSupplyName(String supplyName) {
+        this.supplyName = supplyName;
+    }
+
+    public String getSupplyShortName() {
+        return supplyShortName;
+    }
+
+    public void setSupplyShortName(String supplyShortName) {
+        this.supplyShortName = supplyShortName;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
+    }
+
+    public int getBusinessDealStatus() {
+        return businessDealStatus;
+    }
+
+    public void setBusinessDealStatus(int businessDealStatus) {
+        this.businessDealStatus = businessDealStatus;
+    }
+
+    public String getBusinessDealInfo() {
+        return businessDealInfo;
+    }
+
+    public void setBusinessDealInfo(String businessDealInfo) {
+        this.businessDealInfo = businessDealInfo;
+    }
+
+    public String getDealInfo() {
+        return dealInfo;
+    }
+
+    public void setDealInfo(String dealInfo) {
+        this.dealInfo = dealInfo;
+    }
+
+    public String getPayableCertificate() {
+        return payableCertificate;
+    }
+
+    public void setPayableCertificate(String payableCertificate) {
+        this.payableCertificate = payableCertificate;
+    }
+
+    public BigDecimal getTotalMoney() {
+        return totalMoney;
+    }
+
+    public void setTotalMoney(BigDecimal totalMoney) {
+        this.totalMoney = totalMoney;
+    }
+
+    public int getInvoiceTotalNumber() {
+        return invoiceTotalNumber;
+    }
+
+    public void setInvoiceTotalNumber(int invoiceTotalNumber) {
+        this.invoiceTotalNumber = invoiceTotalNumber;
+    }
+
+    public int getSequenceIndex() {
+        return sequenceIndex;
+    }
+
+    public void setSequenceIndex(int sequenceIndex) {
+        this.sequenceIndex = sequenceIndex;
+    }
+}

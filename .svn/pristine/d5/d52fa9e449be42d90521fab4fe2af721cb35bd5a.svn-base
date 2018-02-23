@@ -1,0 +1,58 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+		<link rel="stylesheet" href="/static/avf/css/supplyMain.css" />
+		
+		<!--xg addjs-->
+		<script type="text/javascript" src="/static/base/js/public.js" ></script>
+		<script type="text/javascript" src="/static/base/js/common.js" ></script>
+		<script type="text/javascript" src="/static/avf/js/finance_credit.js" ></script>
+		<script>
+			EUI.onReady(function(){
+				new EUI.FinanceCredit({
+					renderTo: "credit_table",
+					cfgId: "creditList"
+				});
+			})
+		</script>
+		<title>融资管理平台</title>
+	</head>
+
+	<body>
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li><a href="/avf/financingApprove/financingApproveListPage">首页</a></li>
+					<li><a href="/avf/financingReceipt/financingReceiptPage">&nbsp;&gt;&nbsp;收款补录</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<c:set var="tab_state" scope="session" value="4"/>
+				<%@ include file="/base/tab_financial.jsp"%>
+				<div class="con_title">待补录<span class="font20 org_color">${waitMakeUpQuota}</span>项</div>
+				
+				<!--收款补录列表-->
+				<div class="rz_result">
+					<div id="credit_table"></div>
+				</div>
+				
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<%@ include file="/base/footer.jsp"%>
+		<!--footer end-->
+	</body>
+</html>

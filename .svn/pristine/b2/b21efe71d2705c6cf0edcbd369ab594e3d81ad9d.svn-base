@@ -1,0 +1,128 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+         contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<%
+    Cookie[] requestCookies = request.getCookies();
+    for (Cookie cookie : requestCookies) {
+        if (cookie.getName().equalsIgnoreCase("userIdentityType"))
+            request.setAttribute("userIdentityType", URLDecoder.decode(cookie.getValue(), "utf-8"));
+    }
+%>
+<html>
+<head>
+    <!--xg addcss-->
+    <link rel="stylesheet" href="/static/avf/css/mainView.css" />
+
+    <link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+    <link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+
+    <!--xg addjs-->
+    <script type="text/javascript" src="/static/base/js/public.js"></script>
+    <script type="text/javascript" src="/static/base/js/common.js"></script>
+    <script type="text/javascript" src="/static/avf/js/edit_rec_pay_money.js" ></script>
+    <%--<!--<%&#45;&#45;<title>融资管理平台</title>&#45;&#45;%>-->--%>
+    <script type="text/javascript">
+        EUI.onReady(function() {
+            var identity =$('.identity').val();
+            if(identity == 'ENTERPRISE'){
+                var reyPayMoneyForm = new EUI.reyPayMoneyForm({
+                    renderTo : "formAddRecPayMoney",
+                    title:'供应商名称',
+                    displayText:'请选择供应商',
+                    url:_ctxPath+"/avf/financingRelConfigure/findRelByCompanyCode.json",
+                    code:'supplyCode',
+                    name:'supplyName',
+                    //padding: 5,
+                });
+            }else{
+                var reyPayMoneyForm = new EUI.reyPayMoneyForm({
+                    renderTo : "formAddRecPayMoney",
+                    title:'核心企业名称',
+                    displayText:'请选择核心企业',
+                    url:_ctxPath+"/avf/financingRelConfigure/findRelBySupplyCode.json",
+                    code:'companyCode',
+                    name:'companyName',
+                    //padding: 5,
+                });
+            }
+            var addFinance1 = new EUI.AddFinance1({
+                renderTo : "rzInvoice1",
+                renderTo1 : "formBatchNumbers",
+                renderTo2 : "rzInvoice2",
+            });
+            var accountForm = new EUI.AccountForm({
+                renderTo : "accountsForm",
+            });
+        });
+    </script>
+</head>
+
+<body>
+<!--top_common-->
+<!--top_common end-->
+
+<!--main content-->
+<div class="main_content">
+    <!--tab_list-->
+    <div class="container1200">
+        <ul class="tab_list">
+            <li><a href="/avf/invoice/toWaitPage?type=enterprise">首页</a></li>
+            <li><a href="/avf/accountRPInfo/accountRPInfoPage">&gt;&nbsp;应付账款</a></li>
+            <li><a href="#">&gt;&nbsp;新增应付账款</a></li>
+        </ul>
+    </div>
+    <input class="identity" type="hidden" value="${userIdentityType}">
+    <input type="hidden" value="${batchNumbers}">
+    <!--tab_list end-->
+
+    <div class="container1200 step_content">
+        <c:if test="${userIdentityType == 'ENTERPRISE'}">
+            <p class="form_p mt20"><label>核心企业：</label><font>${userName}</font></p>
+            <%--<p class="form_p"><label>公司代码：</label><font>${identityList[0].companycode}</font></p>--%>
+        </c:if>
+        <c:if test="${userIdentityType == 'SUPPLIER'}">
+            <p class="form_p mt20"><label>供应商：</label><font>${userName}</font></p>
+            <%--<p class="form_p"><label>公司代码：</label><font>${identityList[0].supplycode}</font></p>--%>
+        </c:if>
+
+        <div style="height:300px;">
+            <div id="formAddRecPayMoney"></div>
+        </div>
+
+        <div id="showHideAccounts" style="height:110px;">
+            <div id="accountsForm"></div>
+        </div>
+        <div id="showHideBatchNumbers" style="height:auto;">
+            <div id="formBatchNumbers"></div>
+
+            <ul class="ul_list ml20"><li class="li_1">所有发票</li><li class="bor_b0">已选发票</li></ul><div class="ml20 total_invoice">已选<font id="invoiceNum">0</font>张发票，总金额<font id="allMoney">0.00</font>元</div>
+            <div class="ul_tab" id="ul_tab_0" data="0">
+                <div class="rz_result">
+                    <div id="rzInvoice1"></div>
+                </div>
+            </div>
+            <div class="ul_tab" id="ul_tab_1" data="1">
+                <div class="rz_result">
+                    <div id="rzInvoice2"></div>
+                </div>
+            </div>
+            <%--<div id="tabInvoiceChoice"></div>--%>
+        </div>
+
+        <div class="btn_form">
+            <span class="btn_submit ml10" id = "addReyPayMoney"><b></b>提&nbsp;交</span>
+            <span class="btn_cancel" id="reyPayMoneyCancel">取消</span>
+        </div>
+
+    </div>
+
+</div>
+<!--main content end-->
+
+<!--footer-->
+<%@ include file="/base/footer.jsp"%>
+<!--footer end-->
+</body>
+</html>

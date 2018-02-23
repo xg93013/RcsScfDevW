@@ -1,0 +1,182 @@
+package com.rcsit.scf.bsp.controller;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.domain.PageModel;
+import com.rcsit.scf.bsp.domain.ResponseModel;
+import com.rcsit.scf.bsp.exception.RequestErrorException;
+import com.rcsit.scf.bsp.handler.AvfFinancingDemandHandler;
+import com.rcsit.scf.bsp.handler.PbmVerdorHandler;
+import com.rcsit.scf.bsp.model.avf.AvfFinInvoiceInfo;
+import com.rcsit.scf.bsp.model.avf.AvfFinancingDemandHead;
+import com.rcsit.scf.bsp.model.pbm.PbmVerdor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
+/** 融资需求申请
+ * Created by chenkai on 2017/5/9.
+ */
+@Controller
+@RequestMapping(value = "/avf/financingDemand")
+public class AvfFinancingDemandController extends BaseController {
+
+    private AvfFinancingDemandHandler avfFinancingDemandHandler = new AvfFinancingDemandHandler();
+    private PbmVerdorHandler pbmVerdorHandler = new PbmVerdorHandler();
+
+    /**
+     * 融资需求申请列表跳转
+     * @param type enterprise 核心企业   supplier 供应商
+     */
+    @RequestMapping(value = "/toDemandPage")
+    public String toDemandPage(Model model,@CookieValue("token")String token,@RequestParam(value = "type",defaultValue = "supplier")String type){
+        JSONObject data = avfFinancingDemandHandler.getDemandVerifyQuota(token);
+        model.addAttribute("demandNumber",data);
+        return "avf/"+type+"/apply_finance";
+    }
+    /**
+     * 融资需求申请列表查询
+     * @param token
+     */
+    @ResponseBody
+    @RequestMapping(value = "/demandList")
+    public Object demandList(@CookieValue("token")String token, @RequestParam("page")int page, @RequestParam(value = "rows" ,defaultValue = "25")int rows){
+        JSONObject data = avfFinancingDemandHandler.doDemandList(token,page,rows);
+        return new PageModel(data);
+    }
+    /**
+     * 融资需求详情 申请进度
+     * @param id
+     * @param type enterprise 核心企业   supplier 供应商
+     */
+    @RequestMapping(value = "/demandProgress")
+    public String demandProgress(Model model,@CookieValue("token")String token,@RequestParam("id")String id,@RequestParam(value = "type",defaultValue = "supplier")String type){
+        AvfFinancingDemandHead head = avfFinancingDemandHandler.doDemandProgress(token,id);
+        model.addAttribute("demandHead",head);
+        return "avf/"+type+"/finance_detail";
+    }
+    /**
+     * 新增融资申请页面跳转第一步
+     * @param
+     */
+    @RequestMapping(value = "/toAddFinanceFirst")
+    public String toAddFinanceFirst(){
+        return "avf/supplier/add_finance_first";
+    }
+    /**
+     * 新增融资申请页面跳转第二步
+     * @param
+     */
+    @RequestMapping(value = "/toAddFinanceNext")
+    public String toAddFinanceNext(Model model,@CookieValue("token")String token,@RequestParam("ids") String ids,String invoiceTotalMoney,String invoiceTotalNumber){
+        List<AvfFinInvoiceInfo> infos = avfFinancingDemandHandler.doInvoiceInfoIds(token,ids);
+        model.addAttribute("finInfos",infos);
+        model.addAttribute("invoiceTotalMoney",invoiceTotalMoney);
+        model.addAttribute("invoiceTotalNumber",invoiceTotalNumber);
+        return "avf/supplier/add_finance_Next";
+    }
+    /**
+     * 可融资发票列表
+     * @param token
+     */
+    @ResponseBody
+    @RequestMapping(value = "/applyInfoList")
+    public Object applyInfoList(@CookieValue("token")String token,@RequestParam("companyCode")String companyCode, @RequestParam("page")int page, @RequestParam(value = "rows" ,defaultValue = "25")int rows){
+        JSONObject data = avfFinancingDemandHandler.doApplyInfoList(token,companyCode,page,rows);
+        return new PageModel(data);
+    }
+    /**
+     * 新增融资申请
+     * @author
+     * @param
+     */
+    @ResponseBody
+    @RequestMapping(value = "/saveFinancingDemand")
+    public ResponseModel saveFinancingDemand(@CookieValue("token")String token,
+                                     AvfFinancingDemandHead demandHead,
+                                     @RequestParam("infos") String infos) throws InvocationTargetException, IllegalAccessException {
+
+        try {
+            avfFinancingDemandHandler.doSaveFinancingDemand(token, demandHead, infos);
+        } catch (Exception e) {
+            throw new RequestErrorException();
+        }
+        return ResponseModel.SUCCESS();
+    }
+
+    /**
+     * 维护延长账款页面跳转
+     * @param
+     */
+    @RequestMapping(value = "/toMaintainExtendPage")
+    public String toMaintainExtendPage(Model model,@CookieValue("token")String token,@RequestParam("id")String id){
+        AvfFinancingDemandHead head = avfFinancingDemandHandler.doDemandProgress(token,id);
+        String verdor = pbmVerdorHandler.doVerdorDetail(head.getSupplyCode(),token);
+        model.addAttribute("demandHead",head);
+        model.addAttribute("verdor",JSONObject.parseObject(verdor, new TypeReference<PbmVerdor>(){}));
+        return "avf/enterprise/extend_account";
+    }
+    /**
+     * 维护延长账款
+     *
+     * @param
+     * @return
+     * @author
+     */
+    @ResponseBody
+    @RequestMapping(value = "/maintainExtendMoney")
+    public ResponseModel maintainExtendMoney(@CookieValue("token") String token,
+                                             @RequestParam("id") String id,
+                                             @RequestParam("isPast") boolean isPast,
+                                             String intentionFmoney,
+                                             String intentionFterm) throws InvocationTargetException, IllegalAccessException {
+        avfFinancingDemandHandler.doMaintainExtendMoney(token,id,isPast,intentionFmoney,intentionFterm);
+        return ResponseModel.SUCCESS();
+    }
+
+    /**
+     * 还款融资列表跳转
+     *
+     * @param
+     * @return
+     * @author
+     */
+    @RequestMapping(value = "/toRepaymentPage")
+    public String toRepaymentPage() {
+        return "test";
+    }
+    /**
+     * 还款融资列表
+     *
+     * @param
+     * @return
+     * @author
+     */
+    @ResponseBody
+    @RequestMapping(value = "/repaymentList")
+    public Object repaymentList(Model model,@CookieValue("token")String token, @RequestParam("page")int page, @RequestParam(value = "rows" ,defaultValue = "25")int rows) {
+        JSONObject data = avfFinancingDemandHandler.doRepaymentList(token,page,rows);
+        return new PageModel(data);
+    }
+    /**
+     * 还款倒计时
+     *
+     * @param
+     * @return
+     * @author
+     */
+    @ResponseBody
+    @RequestMapping(value = "/repaymentCountDown")
+    public ResponseModel repaymentCountDown(@CookieValue("token")String token,@RequestParam(value = "id")String id) {
+        int numData = avfFinancingDemandHandler.doRepaymentCountDown(token,id);
+        return ResponseModel.SUCCESS(numData);
+    }
+
+
+}

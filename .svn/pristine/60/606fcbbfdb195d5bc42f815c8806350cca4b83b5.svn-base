@@ -1,0 +1,145 @@
+EUI.FinanceDetail = EUI.extend(EUI.CustomUI, {
+		renderTo: "",
+		height: 'auto',
+		width: 1180,
+		initComponent: function() {
+			var _this = this;
+			_this.initGrid();
+			_this.loadData();
+			_this.addEvents();
+		},
+		initGrid:function(){
+			var g = this;
+			EUI.GridPanel({
+				renderTo: g.renderTo,
+				style: {
+					'padding': '0px',
+					'overflow': 'inherit',
+				},
+				height: 'auto',
+				width: 1160,
+				padding: 0, //设置表格的内边距
+				exportXls: false,
+				searchConfig: null,
+				showRefresh: false,
+				id: "tabShowFinance",
+				//autoLoad: true, //自动加载
+				//height: 400,
+				gridCfg: {
+                    hasPager:false,
+					rownumbers: true, //去掉表格序号
+					loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+					shrinkToFit: true, //表格宽度自适应
+					height:'auto',
+					colModel: [{
+                        label: "序号",
+                        name: "id", //列显示的名称
+                        index: "id", //传到服务器端用来排序的列名称
+                        // width: 50,
+                        hidden: true //隐藏不显示这一组
+                    }, {
+                        label: "核心企业代码",
+                        name: "companyCode",
+                        index: "companyCode",
+                        //width: 124,
+
+                    }, {
+                        label: "会计年度",
+                        name: "dateYear",
+                        index: "dateYear",
+                        //width: 124,
+
+                    }, {
+                        label: "应收凭证号",
+                        name: "voucherNo",
+                        index: "voucherNo",
+                    }, {
+                        label: "行项号",
+                        name: "lineItemNumber",
+                        index: "lineItemNumber",
+                    }, {
+                        label: "核心企业名称",
+                        name: "companyShortName",
+                        index: "companyShortName",
+                        //width: 124,
+
+                    },{
+                        label: "应收账款金额",
+                        name: "recPayMoney",
+                        index: "recPayMoney",
+                        formatter: function(value, id, rowdata) {
+							return '￥'+$.formatMoney(rowdata.recPayMoney,2);
+                        }
+                    }, {
+                        label: "账款到期日",
+                        name: "maturityDate",
+                        index: "maturityDate",
+                        //width: 120,
+                        formatter: function(value, id, rowdata) {
+                            // if(flag == 0){
+                            //     return GetDateT(new Date(rowdata.maturityDate));
+                            // }else{
+                                return rowdata.maturityDate;
+                            // }
+                        }
+
+                    }],
+					//data: g.loadData(),
+				}
+
+			});
+		},
+		loadData:function(){
+			var id = $('#financingApproveHeadDetailsId').val();
+            EUI.Store({
+                url: _ctxPath+'/avf/financingApprove/financingRPInfos.json',
+                params:{id:id},
+				async:false,
+                success: function (d) {
+					if(d.length == 0){
+                        //messageDemo.messageError('暂无数据');
+						$('.ui-jqgrid-bdiv').css('border-bottom','1px solid #e2e2e2');
+						$('#g_tabShowFinance').html('<tr class="noData"><td>无数据显示</td></tr>')
+					}else{
+                        EUI.getCmp("tabShowFinance").setDataInGrid(d);
+					}
+                },
+                failure: function (d) {
+                    errorInfo(d.msg);
+                   // messageDemo.messageError(d.msg);
+                }
+            });
+			/*$.get(_ctxPath+'/avf/financingApprove/financingInvoiceDetail.json',{id:id},function (d) {
+				console.log(d);
+				if(d.status == true){
+					return d.data;
+				}else{
+
+				}
+            });*/
+		},
+		afterRender: function() {
+			console.log('渲染完成');
+		},
+		addEvents: function() {
+			// var _self = this;
+			$('.name_detail').click(function () {
+				$('#detail,#detailTip').css('display','block');
+            });
+			$('.b_close').click(function () {
+                $('#detail,#detailTip').css('display','none');
+            });
+			/*$('.del_table').live('click', function() {
+				var _this = $(this);
+				messageDemo.messageBox(function(){
+					var tableRowId = _this.attr('id');
+				    var gridPanel = EUI.getCmp("tablePrepareInvoice");
+				    gridPanel.deleteRow(tableRowId);
+				});
+			});*/
+			/*$('.btn_defend').live('click', function() {
+				window.location.href = 'extend_account.html';
+			});*/
+		},
+	});
+

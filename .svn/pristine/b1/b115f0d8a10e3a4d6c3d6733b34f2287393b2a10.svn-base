@@ -1,0 +1,29 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+import org.apache.commons.collections.map.HashedMap;
+
+import java.util.Map;
+
+/**
+ * 应收应付账款凭证
+ * Created by hmily on 2017/7/24.
+ */
+public class AvfAccountRPInfoHandler {
+
+    public JSONObject fingAccountsRPInfos(int page, int rows, String token,String keyWord,String query){
+        Map<String,Object> param = new HashedMap();
+        param.put("page",page);
+        param.put("rows",rows);
+        param.put("token",token);
+        param.put("keyWord",keyWord);
+        param.put("query",query);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_ACCOUNT_RPInfos, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return JSONObject.parseObject(jsonObject.getString("data"));
+    }
+
+}

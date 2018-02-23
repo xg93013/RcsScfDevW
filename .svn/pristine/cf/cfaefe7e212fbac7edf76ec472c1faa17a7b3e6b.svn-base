@@ -1,0 +1,24 @@
+.ux-field .ux-field-text {
+    font-size: 20px;
+    /*color: #999;*/
+}
+.ux-field label.ux-field-label span {
+    font-size: 18px;
+}
+
+.ux-trigger-box {
+    line-height: 44px;
+    padding:0 5px 0 0;
+}
+#financeTerm .ux-trigger-box {
+    /*margin-top: 8px;*/
+}
+.ux-field label.ux-field-label{
+    padding-top: 0;
+}
+.ui-jqgrid .ui-jqgrid-htable th div {
+    overflow: visible;
+}
+.ux-combo-list-item {
+    padding: 11px 5px;
+}

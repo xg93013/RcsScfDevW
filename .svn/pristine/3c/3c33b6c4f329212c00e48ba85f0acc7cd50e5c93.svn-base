@@ -1,0 +1,117 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.exception.FileNotSelectException;
+import com.rcsit.scf.bsp.exception.FileSizeMaxException;
+import com.rcsit.scf.bsp.exception.FileTypeErrorException;
+import com.rcsit.scf.bsp.exception.RequestErrorException;
+import com.rcsit.scf.bsp.model.avf.AvfWaitFinInvoiceHead;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by chenkai on 2017/5/25.
+ */
+
+//@Service
+public class AvfWaitFinInvoiceHandler {
+    private static Long sizeMax = 5L; //文件大小限制MB为单位
+
+    public JSONObject doWaitList(String token , int page,int rows){
+        String param="token="+token+"&page="+page+"&rows="+rows;
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_WAIT_LIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        return jsonObject.getJSONObject("data");
+    }
+    public void doManualAddInvoice(String token ,AvfWaitFinInvoiceHead invoiceHead,String infos) throws Exception {
+        List<NameValuePair> pairs = HttpClientUtil.commonParam(invoiceHead);
+        pairs.add(new BasicNameValuePair("token",token));
+        pairs.add(new BasicNameValuePair("infos",infos));
+        String result = HttpClientUtil.httpPairsPost(ServerConstant.URL_AVF_WAIT_MANUAL_ADD, pairs);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+    }
+    public Boolean doInvoiceOnlyVerify(String token ,String invoiceCode,String invoiceNo) {
+        String param="token="+token+"&invoiceCode="+invoiceCode+"&invoiceNo="+invoiceNo;
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_ONLY_VERIFY, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        return jsonObject.getBoolean("data");
+    }
+
+    public JSONObject doInvoiceDetail(String docNo, int page, int rows) {
+        String param="docNo="+docNo+"&page="+page+"&rows="+rows;
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_WAIT_INFO, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        return jsonObject.getJSONObject("data");
+    }
+
+    public void doInvoiceExamine(String id, String businessDealStatus, String businessDealInfo) throws Exception {
+        Map<String ,String> param = new HashMap<>();
+        param.put("id",id);
+        param.put("businessDealStatus",businessDealStatus);
+        param.put("businessDealInfo",businessDealInfo);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_WAIT_INVOICE_EXAMINE, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+    }
+
+    public void doImportInvoice(String token, MultipartFile file) throws Exception {
+        //判断上传文件是否为空
+        if (file.isEmpty()) {
+            throw new FileNotSelectException();
+        }
+        String fileName = file.getOriginalFilename();
+        //判断文件大小是否超过最大大小
+        if (file.getSize() > sizeMax * 1024 * 1024) {
+            throw new FileSizeMaxException();
+        }
+        //判断文件是否为Excel文件
+        if (!fileName.matches("^.+\\.(?i)(xls)$") && !fileName.matches("^.+\\.(?i)(xlsx)$")) {
+            throw new FileTypeErrorException();
+        }
+        boolean isXls = false;  //判断后缀为什么格式
+        if (fileName.matches("^.+\\.(?i)(xls)$")) {
+            isXls = true;
+        }
+        Map<String ,String> param = new HashMap<>();
+        param.put("token",token);
+        param.put("isXls",String.valueOf(isXls));
+        param.put("file",HttpClientUtil.convertStreamToString(file.getInputStream()));
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_IMPORT_INVOICE, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+    }
+
+    public JSONObject doApplyInfoList(String token, int page, int rows) {
+        String param="token="+token+"&page="+page+"&rows="+rows;
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_APPLY_INFO_LIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        return jsonObject.getJSONObject("data");
+    }
+}

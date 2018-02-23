@@ -1,0 +1,199 @@
+EUI.ApplyFinance2 = EUI.extend(EUI.CustomUI, {
+	renderTo: null,
+	//comboBoxBank: null,
+	height: 'auto',
+	data: null,
+	initComponent: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		/*this.comboBoxBank = new EUI.ComboBoxBank({
+			renderTo: this.renderTo
+		});*/
+		this.initGrid();
+		this.addEvents();
+	},
+	initHtml: function(data) {
+		var html = "";
+		for(var i = 0; i < data.length; i++) {
+
+		}
+		$("body").append(html);
+	},
+	initGrid: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		EUI.GridPanel({
+			//xtype: "GridPanel",
+			loadonce: true, //true数据一次性加载,每页返回加载每页的数据
+			//url:_ctxPath+"/dfdf/dd";//获取后端数据
+			//rowNum:10,//一页显示几条数据
+			renderTo: _this.renderTo,
+			padding: 0, //设置表格的内边距
+			exportXls: false,
+			searchConfig: null,
+			showRefresh: false,
+			id: "applyFinancingTab2",
+			//autoLoad: true, //自动加载
+			height: 'auto',
+			gridCfg: {
+				rownumbers: false, //去掉表格序号
+				loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+				shrinkToFit: false, //表格宽度不自适应
+				//height:300,
+				colModel: [{
+					label: "序号",
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					width: 50,
+
+					//hidden: true //隐藏不显示这一组
+				}, {
+					label: "公司名称",
+					name: "name",
+					index: "name",
+					width: 124,
+
+				}, {
+					label: "融资银行",
+					name: "name1",
+					index: "name1",
+					width: 124,
+
+				}, {
+					label: "银行利率（%）",
+					name: "name2",
+					index: "name2",
+					width: 120,
+				}, {
+					label: "融资金额（元）",
+					name: "name3",
+					index: "name3",
+					width: 120,
+
+				}, {
+					label: "融资比例（%）",
+					name: "name4",
+					index: "name4",
+					width: 120,
+
+				}, {
+					label: "融资起始日",
+					name: "name5",
+					index: "name5",
+					width: 110,
+
+				}, {
+					label: "融资到期日",
+					name: "name6",
+					index: "name6",
+					width: 110,
+
+				}, {
+					label: "状态",
+					name: "name7",
+					index: "name7",
+					width: 110,
+					style: {
+						'text-align': 'left',
+					},
+					formatter: function(value, id, rowdata) {
+						if(rowdata.name7 == 0) {
+							return '未通过';
+						} else if(rowdata.name7 == 1) {
+							return '银行处理中';
+						} else {
+							return '已通过';
+						}
+					}
+
+				}, {
+					label: "操作",
+					name: "name8",
+					index: "name8",
+					width: 148,
+					formatter: function(value, id, rowdata) {
+						return '<div class="btn_detail look_detail">查看详细</div>';
+					}
+				}],
+				data: _this.loadData(),
+			}
+		});
+	},
+	addEvents: function() {
+		$(".tab").bind("click", function() {
+
+		});
+		this.addTabEvents();
+	},
+	addTabEvents: function() {
+
+	},
+	loadData: function() {
+
+		var dataPrepareInvoice2 = [{
+				id: 1,
+				name: '长虹集团',
+				name1: '长虹集团',
+				name2: '3.14',
+				name3: 7678900,
+				name4: '3.14',
+				name5: '',
+				name6: '',
+				name7: 0
+			},
+			{
+				id: 2,
+				name: '九州集团',
+				name1: '长虹集团',
+				name2: '3.14',
+				name3: 7678900,
+				name4: '3.14',
+				name5: '2017-03-23',
+				name6: '2017-03-23',
+				name7: 1
+			},
+			{
+				id: 3,
+				name: '长虹集团',
+				name1: '长虹集团',
+				name2: '3.14',
+				name3: 7678900,
+				name4: '3.14',
+				name5: '',
+				name6: '',
+				name7: 2
+			},
+		];
+		return dataPrepareInvoice2;
+		/*var g = this;
+		EUI.Stor({
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		})*/
+	},
+	showCount: function(data) {
+		$(".todo-count").text(data.count);
+	},
+	checkValid: function() {
+
+		return true;
+	},
+	getData: function() {
+		var data = {};
+		//TODO:
+		return data;
+	},
+	submit: function() {
+		if(!this.checkValid()) {
+			return;
+		}
+		EUI.Stor({
+			url: "",
+			params: this.getData(),
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		});
+	}
+});

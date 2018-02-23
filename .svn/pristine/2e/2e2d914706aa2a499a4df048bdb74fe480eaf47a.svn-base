@@ -1,0 +1,73 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+
+	<!--xg addcss-->
+	<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+
+	<!--xg addjs-->
+	<script type="text/javascript" src="/static/avf/js/common.js" ></script>
+	<%--<script type="text/javascript" src="/static/base/js/jquery-2.0.0.min.js" ></script>--%>
+	<script type="text/javascript" src="/static/avf/js/invoice_prepare.js" ></script>
+	<script>
+        EUI.onReady(function() {
+            new EUI.InvoicePrepare({
+                renderTo: "rz_box",
+                cfgId: "InvoicePre1"
+            });
+        });
+	</script>
+	<title>融资管理平台</title>
+</head>
+
+<body>
+
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li>首页</li>
+			<li><a href="javascript:void(0)">&nbsp;&gt;&nbsp;准备发票</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 step_content">
+		<div class="rz_nav">
+			<a href="/avf/invoice/toWaitPage" class="tab_01_over"><div class="on_state" style="display: block;">1.准备发票</div><div class="off_state" style="display: none;"><p><span class="msg_num">1.准备发票<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+			<a href="/avf/financingDemand/toDemandPage?type=enterprise" class="tab_02"><div class="on_state" style="display: none;">2.申请融资</div><div class="off_state" style="display: block;"><p><span class="msg_num">2.申请融资<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+			<a href="/avf/notice/noticesListPage?identityType=ENTERPRISE" class="tab_03"><div class="on_state">3.通知单</div><div class="off_state"><p><span class="msg_num">3.通知单<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+			<a href="/avf/financingDemand/toRepaymentPage" class="tab_04"><div class="on_state">4.还款</div><div class="off_state"><p><span class="msg_num">4.还款<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+			<a href="#" class="tab_05"><div class="on_state">5.融资跟踪</div><div class="off_state"><p><span class="msg_num">5.融资跟踪<span>1</span></span></p><p class="font13">总2项</p></div></a>
+		</div>
+		<div class="rz_container">
+			<div class="re_con_left fl">
+				<p>待审核：<span class="org_color">${waitNumber.bideNumber}</span>项</p>
+				<p>供应商：<span>${waitNumber.supplyNumber}</span>项</p>
+				<p>总额度：<span class="font34">${waitNumber.totalMoneyNumber}</span>元</p>
+			</div>
+			<div class="re_con_right fr">
+
+				<div class="re_conr_items">
+					<a href="/avf/invoice/toAddInvoice?type=enterprise" class="lr_tickets" id="input_invoice">手动录入发票</a>
+					<a href="javascript:void(0)" class="lr_tickets mg10" id="import_model">导入文件模板</a>
+				</div>
+				<div class="re_conr_items"><a href="javascript:void(0)" class="dr_ticket" id="import_ticket"><em></em><span>导入发票</span></a></div>
+			</div>
+		</div>
+		<div class="rz_result">
+			<div id="rz_box" ></div>
+		</div>
+	</div>
+
+</div>
+<!--main content end-->
+
+<%@ include file="/base/footer.jsp"%>
+</body>
+</html>

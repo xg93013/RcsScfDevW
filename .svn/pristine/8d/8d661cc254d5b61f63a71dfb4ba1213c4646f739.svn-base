@@ -1,0 +1,94 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+		<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+		
+		<!--xg addjs-->
+		<script type="text/javascript" src="/static/base/js/public.js" ></script>
+		<script type="text/javascript" src="/static/base/js/common.js" ></script>
+		<script type="text/javascript" src="/static/avf/js/apply_finance_sup.js" ></script>
+		<title>融资管理平台</title>
+		<style>
+			.supply_rz_nav a.tab_01 {
+			    background: url(/static/avf/images/tab_bg1.png) center no-repeat;
+			    width: 314px;
+			    left: 0;
+			    z-index: 9;
+			}
+			.off_state p {
+			    display: block;
+			}
+			/*.rz_result {
+			    width: 1188px;
+			    margin: auto;
+			}*/
+		</style>
+		<script type="text/javascript">
+			EUI.onReady(function() {
+				var applyFinance2 = new EUI.ApplyFinance2({
+					renderTo : "rzFinance",
+					//padding: 5,
+				});
+			});
+		</script>
+	</head>
+
+	<body>		
+		<!--弹出框-->
+		<!--<div class="black_win"></div>
+		<div class="show_win"></div>-->
+		<!--top_common-->
+		<!--top_common end-->
+	
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li>首页</li>
+					<li><a href="/avf/invoice/toWaitPage?type=supplier">&nbsp;&gt;&nbsp;申请融资列表</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<div class="rz_nav supply_rz_nav">
+						<a href="/avf/invoice/toWaitPage?type=supplier" class="tab_01"><div class="on_state">1.准备发票</div><div class="off_state"><p><span class="msg_num">1.准备发票<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="/avf/financingDemand/toDemandPage?type=supplier" class="tab_02_over"><div class="on_state" style="display: block;">2.申请融资</div><div class="off_state" style="display: none;"><p><span class="msg_num">2.申请融资<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="/avf/notice/noticesListPage?identityType=SUPPLIER" class="tab_03"><div class="on_state">3.通知单</div><div class="off_state"><p><span class="msg_num">3.通知单<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="BackMoneyView.html" class="tab_04"><div class="on_state">4.融资跟踪</div><div class="off_state"><p><span class="msg_num">4.还款<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<!--<a href="#" class="tab_05"><div class="on_state">5.还款</div><div class="off_state"><p><span class="msg_num">5.还款<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>-->
+				</div>
+				
+				<div class="rz_container">
+					<p class="company_p">供应商公司名称</p>
+					<div class="re_con_left fl">
+						<p>审核中：<span class="org_color">${demandNumber.verifyNumber}</span>项</p>
+						<p>确认中：<span class="org_color">${demandNumber.confirmNumber}</span>项</p>
+						<p>总金额：<span class="font34 org_color money" data="${demandNumber.totalMoneyNumber}"></span>元</p>
+					</div>
+					<div class="re_con_right fr">
+						<div class="re_conr_items"><div class="dr_ticket" id="startFinance"><em></em><span>开始融资</span></div></div>
+					</div>
+				</div>
+				<div class="rz_result">
+					<div id="rzFinance"></div>
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<%@ include file="/base/footer.jsp"%>
+		<!--footer end-->
+		<!--<button id="login_now">登录</button>-->
+	</body>
+</html> 

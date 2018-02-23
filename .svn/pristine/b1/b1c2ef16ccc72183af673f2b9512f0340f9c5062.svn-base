@@ -1,0 +1,190 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="stylesheet" href="/static/avf/css/base.css" />
+		<link rel="stylesheet" href="/static/avf/css/common.css" />
+		
+		<link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+		<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+
+		<script type="text/javascript" src="/static/base/js/public.js" ></script>
+		<script type="text/javascript" src="/static/base/js/common.js" ></script>
+
+		<title>首页-通知单-确认通知单</title>
+		
+	</head>
+
+	<body>		
+		<!--top_common-->
+		<div class="header_com">
+			<div class="header_container">
+				<div class="com_left fl mg10">
+					<img src="/static/avf/images/logo.png"  />
+				</div>
+				<div class="com_right fr mg10">
+					<div class="person_info fl">
+						<a>
+							<div class="info_graph fl"></div>
+							<!--登录成功-->
+							<div class="info_name fl">
+								<p class="font12">[核心企业]</p>
+								<p class="font18 mg10">用户名</p>
+							</div>
+							<!--未登录状态-->
+							<b></b>
+						</a>
+					</div>
+					<div class="hide_nlist">
+						<ul>
+							<li><a href="#">核心企业</a></li>
+							<li><a href="#">供应商</a></li>
+							<li><a href="#">金融机构</a></li>
+							<li><a href="#">系统管理</a></li>
+							<li><a href="#">密码修改</a></li>
+							<li><a href="#">用户中心</a></li>
+						</ul>
+					</div>
+					<div class="person_exit fl ml10">
+						<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--top_common end-->
+		
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li><a href="#">首页</a></li>
+					<li><a href="#">&gt;&nbsp;申请融资</a></li>
+					<li><a href="#">&gt;&nbsp;维护延长账款</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<div class="wyzzk">
+					<div class="wyzzk_top_left fl">
+						<div class="whyzzk_company">
+							<div class="w360 fl">
+
+								<span class="span_1">${avfAccountsRecTraNotice.supplyName}</span>
+								<span><label>融资需求编号：</label><font>${avfAccountsRecTraNotice.financingNeedsNo}</font></span>
+							</div>
+							<div class="w299 fl">
+								<span><label><b class="b_1"></b>联系人：</label><font>${pbmVerdor.linkMan}</font></span>
+								<span><label><b class="b_3"></b>手机：</label><font>${pbmVerdor.linkManMobile}</font></span>
+							</div>
+							<div class="fl">			
+								<span><label><b class="b_2"></b>座机：</label><font>${pbmVerdor.linkManTel}</font></span>
+								<span><label><b class="b_4"></b>邮箱：</label><font>${pbmVerdor.linkManEmail}</font></span>
+							</div>
+						</div>
+						<div class="whyzzk_money">
+							<div class="w360 fl">
+								<span>意向融资金额(融资比例${avfAccountsRecTraNotice.financeProportion}%)</span>
+								<span><label class="f30 cfd7138">${avfAccountsRecTraNotice.financeMoney}</label><font>元</font></span>
+							</div>
+							<div class="w299 fl">
+								<span class="w330">意向融资期限:</span>
+								<span class="w330 term" data="${avfAccountsRecTraNotice.financeStart}" fc-data="${avfAccountsRecTraNotice.financeEnd}"><label class="f30 cfd7138">12</label><font>个月（到期日2018-12-14）</font></span>
+							</div>
+							<div class="fl">						
+								<span><label>融  资  银  行：</label><font>${avfAccountsRecTraNotice.finInsName}</font></span>
+								<span><label>银行参考利率：</label><font class="rate" data="${avfAccountsRecTraNotice.bankRate}"></font>%</span>
+							</div>
+						</div>
+						<div class="whyzzk_explain"><span class="fl"><label>意向融资说明:</label><font>${avfAccountsRecTraNotice.bankRate}</font></span><a class="fr" href="#">详细信息>></a></div>
+					</div>
+					<div class="wyzzk_top_right fr">
+						<p class="p_1"><span class="f20 lh30">发票总计(${avfAccountsRecTraNotice.invoiceTotalNumber}张)：</span><br/><font class="f36 money" data="${avfAccountsRecTraNotice.invoiceTotalMoney}"></font><font class="f16">元</font></p>
+						<p class="f16 p_2"><a href="">详细信息>></a></p>
+					</div>
+				</div>
+				<div class="showInfo">
+					<div class="showInfo_list">
+						<a class="list_1_over l0 w196">维护延长账款</a>
+						<a class="list_2_over lf177 w214">收到申请</a>
+						<a class="list_2_over lf373 w214">审核</a>
+						<a class="list_2 lf569 w214">确认通知单</a>
+						<a class="list_2_over_over lf766 w214">确认通知单</a>
+						<a class="list_3_over_over r0 w192">完成</a>
+					</div>
+					<div class="showInfo_list_span">
+						<span>[核心企业]<font>${avfAccountsRecTraNotice.companyName}</font></span>
+						<span>中征</span>
+						<span>${avfAccountsRecTraNotice.finInsName}</span>
+						<span>${avfAccountsRecTraNotice.supplyName}</span>
+						<span>[核心企业]<font>${avfAccountsRecTraNotice.companyName}</font></span>
+					</div>
+					<div class="show_sheet">
+						<p class="f24 lh60">申请通过，请确认以下应收账款转让通知单！</p>
+						<div class="show_sheet_info">
+							<div class="show_sheet_info_top">
+								<div class="confirm" style="display: none;">
+									<img src="/static/avf/images/icon_2.png">
+								</div>
+								<div class="w288 fl">
+									<label>金额：</label>
+									<span><font class="font_f30 money" data="${avfAccountsRecTraNotice.financeMoney}"></font><font>元</font></span>
+								</div>
+								<div class="w294 fl">
+									<label>期限：</label>
+									<span class="w307 term" style="font-size: 20px;" data="${avfAccountsRecTraNotice.financeStart}" fc-data="${avfAccountsRecTraNotice.financeEnd}"><font class="font_f30">10</font><font>个月</font></span>
+								</div>
+								<div class="w294 fl">
+									<label>起始日：</label>
+									<span class="time" data="${avfAccountsRecTraNotice.financeStart}"></span>
+								</div>
+								<div class="w176 fl">
+									<label>到期日：</label>
+									<span class="time" data="${avfAccountsRecTraNotice.financeEnd}"></span>
+								</div>
+							</div>
+							<div class="show_sheet_info_bottom">
+								<span class="w316"><label>平台账款编号：</label><font>${avfAccountsRecTraNotice.platformLedgerNo}</font></span>
+								<span class="w490 tc"><label>企业账款编号：</label><font>${avfAccountsRecTraNotice.enterpriseLedgerNo}</font></span>
+								<span class="w236 tr"><label>账款来源：</label><font>${avfAccountsRecTraNotice.ledgerSource}</font></span>
+							</div>
+						</div>
+						
+						<div class="btn_form mt20">
+						     <span class="btn_submit" id="agree" style="background-color:#00b9f2;border: 1px solid #00b9f2;" data="${avfAccountsRecTraNotice.id}">同&nbsp;意</span>
+					    </div>
+					</div>
+					
+					<!--<div id='date'></div>-->
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		
+		<!--遮罩层开始-->
+		<div id="overlay" class="overlay" style="display: none;"></div>  
+	    <!-- Loading提示 DIV -->  
+	    <div id="loadingTip" class="loading_tip" style="display: none;">  
+	     	<div class="loading_content">
+	     		<img src="/static/avf/images/icon_1.png"/>
+	     		<p style="display: none;"> 请插入电子签章！</p>
+	     		<p> <span>电子签章识别成功！</span><br/><span class="second"><font id="second">20</font>s窗口自动关闭</span></p>
+	     		<p style="display: none;"> 电子签章识别中...</p>
+	     	</div>
+	    </div>  
+	    <!--遮罩层结束-->
+		<!--footer-->
+		<div class="footer">
+			<p>绵阳市高新区XXXXX</p>
+			<p>@速信融版权所有</p>
+		</div>
+		<!--footer end-->
+	</body>
+</html>

@@ -1,0 +1,41 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by chenkai on 2017/5/26.
+ */
+
+public class AvfRequiteNoticeHandler {
+
+
+    public JSONObject doRepaymentList(String token, int page, int rows,String keyWord,String query,String order) {
+        //String param="token="+token+"&page="+page+"&rows="+rows+"&keyWord="+keyWord+"&query="+query+"&order="+order;
+        Map<String ,Object> param = new HashMap<>();
+        param.put("token",token);
+        param.put("page",page);
+        param.put("rows",rows);
+        param.put("keyWord",keyWord);
+        param.put("query",query);
+        param.put("order",order);
+
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_REPAYMENT_LIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return jsonObject.getJSONObject("data");
+    }
+
+    public int doRepaymentCountDown(String token,String id) {
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_COUNT_DOWN, "id="+id+"&token="+token);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return jsonObject.getInteger("data");
+    }
+
+
+}

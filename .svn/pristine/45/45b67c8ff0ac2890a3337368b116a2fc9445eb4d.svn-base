@@ -1,0 +1,1125 @@
+/**
+ * Created by Administrator on 2017/8/16.
+ */
+var selectData = [];
+var haveInvoice = {};//已经存在的发票
+$(function () {
+    EUI.ComboBoxBank = EUI.extend(EUI.CustomUI, {
+        renderTo: "",
+        initComponent: function () {
+            var g = this;
+            EUI.Container({
+                renderTo: this.renderTo,
+                height: 60,
+                width: 338,
+                style: {
+                    'padding': '0px',
+                },
+                items: [{
+                    xtype: "ComboBox",
+                    field: ["finInsCode"], // 表示哪些值需要提交到后端
+                    name: "finInsName",
+                    id: "finIns",
+                    //title: "一年级",
+                    allowBlank: false,
+                    displayText: "请选择融资银行",
+                    height: 40,
+                    width: 295,
+                    value:$('#getFinInsName').val(),
+                    //listHeight:45,
+                    async: true, // 是否异步，true为异步
+                    store: {
+                        url: _ctxPath+"/avf/financingRelConfigure/findRelByCompanyCodeAndSupplyCode.json?companyCode="+$('#getCompanyCode').val(),
+                    }, // 从后台获取数据的地址
+                    editable: false, // 是否可编辑
+                    loadMask: true, // 是否有遮罩层
+                    showSearch: false, // 是否展开下拉框
+                    searchText: "name", // 下拉框的内容
+                    canClear: true,
+                    // value : "一年级一班",
+                    /*deforeLoad: function (store) {
+                     },*/
+                    beforeSelect: function (d) {
+                        console.log('aa');
+                    },
+                    afterSelect: function (d) {
+                        //选择融资银行查询基本信息
+                        $('#bankRateFollow').text(parseFloat(d.data.bankRate).toFixed(2));
+                        $('#rateB').css('display','');
+                        // EUI.Store({
+                        //     url: _ctxPath+"/pbm/financial/finDetail.json",
+                        //     params: {finCode:d.data.finInsCode},
+                        //     success: function (response) {
+                        //         //$('#financeRate').text();
+                        //         //messageDemo.messageSuccess(response.msg);
+                        //         // var selector = ['#supplier','#tel','#mobile','#email'];
+                        //         // var txtData = [response.data.linkMan,response.data.linkManTel,response.data.linkManMobile,response.data.linkManEmail];
+                        //         // for(var i in selector){
+                        //         //     $(selector[i]).text(txtData[i]);
+                        //         // }
+                        //
+                        //         /*$('#supplier').text(response.data.linkMan);
+                        //         $('#tel').text(response.data.linkManTel);
+                        //         $('#mobile').text(response.data.linkManMobile);
+                        //         $('#email').text(response.data.linkManEmail);*/
+                        //     },
+                        //     failure:function (response) {
+                        //         messageDemo.messageError(response.msg);
+                        //     }
+                        // });
+
+                    }
+                }],
+            });
+        },
+        getTextValue: function () {
+            var twoGrade = EUI.getCmp("one").getSubmitValue();
+            console.log(twoGrade);
+            return twoGrade.id;
+            // EUI.getCmp("ta").setValue(JSON.stringify(twoGrade).replace("/\{|\}/ig",""));
+            //var text1 = "选中项文本:" + twoGrade.name;
+            //var text2 = "选中项的值:" + twoGrade.id;
+            //EUI.getCmp("ta").setValue(text1 + ";" + text2);
+        }
+    });
+    EUI.NumberFinanceMoney = EUI.extend(EUI.CustomUI, {
+        renderTo: "",
+        // height: 45,
+        width: 320,
+        initComponent: function () {
+            var g = this;
+            EUI.Container({
+                renderTo: this.renderTo,
+                items: [{
+                    xtype: "NumberField",
+                    title: "意向融资金额",
+                    labelWidth: 141,
+                    width: 296,
+                    height: 40,
+                    id: 'txtMoney',
+                    displayText: '意向融资金额',
+                    //displayText: "请输入数字,只能输入正数",
+                    //hintText: "默认值为1.298，只能输入正数（四舍五入）",
+                    allowBlank: false,
+                    value: $('#getIntentionFmoney').val(),
+                    maxValue: $('#getIntentionFmoney').val(), // 允许输入的最大值
+                    minValue: 1.00, // 允许输入的最小值
+                    precision: 2, // 输入的数据精确到多少位，默认值0表示精确到个位
+                    allowNegative: false, // 设置是否可以输入负数，false为不能输入负数
+                    allowChar: "0123456789", // 允许输入的数字
+                    fullPrecision: true
+                    // 若填写的数据没有达到需要精确的位数，则用0自动补齐
+                }]
+            });
+            g.addEvent();
+            clearFloat();
+        },
+        addEvent: function () {
+            //失去焦点  得到融资比例
+            $('#txtMoney').live('blur',function () {
+
+                var valMoney = EUI.getCmp('txtMoney').getValue();
+                if( valMoney == '' || valMoney > $('#getIntentionFmoney').val() ||  valMoney < 1){
+                    $('#txtMoney input').addClass('ux-field-invalid');
+                    $('#financeRate').text('');
+                    return;
+                }
+                var rate = valMoney/$('#invoiceTotalMoney').val();
+                var formatRate = Math.round(rate*100);
+                $('#financeRate').text(formatRate+'%');
+            });
+        },
+        getTextValue: function () {
+            var twoGrade = EUI.getCmp("txtMoney").getValue();
+            console.log(twoGrade);
+            return twoGrade;
+        },
+    });
+    EUI.NumberFinanceTerm = EUI.extend(EUI.CustomUI, {
+        renderTo: "",
+        // height: 50,
+        width: 320,
+        initComponent: function () {
+            var g = this;
+            EUI.Container({
+                renderTo: this.renderTo,
+                items: [{
+                    xtype : "DateField",
+                    title: "意向融资期限",
+                    displayText: '意向融资期限',
+                    //format : "Y-m-d", // 采用年月日的格式
+                    labelWidth: 141,
+                    width: 297,
+                    height: 40,
+                    name : "dateField", // 设置日期选择框的name,用于后台接受此name
+                    id : "dateField",
+                    style: {
+                        'text-align': 'right',
+                        'float': 'none'
+                    },
+                    allowBlank: false, //是否可以为空
+                    value:new Date($('#getIntentionFterm').val()).format("yyyy-MM-dd"),
+                    //listWidth : 210, // 设置日期列表的宽度，默认为210
+                    //maxDate : null, // 设置能够选择的最大日期
+                    minDate : String(new Date().format("yyyyMMdd")), // 设置能够选择的最小日期，日期格式为"20170301"
+                    //value : new Date().format("yyyy-MM-dd"),
+                    msg : "选择的日期范围未在设置之内", // 对不符合的日期设置提示消息
+                    //triggerCss : "ux-date-trigger", // 日期选择触发的样式
+                    //triggerClickCss : "",
+                    // afterValid : function() { // 事件：对日期校验后的操作
+                    //     console.log(this.getValue());
+                    // },
+                    beforeSelect : function(data) {// 事件：选中日期后做的操作
+                        var a = EUI.getCmp("dateField").getValue();
+                        console.log(a);
+                    }
+                }]
+            });
+            clearFloat();
+        },
+    });
+    EUI.NumberBankRate = EUI.extend(EUI.CustomUI, {
+        renderTo: "",
+        // height: 50,
+        width: 670,
+        initComponent: function () {
+            var g = this;
+            EUI.Container({
+                renderTo: this.renderTo,
+                items: [{
+                    xtype: "TextField",
+                    title: "意向融资备注",
+                    displayText: '意向融资备注',
+                    labelWidth: 141,
+                    width: 650,
+                    style: {
+                        'text-align': 'right',
+                        'float': 'none'
+                    },
+                    height: 40,
+                    name: "name",
+                    id: "txtRemark",
+                    value:$('#getIntentionFremark').val(),
+                }]
+            });
+            clearFloat();
+
+        }
+    });
+    //初始化供应商-显示融资申请的表格
+    // EUI.AddFinance2 = EUI.extend(EUI.CustomUI, {
+    //     renderTo: "",
+    //     renderToBank: null,
+    //     renderToMoney: null,
+    //     renderToTerm: null,
+    //     renderToRate: null,
+    //     height: 'auto',
+    //     width: 1180,
+    //     comboBoxBank: null,
+    //     numberFinanceMoney: null,
+    //     numberFinanceTerm: null,
+    //     numberBankRate: null,
+    //     initComponent: function () {
+    //         var _this = this;
+    //
+    //         _this.comboBoxBank = new EUI.ComboBoxBank({
+    //             renderTo: _this.renderToBank,
+    //         });
+    //         _this.numberFinanceMoney = new EUI.NumberFinanceMoney({
+    //             renderTo: _this.renderToMoney,
+    //         });
+    //         _this.numberFinanceTerm = new EUI.NumberFinanceTerm({
+    //             renderTo: _this.renderToTerm,
+    //         });
+    //         _this.numberBankRate = new EUI.NumberBankRate({
+    //             renderTo: _this.renderToRate,
+    //         });
+    //         _this.initGrid();
+    //         _this.addEvents();
+    //     },
+    //     initGrid: function () {
+    //         var g = this;
+    //         EUI.GridPanel({
+    //             renderTo: g.renderTo,
+    //             style: {
+    //                 'padding': '0px',
+    //                 'overflow': 'inherit',
+    //             },
+    //             height: 'auto',
+    //             width: 1180,
+    //             padding: 0, //设置表格的内边距
+    //             exportXls: false,
+    //             searchConfig: null,
+    //             showRefresh: false,
+    //             id: "tabShowFinance",
+    //             //autoLoad: true, //自动加载
+    //             //height: 400,
+    //             gridCfg: {
+    //                 //rownumbers: false, //去掉表格序号
+    //                 loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+    //                 shrinkToFit: true, //表格宽度不自适应
+    //                 url: _ctxPath+"/avf/financingDemand/findAddRPInfoNext.json?ids="+$('#ids').val(),
+    //                 rowNum:10,
+    //                 hasPager:false,
+    //                 //height:200,
+    //                 //数据加载完成后执行的方法
+    //                 gridComplete:function (data) {
+    //                     //计算意向融资期限=账款到期日+6
+    //                     EUI.Store({
+    //                         url: _ctxPath+"/avf/financingDemand/findAddRPInfoNext.json",
+    //                         params: {
+    //                             ids:$('#ids').val(),
+    //                         },
+    //                         type:'GET',
+    //                         success: function(response) {
+    //                             var maturityDate = new Date(response[0].maturityDate);
+    //                             EUI.getCmp("dateField").setValue(new Date(maturityDate.setMonth(maturityDate.getMonth()+9)).format('yyyy-MM-dd'));
+    //                         },
+    //
+    //                     });
+    //                     // if(!data){
+    //                     //     return;
+    //                     // }
+    //                     //
+    //                     // // EUI.getCmp('tabShowFinance').getGridData();
+    //                     // console.log(data);
+    //                 },
+    //                 colModel: [{
+    //                     label: "序号",
+    //                     name: "id", //列显示的名称
+    //                     index: "id", //传到服务器端用来排序的列名称
+    //                     // width: 50,
+    //                     hidden: true //隐藏不显示这一组
+    //                 }, {
+    //                     label: "核心企业代码",
+    //                     name: "companyCode",
+    //                     index: "companyCode",
+    //                     //width: 124,
+    //
+    //                 }, {
+    //                     label: "会计年度",
+    //                     name: "dateYear",
+    //                     index: "dateYear",
+    //                     //width: 124,
+    //
+    //                 }, {
+    //                     label: "应收凭证号",
+    //                     name: "voucherNo",
+    //                     index: "voucherNo",
+    //                 }, {
+    //                     label: "行项号",
+    //                     name: "lineItemNumber",
+    //                     index: "lineItemNumber",
+    //                 }, {
+    //                     label: "核心企业名称",
+    //                     name: "companyShortName",
+    //                     index: "companyShortName",
+    //                     //width: 124,
+    //
+    //                 },{
+    //                     label: "应收账款金额",
+    //                     name: "recPayMoney",
+    //                     index: "recPayMoney",
+    //                     formatter: function(value, id, rowdata) {
+    //                         return '￥'+$.formatMoney(rowdata.recPayMoney,2);
+    //                     }
+    //                 }, {
+    //                     label: "账款到期日",
+    //                     name: "maturityDate",
+    //                     index: "maturityDate",
+    //                     //width: 120,
+    //                     formatter: function(value, id, rowdata) {
+    //                         return GetDateT(new Date(rowdata.maturityDate));
+    //                     }
+    //
+    //                 }],
+    //                 //data: g.loadData(),
+    //             }
+    //
+    //         });
+    //     },
+    //     loadData: function () {
+    //     },
+    //     afterRender: function () {
+    //         console.log('渲染完成');
+    //     },
+    //     addEvents: function () {
+    //         $('#g_tabShowFinance_rn').append('序号');
+    //         //提交
+    //         $('#addFinanceSubmit').live('click', function() {
+    //             //验证文本框
+    //             var eletor = ['finIns','txtMoney','dateField'];
+    //             var count = 0;
+    //             for(var i in eletor){
+    //                 if(eletor[i] == 'txtMoney'){
+    //                     var valMoney = EUI.getCmp(eletor[i]).getValue();
+    //                     if( valMoney == '' || valMoney > $('#invoiceTotalMoney').val() ||  valMoney < 1){
+    //                         count++;
+    //                         $('#'+eletor[i]+' input').addClass('ux-field-invalid');
+    //                     }
+    //                 }else{
+    //                     if( EUI.getCmp(eletor[i]).getValue() == ''){
+    //                         count ++;
+    //                         $('#'+eletor[i]+' input').addClass('ux-field-invalid');
+    //                     }
+    //                 }
+    //
+    //             }
+    //             if(count >= 1){
+    //                 if( EUI.getCmp('finIns').getValue() == ''){
+    //                     errorInfo('请选择融资银行');
+    //                 }
+    //                 return;
+    //             }
+    //             EUI.Store({
+    //                 url: _ctxPath+"/avf/financingDemand/saveFinancingDemand.json",
+    //                 params: {
+    //                     bankRate: $('#bankRateFollow').text(),
+    //                     finInsCode: EUI.getCmp("finIns").getSubmitValue().finInsCode,
+    //                     infos: $('#ids').val(),
+    //                     intentionFmoney: EUI.getCmp("txtMoney").getValue(),
+    //                     intentionFremark: EUI.getCmp("txtRemark").getValue(),
+    //                     intentionFterm: EUI.getCmp("dateField").getValue(),
+    //                     invoiceTotalMoney: $.unformatMoney($('#totalMoney').text()),
+    //                     invoiceTotalNumber: $('#totalNum').text(),
+    //                 },
+    //                 type:'POST',
+    //                 success: function(response) {
+    //                     $.session.clear();
+    //                     showToPageInfo(response.msg,_ctxPath+'/avf/financingDemand/toDemandPage?type=supplier');
+    //                 },
+    //                 failure:function (response) {
+    //                     errorInfo(response.msg);
+    //                 }
+    //             });
+    //         });
+    //         //清空
+    //         $('#addFinanceClear').click(function () {
+    //             EUI.getCmp("finIns").setValue('');
+    //             EUI.getCmp("txtMoney").setValue('');
+    //             EUI.getCmp("txtRemark").setValue('');
+    //             EUI.getCmp("dateField").setValue('');
+    //             $('#bankRateFollow').text('');
+    //             $('#rateB').css('display','none');
+    //         });
+    //     },
+    // });
+
+});
+//编辑融资申请下拉列表
+EUI.ComboBoxSupplier = EUI.extend(EUI.CustomUI, {
+    renderTo: "",
+    initComponent: function () {
+        var g = this;
+        EUI.Container({
+            renderTo: this.renderTo,
+            height: 80,
+            width: 1000,
+            listHeight: 44,
+            style: {
+                'padding': '0px',
+            },
+            items: [{
+                xtype: "FieldGroup",
+                width: 800,
+                itemspace: 10,
+                items: [{
+                    xtype: "FieldGroup",
+                    title: "核心企业",
+                    height: 40,
+                    labelWidth: 70,
+                    items: ["<div class='lh36'>"+$('#getCompanyName').val()+"</div>"]
+                },{
+                    xtype : "AutoCompleteBox",
+                    title : "账款到期日",
+                    field : ["maturityDate"],// 需要传递到后端的值
+                    id : "maturityDate",
+                    name : "maturityDate",
+                    width: 210,
+                    height: 40,
+                    labelWidth: 120,
+                    editable : true,
+                    // allowBlank: false,
+                    async:true,//异步请求
+                    loadonce:false,
+                    store: {
+                        url: _ctxPath+"/avf/accountRPInfo/supplyGetMaturityDateByCompanyCode.json",
+                        params: {'companyCode':$('#getCompanyCode').val()},
+                    }, // 从后台获取数据的地址
+                    searchField : ["maturityDate"],// 当在输入框里面输入值时会自动搜索匹配相应的值
+                    showField : 'maturityDate',// 显示拉下列表的内容
+                    loaded : true,
+                    displayText : "请选择账款到期日",
+                    hintText : "无默认选项",
+                    afterLoad : function(data) { // 远程加载数据完成时才会触发
+                        // console.log(EUI.getCmp("companySupply").getSubmitValue());
+                    },
+                    beforeSelect: function (data) {
+                        // console.log(EUI.getCmp("companySupply").getValue());
+                    },
+                    afterSelect: function (d) {
+                        selectData = [];
+                        /*初始化表格数据 数量 价格*/
+                        EUI.getCmp("tabFinancial2").setDataInGrid([]);
+                        getRecMoney();//向表格增加数据
+                        $('#invoiceNum').text('0');
+                        $('#allMoney').text('0.00');
+                        $('.check_all').removeClass('back_check_2').addClass('back_check_1');
+                        // EUI.getCmp('tabFinancial1').setPostParams({
+                        //     query:JSON.stringify({
+                        //         'maturityDate':d.data.maturityDate,
+                        //         'businessDealStatus':'1050',
+                        //         'companyCode':EUI.getCmp('companyCode').getSubmitValue().companyCode
+                        //     })
+                        // },true);
+                    }
+                }],
+            }],
+        });
+        //clearFloat();
+    },
+    getTextValue: function () {
+        // var twoGrade = EUI.getCmp("one").getSubmitValue();
+        // console.log(twoGrade);
+        // // EUI.getCmp("ta").setValue(JSON.stringify(twoGrade).replace("/\{|\}/ig",""));
+        // var text1 = "选中项文本:" + twoGrade.name;
+        // var text2 = "选中项的值:" + twoGrade.id;
+        // EUI.getCmp("ta").setValue(text1 + ";" + text2);
+    }
+});
+
+EUI.AddFinance1 = EUI.extend(EUI.CustomUI, {
+    renderTo: null,
+    renderTo1: null,
+    renderTo2: null,
+    renderToBank: null,
+    renderToMoney: null,
+    renderToTerm: null,
+    renderToRate: null,
+    comboBoxSupplier: null,
+    data: null,
+    height: 'auto',
+    initComponent: function () {
+        var _this = this;
+        _this.comboBoxSupplier = new EUI.ComboBoxSupplier({
+            renderTo: this.renderTo1,
+        });
+        _this.comboBoxBank = new EUI.ComboBoxBank({
+            renderTo: _this.renderToBank,
+        });
+        _this.numberFinanceMoney = new EUI.NumberFinanceMoney({
+            renderTo: _this.renderToMoney,
+        });
+        _this.numberFinanceTerm = new EUI.NumberFinanceTerm({
+            renderTo: _this.renderToTerm,
+        });
+        _this.numberBankRate = new EUI.NumberBankRate({
+            renderTo: _this.renderToRate,
+        });
+        _this.initGridAll();
+        _this.initGridSome();
+        _this.addEvents();
+        _this.choiceAll(0);
+        _this.choiceCheckbox(0);
+        _this.choiceCheckbox(1);
+    },
+    initGridAll: function () {
+        var _this = this;
+        EUI.GridPanel({
+            //xtype: "GridPanel",
+            renderTo: _this.renderTo,
+            padding: 0, //设置表格的内边距
+            exportXls: false,
+            searchConfig: null,
+            showRefresh: false,
+            id: 'tabFinancial1',
+            //autoLoad: true, //自动加载
+            height: 'auto',
+            gridCfg:{
+                loadonce: true, //true数据一次性加载,每页返回加载每页的数据
+                //url:_ctxPath+"/avf/accountRPInfo/accountRPInfoList.json",//获取后端数据
+                //params:{query:JSON.stringify({"businessDealStatus":"1050"})},
+                // async:false,
+                //type:'GET',
+                rowNum:10,//一页显示几条数据
+                //multiselect:true,//复选框
+                //rownumbers: false, //去掉表格序号
+                //hasPager:false,
+                colModel: _this.colModel(0),
+                //每页数据加载完执行
+                gridComplete:function (data) {
+                    //console.log(data);
+                    console.log($('#ul_tab_0 .check_every'));
+                    console.log($('.ui-pg-input').val());
+                    if($('#ul_tab_0 .check_all').hasClass('back_check_2')){
+                        $('#ul_tab_0 .check_all').removeClass('back_check_2').addClass('back_check_1');
+                    }
+                    var count = 0; var num = 0;
+                    for(var i = 0; i < selectData.length;i++){
+                        if(selectData[i].page == $('.ui-pg-input').val()){
+                            count++;
+                            num = selectData[i].count;
+                        }
+                        EUI.getCmp("tabFinancial1").setSelectRowById(selectData[i].data.id);
+                        $('#ul_tab_0 .check_every[fc-data='+selectData[i].data.id+']').removeClass('back_check_1').addClass('back_check_2');
+                    }
+                    if(count == num && count > 0){
+                        $('#ul_tab_0 .check_all').removeClass('back_check_1').addClass('back_check_2');
+                    }
+                },
+                onSelectAll:function () {
+                    console.log('aa');
+                },
+                onSelectRow:function () {
+                    console.log('bb');
+                },
+            }
+        });
+        // EUI.getCmp("tabFinancial1").setDataInGrid([]);
+        // EUI.getCmp('tabFinancial1').setPostParams({
+        //     query:JSON.stringify({'businessDealStatus':'1050'})
+        // },false);
+    },
+    initGridSome: function () {
+        var _this = this;
+        EUI.GridPanel({
+            renderTo: _this.renderTo2,
+            padding: 0, //设置表格的内边距
+            exportXls: false,
+            searchConfig: null,
+            showRefresh: false,
+            id: 'tabFinancial2',
+            //autoLoad: true, //自动加载
+            height: 'auto',
+            gridCfg:{
+                loadonce: true, //true数据一次性加载,每页返回加载每页的数据
+                hasPager:false,
+                // rownumbers: false, //去掉表格序号
+                colModel: _this.colModel(1),
+            }
+
+        });
+    },
+    colModel: function (flag,data) {
+        return  [{
+            label: '<div class="check check_all back_check_1"></div>',
+            name: "checkbox", //列显示的名称
+            index: "checkbox", //传到服务器端用来排序的列名称
+            width: 30,
+            formatter: function (value, id, rowdata) {
+                return '<div class="check check_every back_check_1" fc-data='+rowdata.id+' data=' + rowdata.recPayMoney + '></div>';
+            }
+        },{
+            label: "序号",
+            name: "id", //列显示的名称
+            index: "id", //传到服务器端用来排序的列名称
+            // width: 50,
+            hidden: true //隐藏不显示这一组
+        }, {
+            label: "核心企业代码",
+            name: "companyCode",
+            index: "companyCode",
+            //width: 124,
+
+        }, {
+            label: "会计年度",
+            name: "dateYear",
+            index: "dateYear",
+            //width: 124,
+
+        }, {
+            label: "应收凭证号",
+            name: "voucherNo",
+            index: "voucherNo",
+        }, {
+            label: "行项号",
+            name: "lineItemNumber",
+            index: "lineItemNumber",
+        }, {
+            label: "核心企业名称",
+            name: "companyShortName",
+            index: "companyShortName",
+            //width: 124,
+
+        },{
+            label: "应收账款金额",
+            name: "recPayMoney",
+            index: "recPayMoney",
+            formatter: function(value, id, rowdata) {
+                // if(flag == 0){
+                    return '￥'+$.formatMoney(rowdata.recPayMoney,2);
+                // }else{
+                //     return rowdata.recPayMoney;
+                // }
+            }
+        }, {
+            label: "账款到期日",
+            name: "maturityDate",
+            index: "maturityDate",
+            //width: 120,
+            formatter: function(value, id, rowdata) {
+                // if(flag == 0){
+                    return GetDateT(new Date(rowdata.maturityDate));
+                // }else{
+                //     return rowdata.maturityDate;
+                // }
+            }
+
+        }];
+        //data: data,
+
+    },
+    choiceCheckbox: function (flag) {
+        checkboxList(flag);
+    },
+    choiceAll:function (flag) {
+        EUI.getCmp('tabFinancial1').getGridData();
+        checkboxAll(flag);
+    },
+    addEvents: function () {
+        getRecMoney();//向表格增加数据
+        var _this = this;
+        $('#g_tabFinancial1_rn').append('序号');
+        $('#ul_tab_1').css('display','none');
+        $('.ul_list li').click(function(){
+            //_this.choiceCheckbox(1);
+            _this.choiceAll(1);
+            $('.ul_list li').removeClass('li_1');
+            $(this).addClass('li_1');
+            console.log($(this).index());
+            var index = $(this).index();
+            for(var i = 0;i < $('.ul_list li').length;i++){
+                $('#ul_tab_'+i).css('display','none');
+            }
+            $('#ul_tab_'+index).css('display','');
+            $('#ul_tab_0 .check').removeClass('back_check_2').addClass('back_check_1');
+            var count = 0; var num = 0;
+            for(var i = 0; i < selectData.length;i++){
+                if(selectData[i].page == $('.ui-pg-input').val()){
+                    count++;
+                    num = selectData[i].count;
+                }
+                EUI.getCmp("tabFinancial1").setSelectRowById(selectData[i].data.id);
+
+                $('#ul_tab_0 .check_every[fc-data='+selectData[i].data.id+']').removeClass('back_check_1').addClass('back_check_2');
+            }
+            if(count == num && count > 0){
+                $('#ul_tab_0 .check_all').removeClass('back_check_1').addClass('back_check_2');
+            }
+        });
+        //获取已存在应收账款
+        EUI.Store({
+            url: _ctxPath+"/avf/accountRPInfo/accountRPInfoList.json",
+            params: {
+                query:JSON.stringify({
+                    "financingNeedsNo":$('#getFinancingNeedsNo').val(),
+                    "companyCode":$('#getCompanyCode').val(),
+                    "businessDealStatus":"1060",
+                }),
+                rows:10000
+            },
+            type:'GET',
+            success: function(response) {
+                EUI.getCmp("tabFinancial2").setDataInGrid(response.rows);
+                totalMoney(response);
+            },
+            failure:function (response) {
+                errorInfo(response.msg);
+            }
+        });
+        //提交
+        $('#confirm_next').click(function () {
+            //验证文本框
+            var eletor = ['finIns','txtMoney','dateField'];
+            var count = 0;
+            var rpIds = '',checkEveryCount = 0;
+            var objParams = {};
+            for(var i in eletor){
+                if(eletor[i] == 'txtMoney'){
+                    var valMoney = EUI.getCmp(eletor[i]).getValue();
+                    if( valMoney == '' || valMoney > $('#invoiceTotalMoney').val() ||  valMoney < 1){
+                        count++;
+                        $('#'+eletor[i]+' input').addClass('ux-field-invalid');
+                    }
+                }else{
+                    if( EUI.getCmp(eletor[i]).getValue() == ''){
+                        count ++;
+                        $('#'+eletor[i]+' input').addClass('ux-field-invalid');
+                    }
+                }
+
+            }
+            if(count >= 1){
+                if( EUI.getCmp('finIns').getValue() == ''){
+                    errorInfo('请选择融资银行');
+                }
+                return;
+            }
+            $('#ul_tab_1 .check_every.back_check_2').each(function () {
+                checkEveryCount++;
+                if(checkEveryCount == $('#ul_tab_1 .check_every.back_check_2').length){
+                    rpIds += $(this).attr('fc-data');
+                }else{
+                    rpIds += $(this).attr('fc-data')+',';
+                }
+            });
+            objParams.demandHead = {
+                    bankRate: $('#bankRateFollow').text(),
+                    id: $('#getId').val(),
+                    intentionFmoney: EUI.getCmp("txtMoney").getValue(),
+                    intentionFremark: EUI.getCmp("txtRemark").getValue(),
+                    intentionFterm: EUI.getCmp("dateField").getValue(),
+                    totalMoney: $.unformatMoney($('#allMoney').text()),
+                    financingNeedsNo:$('#getFinancingNeedsNo').val(),
+                    companyCode:$('#getCompanyCode').val(),
+                    companyName:$('#getCompanyName').val(),
+                    supplyCode:$('#getSupplyCode').val(),
+                    supplyName:$('#getSupplyName').val(),
+                    businessDealInfo:$('#getBusinessDealInfo').val(),
+                    businessDealStatus:$('#getBusinessDealStatus').val()
+            };
+            objParams.rpIds = rpIds;
+            objParams.demandHead = $.extend(objParams.demandHead,EUI.getCmp("finIns").getSubmitValue());
+            objParams.demandHead = JSON.stringify($.extend({finInsCode:$('#getFinInsCode').val()},objParams.demandHead));
+            EUI.Store({
+                url: _ctxPath+"/avf/financingDemand/updateDemand.json",
+                params:objParams,
+                type:'POST',
+                success: function(response) {
+                    showToPageInfo(response.msg,_ctxPath+'/avf/financingDemand/toDemandPage?type=supplier');
+                },
+                failure:function (response) {
+                    errorInfo(response.msg);
+                }
+            });
+        });
+        //清空
+        $('.btn_cancel').click(function () {
+            EUI.getCmp("finIns").setValue('');
+            EUI.getCmp("txtMoney").setValue('');
+            EUI.getCmp("txtRemark").setValue('');
+            EUI.getCmp("dateField").setValue('');
+            $('#bankRateFollow').text('');
+            $('#rateB').css('display','none');
+        });
+    },
+});
+/*单选*/
+function checkboxList(flag) {
+    $('#ul_tab_'+flag+ ' .check').live("click", function() {
+        var page = $('.ui-pg-input').val();//当前页数
+        var invoiceNum = parseInt($('#invoiceNum').text());
+        var allMoney = parseFloat($('#allMoney').text()).toFixed(2);
+        var _this = $(this);
+        var delFlag = 0;
+        if ($(this).hasClass('check_all')) {
+        } else {
+            // var dataAll = [];
+            var count = $('#ul_tab_'+flag+ ' .check_every').length;
+            // var count1 = 0;
+            // var count2 = 0;
+            if (_this.hasClass('back_check_1')) {
+                var getRowData = EUI.getCmp("tabFinancial1").getRowData(_this.attr('fc-data'));
+                //判断账款到期日是否相同
+                if(selectData.length != 0){
+                    if(selectData[0].data.maturityDate != getRowData.maturityDate){
+                        errorInfo('请选择账款到期日相同的发票');
+                        return;
+                    }
+                }
+                //判断账款到期不能小于当前日期
+                var nowDate = String(new Date().format('yyyy-MM-dd'));
+                if(getRowData.maturityDate <= nowDate){
+                    errorInfo('请选择账款到期日不能小于当前日期的发票');
+                    return;
+                }
+                _this.removeClass('back_check_1').addClass('back_check_2');
+                //push数据
+                selectData.push({page:page,data:getRowData,count:count});
+                console.log(selectData);
+                if(flag == 0){
+                }
+            } else {
+                delFlag = 1;
+                //pull出数据
+                for(var i = (selectData.length - 1);i >= 0;i--){
+                    if(_this.attr('fc-data') == selectData[i].data.id){
+                        selectData.splice(i,1);
+                    }
+                }
+                console.log(selectData);
+                _this.removeClass('back_check_2').addClass('back_check_1');
+            }
+            count1 = $('#ul_tab_'+flag+ ' .check_every.back_check_1').length;
+            count2 = $('#ul_tab_'+flag+ ' .check_every.back_check_2').length;
+            if(flag == 0) {
+                if (count == count2) {
+                    $('#ul_tab_' + flag + ' .check_all').removeClass('back_check_1').addClass('back_check_2');
+                } else {
+                    $('#ul_tab_' + flag + ' .check_all').removeClass('back_check_2').addClass('back_check_1');
+                }
+            }
+        }
+        var totalMoney = 0,getSelectData = [];
+        for(var i = 0;i < selectData.length;i++){
+            if(typeof(selectData[i].data.recPayMoney) == 'string'){
+                selectData[i].data.recPayMoney = $.unformatMoney(selectData[i].data.recPayMoney.substr(1));
+            }else{
+
+            }
+            getSelectData.push(selectData[i].data);
+        }
+        //在已选这里删除发票是处理情况
+        if(delFlag == 1 ){
+            //取消已存在的发票，会对应增加到所有发票里。
+            // if($.inArray($(this).attr('fc-data'),haveInvoice.invoiceInfo) >= 0){
+            //     var invoiceId = $(this).attr('fc-data');
+            //     var getRowData = [];
+            //     var countIf = 0;
+            //     var rowData = EUI.getCmp('tabFinancial2').getRowData(invoiceId);
+            //     rowData.vatMoney = $.unformatMoney(rowData.vatMoney.substr(1));
+            //     rowData.taxFreeSum = $.unformatMoney(rowData.taxFreeSum.substr(1));
+            //     rowData.vatSum = $.unformatMoney(rowData.vatSum.substr(1));
+            //     getRowData.push(rowData);
+            //     EUI.getCmp('tabFinancial1').setDataInGrid(getRowData);
+            //     if(isHaveInvoice.length != 0 ){
+            //         for(var key in isHaveInvoice){
+            //             if(isHaveInvoice[key].id == invoiceId){
+            //                 countIf++;
+            //             }
+            //         }
+            //     }
+            //     if(countIf == 0){
+            //         isHaveInvoice.push(getRowData);
+            //     }
+            // }
+            for(var i = haveInvoice.invoiceInfo.length - 1; i>=0 ;i--){
+                if(haveInvoice['invoiceInfo'][i].id == $(this).attr('fc-data')){
+                    haveInvoice.invoiceInfo.splice(i,1);
+                }
+            }
+
+            EUI.getCmp('tabFinancial2').deleteRow($(this).attr('fc-data'));
+        }
+        // if(getSelectData.length != 0 && haveInvoice.invoiceInfo.length !=0){
+        //if(EUI.getCmp('batchNumber').getValue() == $('#getBatchNumbers').val()){
+            for(var key in haveInvoice.invoiceInfo){
+                getSelectData.push(haveInvoice.invoiceInfo[key]);
+            }
+        //}
+        EUI.getCmp("tabFinancial2").setDataInGrid(getSelectData);
+        for(var key in getSelectData){
+            totalMoney += parseFloat(getSelectData[key].recPayMoney);
+        }
+        $('#invoiceNum').text(getSelectData.length);
+        $('#allMoney,#totalMoney').text($.formatMoney(totalMoney,2));
+        EUI.getCmp('txtMoney').setValue(totalMoney);
+        $('#financeRate').text('100');
+        $('#ul_tab_1 .check').removeClass(' back_check_1').addClass(' back_check_2');
+        // }
+    });
+}
+/*全选*/
+function checkboxAll(flag) {
+    $('#ul_tab_'+flag+ ' .check_all').click(function () {
+        var page = $('.ui-pg-input').val();//显示页数
+        var count = $('#ul_tab_'+flag+' .check_every').length;//显示每页的条数
+        var invoiceNum = parseInt($('#invoiceNum').text());
+        var allMoney = parseFloat($('#allMoney').text()).toFixed(2);
+        var _this = $(this);
+
+        if ($(this).hasClass('check_all')) {
+            //全选选中
+            if (_this.hasClass('back_check_1')) {
+
+                //push全选数据
+                var updateData = [];
+                if(selectData.length > 0 ){
+                    for(var j = 0; j< selectData.length;j++){
+                        updateData.push(selectData[j].data.id);
+                    }
+                }
+                //判断全选是否有相同的账款到期日的发票
+                var ifData = [],errorCount = 0,compareDateCount = 0;
+                var nowDate = String(new Date().format('yyyy-MM-dd'));
+                $('#ul_tab_'+flag+' .check_every').each(function () {
+                    var g = $(this);
+                    var getRowData = EUI.getCmp("tabFinancial1").getRowData(g.attr('fc-data'));
+                    ifData.push(getRowData.maturityDate);
+                    if(selectData.length != 0 && selectData[0].data.maturityDate != getRowData.maturityDate){
+                        errorCount++;
+                    }
+                    if(getRowData.maturityDate <= nowDate){
+                        compareDateCount++;
+                    }
+                });
+                if(errorCount > 0){
+                    errorInfo('请选择账款到期日相同的发票');
+                    return;
+                }
+                if(selectData.length == 0){
+                    ifData.sort();
+                    for(var i = 0; i < ifData.length - 1; i++){
+                        if(ifData[i] != ifData[i+1]){
+                            errorInfo('请选择账款到期日相同的发票');
+                            return;
+                        }
+                    }
+                }
+                //判断账款到期不能小于当前日期
+                if(compareDateCount > 0){
+                    errorInfo('请选择账款到期日不能小于当前日期的发票');
+                    return;
+                }
+
+                $('#ul_tab_'+flag+' .check_every').each(function () {
+                    var g = $(this);
+                    var getRowData = EUI.getCmp("tabFinancial1").getRowData(g.attr('fc-data'));
+
+                    // if(selectData.length != 0 && selectData[0].maturityDate != getRowData.maturityDate){
+                    //     errorInfo('请选择账款到期日相同的发票');
+                    //     return;
+                    // }
+                    if(updateData.length == 0){
+                        selectData.push({page:page,data:getRowData,count:count});
+                    }else{
+                        if($.inArray(g.attr('fc-data'), updateData) < 0){
+                            selectData.push({page:page,data:getRowData,count:count});
+                        }else{
+
+                        }
+                        // for(var i = 0;i < updateData.length;i++){
+                        //     if(updateData[i].data.id == g.attr('fc-data')){
+                        //
+                        //     }else{
+                        //         selectData.push({page:page,data:EUI.getCmp("tabFinancial1").getRowData(g.attr('fc-data')),count:count});
+                        //     }
+                        // }
+                    }
+                });
+                console.log(selectData);
+                if(flag == 0){
+                    // var dataAll = EUI.getCmp('tabFinancial1').getGridData();
+                    // for(var i in dataAll){
+                    //     dataAll[i].vatMoney = $.unformatMoney(dataAll[i].vatMoney);
+                    //     dataAll[i].vatSum = $.unformatMoney(dataAll[i].vatSum);
+                    //     dataAll[i].taxFreeSum = $.unformatMoney(dataAll[i].taxFreeSum);
+                    // }
+                    // EUI.getCmp("tabFinancial2").setDataInGrid(dataAll);
+                    $('#ul_tab_1 .check').removeClass(' back_check_1').addClass(' back_check_2');
+                }
+                // $('#ul_tab_'+flag+' .check_every').each(function () {
+                //     allMoney = parseFloat(parseFloat(allMoney) + parseFloat($(this).attr('data'))).toFixed(2);
+                //     invoiceNum += 1;
+                // });
+                _this.removeClass(' back_check_1').addClass(' back_check_2');
+                $('#ul_tab_'+flag+ ' .check_every').removeClass('back_check_1').addClass('back_check_2');
+            } else {
+                //pull全选的数据
+                // var noHaveInvoice = [];//存取消已存在的发票
+                // var getRowData = [];
+                haveInvoice.invoiceInfo = [];
+                $('#ul_tab_'+flag+' .check_every').each(function () {
+                    var g = $(this);
+                    // if(flag == 1 && $.inArray(g.attr('fc-data'),haveInvoice.invoiceInfo) >= 0){
+                    //     var rowData = EUI.getCmp('tabFinancial2').getRowData(g.attr('fc-data'));
+                    //     rowData.vatMoney = $.unformatMoney(rowData.vatMoney.substr(1));
+                    //     rowData.taxFreeSum = $.unformatMoney(rowData.taxFreeSum.substr(1));
+                    //     rowData.vatSum = $.unformatMoney(rowData.vatSum.substr(1));
+                    //     noHaveInvoice.push(rowData);
+                    // }
+                    for(var i = (selectData.length - 1);i >= 0 ;i--){
+                        if(selectData[i].data.id == g.attr('fc-data')){
+                            selectData.splice(i,1);
+                        }else{
+                        }
+                    }
+                });
+                //把取消已存在的发票放到所有发票中
+                // EUI.getCmp('tabFinancial1').setDataInGrid(noHaveInvoice);
+                console.log(selectData);
+                if(flag == 0){
+                    var dataAll = EUI.getCmp('tabFinancial1').getGridData();
+                    for(var i in dataAll){
+                        EUI.getCmp('tabFinancial2').deleteRow(dataAll[i].id);
+                    }
+                }
+                _this.removeClass('back_check_2').addClass('back_check_1');
+                $('#ul_tab_'+flag+ ' .check_every').removeClass('back_check_2').addClass('back_check_1');
+            }
+            var totalMoney = 0,getSelectData = [];
+            for(var i = 0;i < selectData.length;i++){
+                //totalMoney += $.unformatMoney(selectData[i].data.vatMoney.substr(1));
+                getSelectData .push(selectData[i].data);
+            }
+            // if(EUI.getCmp('batchNumber').getValue() == $('#getBatchNumbers').val()){
+                for(var key in haveInvoice.invoiceInfo){
+                    getSelectData.push(haveInvoice.invoiceInfo[key]);
+                }
+            //}
+            for(var key in getSelectData){
+                if(typeof (getSelectData[key].recPayMoney) == 'string'){
+                    totalMoney += $.unformatMoney(getSelectData[key].recPayMoney.substr(1));
+                    getSelectData[key].recPayMoney = $.unformatMoney(getSelectData[key].recPayMoney.substr(1));
+                }else{
+                    totalMoney += parseFloat(getSelectData[key].recPayMoney);
+                }
+
+            }
+            EUI.getCmp("tabFinancial2").setDataInGrid(getSelectData);
+            if(flag == 0){
+                $('#ul_tab_1 .check').removeClass(' back_check_1').addClass(' back_check_2');
+            }
+            $('#invoiceNum').text(getSelectData.length);
+            $('#allMoney,#totalMoney').text($.formatMoney(totalMoney,2));
+            $('#financeRate').text('100');
+            EUI.getCmp('txtMoney').setValue(totalMoney);
+        }
+    });
+}
+function  getRecMoney() {
+    EUI.Store({
+        url: _ctxPath+"/avf/accountRPInfo/accountRPInfoList.json",
+        params: {
+            query:JSON.stringify({
+                "businessDealStatus":"1050",
+                "companyCode":$('#getCompanyCode').val(),
+                "maturityDate":EUI.getCmp('maturityDate').getValue()
+            }),
+            rows:10000
+        },
+        success: function (d) {
+            EUI.getCmp('tabFinancial1').setDataInGrid(d.rows);
+        },
+        failure: function (response) {
+            errorInfo(response.msg);
+        }
+    });
+}
+//计算已存在账款的总金额
+function totalMoney(data) {
+    var allMoney = 0,invoiceNum = 0,haveInvoiceArr = [];
+    //计算已存在发票数量以及价格
+    for(var key in data.rows){
+        allMoney += data.rows[key].recPayMoney;
+        //向haveInvoice添加已存在的发票信息
+        haveInvoiceArr.push(data.rows[key]);
+    }
+    haveInvoice = {'invoiceInfo':haveInvoiceArr};
+    console.log(haveInvoice);
+    $('#invoiceNum').text(data.rows.length);
+    $('#allMoney').text($.formatMoney(allMoney,2));
+    $('#tabFinancial2 .back_check_1').addClass('back_check_2').removeClass('back_check_1');
+    $('.ul_list li').removeClass('li_1');
+    $('.ul_list li').eq(1).addClass('li_1');
+    $('#ul_tab_0').css('display','none');
+    $('#ul_tab_1').css('display','block');
+}
+$(function () {
+    var verdor =  JSON.parse($('#verdor').text());
+    $('#linkMan').text(verdor.linkMan);
+    $('#linkManEmail').text(verdor.linkManEmail);
+    $('#linkManMobile').text(verdor.linkManMobile);
+    $('#linkManTel').text(verdor.linkManTel);
+});
+

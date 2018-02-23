@@ -1,0 +1,118 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="Shortcut Icon" href="../../../../static/avf/images/logo2.ico" />
+		<link rel="stylesheet" href="../../../../static/avf/css/base.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/common.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/mainView.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/invoice_details.css" />
+		
+		<!--xg js-->
+		<script type="text/javascript" src="../../../../static/avf/js/common.js" ></script>
+		<script type="text/javascript" src="../../../../static/avf/js/invoice_details.js" ></script>
+		<script>
+			EUI.onReady(function(){
+				new EUI.InvoiceDetail({
+					renderTo: "ticket_pro_box",
+					cfgId: "InvoiceDetail"
+				});
+			})
+		</script>
+		
+		<title>融资管理平台</title>
+	</head>
+
+	<body>
+		<!--top_common-->
+		<div class="header_com">
+			<div class="header_container">
+				<div class="com_left fl mg10">
+					<img  src="../../../../static/avf/images/logo.png"/>
+				</div>
+				<div class="com_right fr mg10">
+					<div class="person_info fl">
+						<a>
+							<div class="info_graph fl"></div>
+							<!--登录成功-->
+							<div class="info_name fl">
+								<p class="font12">[核心企业]</p>
+								<p class="font18 mg10">用户名</p>
+							</div>
+							<!--未登录状态-->
+							<b></b>
+						</a>
+						<div class="hide_nlist">
+							<ul>
+								<li><a href="#">核心企业</a></li>
+								<li><a href="#">供应商</a></li>
+								<li><a href="#">金融机构</a></li>
+								<li><a href="#">系统管理</a></li>
+								<li><a href="#">密码修改</a></li>
+								<li><a href="#">用户中心</a></li>
+								<li><a href="#">融资配置</a></li>
+							</ul>
+						</div>
+					</div>
+					
+					<div class="person_exit fl ml10">
+						<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--top_common end-->
+		
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li>首页</li>
+					<li><a href="PersonView.html">&nbsp;&gt;&nbsp;准备发票</a></li>
+					<li><a href="TicketProView.html">&nbsp;&gt;&nbsp;发票详情</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<!--发票详情-->
+			<div class="container1200 ticket_pro">
+				<div class="ticket_pro_top">
+					<p class="font30">供应商的公司名称</p>
+					<div class="tick_container">
+						<p class="tick_item">
+							<span class="w140">发票数量：</span>
+							<span class="w200">合计金额：</span>
+							<span class="w90 txt_r">状态：</span>
+							<span class="w180 color111">待审核</span>
+						</p>
+						<p class="tick_item">
+							<span class="w140"><label class="font36 org_color">3</label><font>元</font></span>
+							<span class="w200"><label class="font36 org_color">1213,12</label><font>元</font></span>
+							<span class="w90 txt_r">录入说明:</span>
+							<span class="w180 color111">录入说明</span>
+						</p>
+					</div>
+				</div>
+				<!--发票详情列表-->
+				<div class="rz_result">
+					<div class="ticket_pro_box" id="ticket_pro_box"></div>
+				</div>
+				
+			</div>
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<div class="footer">
+			<p>绵阳市高新区XXXXX</p>
+			<p>@速信融版权所有</p>
+		</div>
+		<!--footer end-->
+	</body>
+
+</html>

@@ -1,0 +1,32 @@
+$(function(){
+	var maturiDateId = $("#maturiDateId").val();
+    var financeStart = $("#financeStart").val();
+    var financeEnd = $("#financeEnd").val();
+    var today = getNowFormatDate();
+    EUI.Store({
+        url: _ctxPath + "/avf/requite/repaymentCountDown.json",
+        params:{id:maturiDateId},
+        type : "get",
+        success: function (msg) {
+            //保存成功
+            if(msg.data < 0){
+                msg.data = 0;
+            }
+            $("#maturiDate").html(msg.data);
+        },
+        failure: function (data) {
+            //保存失败
+        }
+    });
+    var limitTime = getLimitTime(financeStart,financeEnd);
+    var nowTime = getLimitTime(financeStart,today);
+    $(".total_time").html(limitTime);
+    $(".ace_time").html(nowTime+"天");
+    $(".financeStart").html(new Date(financeStart).format("yyyy-MM-dd"));
+    $(".financeEnd").html(new Date(financeEnd).format("yyyy-MM-dd"));
+    $(".time_process_now").css({
+        "width":nowTime/limitTime*1100+"px"
+    })
+
+    // $("#limitTime").html(getLimitTime(financeStart,financeEnd));
+})

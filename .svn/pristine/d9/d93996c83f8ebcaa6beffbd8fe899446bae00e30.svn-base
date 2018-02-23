@@ -1,0 +1,131 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<!--xg addcss-->
+	<link rel="stylesheet" href="../../../../static/avf/css/mainView.css" />
+
+	<!--xg js-->
+	<script type="text/javascript" src="../../../../static/avf/js/common.js" ></script>
+	<script type="text/javascript" src="../../../../static/avf/js/entry_invoice.js" ></script>
+	<script>
+        EUI.onReady(function() {
+            new EUI.EntryInvoice({
+                renderTo : "supplyticket_box",
+                topRenderTo:"ticket_form_l"
+            });
+        });
+	</script>
+	<title>融资管理平台</title>
+</head>
+
+<body>
+<!--top_common-->
+<div class="header_com">
+	<div class="header_container">
+		<div class="com_left fl mg10">
+			<img  src="../../../../static/avf/images/logo.png"/>
+		</div>
+		<div class="com_right fr mg10">
+			<div class="person_info fl">
+				<a>
+					<div class="info_graph fl"></div>
+					<!--登录成功-->
+					<div class="info_name fl">
+						<p class="font12">[核心企业]</p>
+						<p class="font18 mg10">用户名</p>
+					</div>
+					<!--未登录状态-->
+					<b></b>
+				</a>
+				<div class="hide_nlist">
+					<ul>
+						<li><a href="#">核心企业</a></li>
+						<li><a href="#">供应商</a></li>
+						<li><a href="#">金融机构</a></li>
+						<li><a href="#">系统管理</a></li>
+						<li><a href="#">密码修改</a></li>
+						<li><a href="#">用户中心</a></li>
+						<li><a href="#">融资配置</a></li>
+					</ul>
+				</div>
+			</div>
+
+			<div class="person_exit fl ml10">
+				<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+			</div>
+		</div>
+	</div>
+</div>
+<!--top_common end-->
+
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li>首页</li>
+			<li><a href="/avf/invoice/toAddInvoice?type=enterprise">&nbsp;&gt;&nbsp;准备发票</a></li>
+			<li><a href="javascript:void(0)">&nbsp;&gt;&nbsp;录入发票</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 step_content">
+		<!--<div id="ticket_form" style="height: 300px;"></div>-->
+		<div class="ticket_form_top">
+			<div class="ticket_form_l fl" id="ticket_form_l"></div>
+			<div class="ticket_form_r fr">
+				<div class="submit_ticket">
+					<p class="font16">发票已添加<span class="end_num font24">0</span>张</p>
+					<div id="submit_ticket_form" class="submit_ticket_form"><em></em><span>提交</span></div>
+				</div>
+			</div>
+		</div>
+		<div class="ticket_form_mid">
+			<div class="ticket_form_midl fl">
+				<p class="ticket_count"><label>发票数量：</label>发票已添加<span class="end_num">0</span>张</p>
+				<div id="supplyticket_box"></div>
+			</div>
+			<div id="ticket_box_list">
+				<div class="ticket_search_box">
+					<input type="text" placeholder="发票代码/号码/发票金额/开票日期" class="search_txt" id="search_txt" />
+					<input type="button" id="search_bt" class="search_bt" />
+				</div>
+				<div class="tickets_list" id="tickets_list">
+					<!--<div class="ticket_item">
+                        <span class="span_w40 text_over">xgxgx/ad123123</span>
+                        <span class="span_w30 text_over">245435</span>
+                        <span class="span_w30 text_over">2014-02-23</span>
+                        <div class="close_ico"></div>
+                    </div>-->
+				</div>
+
+			</div>
+			<div class="clear"></div>
+			<div class="ticket_btn">
+				<div class="pos_wid fl"></div>
+				<div class="ticket_btn_box fl">
+					<div id="reset_btn" class="reset_btn fl">清空</div>
+					<div id="submit_btn" class="submit_btn fl"><em></em><span>提交</span></div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+</div>
+<!--main content end-->
+
+<!--footer-->
+<div class="footer">
+	<p>绵阳市高新区XXXXX</p>
+	<p>@速信融版权所有</p>
+</div>
+<!--footer end-->
+</body>
+
+</html>

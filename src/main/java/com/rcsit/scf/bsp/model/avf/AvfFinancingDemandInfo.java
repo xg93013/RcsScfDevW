@@ -1,0 +1,292 @@
+package com.rcsit.scf.bsp.model.avf;
+
+import com.rcsit.scf.bsp.domain.Domain;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.BeanUtils;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+/**
+ * 融资需求申请信息
+ * Created by chenkai on 2017/5/5.
+ */
+public class AvfFinancingDemandInfo extends Domain {
+    //融资需求编号
+    private String financingNeedsNo;
+    //公司代码
+    private String companyCode;
+    //公司名称
+    private String companyName;
+    //公司简称
+    private String companyShortName;
+    //供应商代码
+    private String supplyCode;
+    //供应商名称
+    private String supplyName;
+    //供应商简称
+    private String supplyShortName;
+    //金融机构代码
+    private String finInsCode;
+    //金融机构名称
+    private String finInsName;
+    //金融机构简称
+    private String finInsShortName;
+    //银行利率
+    private BigDecimal bankRate;
+    //币种
+    private String currency;
+    //账款到期日
+    private Date maturityDate;
+    //融资到期日
+    private Date finMaturityDate;
+    //发票号码
+    private String invoiceNo;
+    //发票代码
+    private String invoiceCode;
+    //业务处理状态
+    private int businessDealStatus;
+    //业务处理描述
+    private String businessDealInfo;
+    //意向融资金额
+    private BigDecimal intentionFmoney;
+    //意向融资期限
+    private Date intentionFterm;
+    //意向融资备注
+    private String intentionFremark;
+    //宽限期
+    private Date gracePeriod;
+    //应付账款凭证
+    private String payableCertificate;
+    //融资起始日
+    private Date financeStart;
+    //融资到期日
+    private Date financeEnd;
+
+    public Date getFinanceStart() {
+        return financeStart;
+    }
+
+    public void setFinanceStart(Date financeStart) {
+        this.financeStart = financeStart;
+    }
+
+    public Date getFinanceEnd() {
+        return financeEnd;
+    }
+
+    public void setFinanceEnd(Date financeEnd) {
+        this.financeEnd = financeEnd;
+    }
+
+    public String getFinancingNeedsNo() {
+        return financingNeedsNo;
+    }
+
+    public void setFinancingNeedsNo(String financingNeedsNo) {
+        this.financingNeedsNo = financingNeedsNo;
+    }
+
+    public String getCompanyCode() {
+        return companyCode;
+    }
+
+    public void setCompanyCode(String companyCode) {
+        this.companyCode = companyCode;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getCompanyShortName() {
+        return companyShortName;
+    }
+
+    public void setCompanyShortName(String companyShortName) {
+        this.companyShortName = companyShortName;
+    }
+
+    public String getSupplyCode() {
+        return supplyCode;
+    }
+
+    public void setSupplyCode(String supplyCode) {
+        this.supplyCode = supplyCode;
+    }
+
+    public String getSupplyName() {
+        return supplyName;
+    }
+
+    public void setSupplyName(String supplyName) {
+        this.supplyName = supplyName;
+    }
+
+    public String getSupplyShortName() {
+        return supplyShortName;
+    }
+
+    public void setSupplyShortName(String supplyShortName) {
+        this.supplyShortName = supplyShortName;
+    }
+
+    public String getFinInsCode() {
+        return finInsCode;
+    }
+
+    public void setFinInsCode(String finInsCode) {
+        this.finInsCode = finInsCode;
+    }
+
+    public String getFinInsName() {
+        return finInsName;
+    }
+
+    public void setFinInsName(String finInsName) {
+        this.finInsName = finInsName;
+    }
+
+    public String getFinInsShortName() {
+        return finInsShortName;
+    }
+
+    public void setFinInsShortName(String finInsShortName) {
+        this.finInsShortName = finInsShortName;
+    }
+
+    public BigDecimal getBankRate() {
+        return bankRate;
+    }
+
+    public void setBankRate(BigDecimal bankRate) {
+        this.bankRate = bankRate;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public Date getMaturityDate() {
+        return maturityDate;
+    }
+
+    public void setMaturityDate(Date maturityDate) {
+        this.maturityDate = maturityDate;
+    }
+
+    public Date getFinMaturityDate() {
+        return finMaturityDate;
+    }
+
+    public void setFinMaturityDate(Date finMaturityDate) {
+        this.finMaturityDate = finMaturityDate;
+    }
+
+    public String getInvoiceNo() {
+        return invoiceNo;
+    }
+
+    public void setInvoiceNo(String invoiceNo) {
+        this.invoiceNo = invoiceNo;
+    }
+
+    public String getInvoiceCode() {
+        return invoiceCode;
+    }
+
+    public void setInvoiceCode(String invoiceCode) {
+        this.invoiceCode = invoiceCode;
+    }
+
+    public int getBusinessDealStatus() {
+        return businessDealStatus;
+    }
+
+    public void setBusinessDealStatus(int businessDealStatus) {
+        this.businessDealStatus = businessDealStatus;
+    }
+
+    public String getBusinessDealInfo() {
+        return businessDealInfo;
+    }
+
+    public void setBusinessDealInfo(String businessDealInfo) {
+        this.businessDealInfo = businessDealInfo;
+    }
+
+    public BigDecimal getIntentionFmoney() {
+        return intentionFmoney;
+    }
+
+    public void setIntentionFmoney(BigDecimal intentionFmoney) {
+        this.intentionFmoney = intentionFmoney;
+    }
+
+    public Date getIntentionFterm() {
+        return intentionFterm;
+    }
+
+    public void setIntentionFterm(Date intentionFterm) {
+        this.intentionFterm = intentionFterm;
+    }
+
+    public String getIntentionFremark() {
+        return intentionFremark;
+    }
+
+    public void setIntentionFremark(String intentionFremark) {
+        this.intentionFremark = intentionFremark;
+    }
+
+    public Date getGracePeriod() {
+        return gracePeriod;
+    }
+
+    public void setGracePeriod(Date gracePeriod) {
+        this.gracePeriod = gracePeriod;
+    }
+
+    public String getPayableCertificate() {
+        return payableCertificate;
+    }
+
+    public void setPayableCertificate(String payableCertificate) {
+        this.payableCertificate = payableCertificate;
+    }
+
+    public static List<AvfFinancingDemandInfo> toInfoList(List<AvfFinInvoiceInfo> invoiceInfos,AvfFinancingDemandHead demandHead) {
+        List<AvfFinancingDemandInfo> result = new ArrayList<AvfFinancingDemandInfo>();
+        if (CollectionUtils.isNotEmpty(invoiceInfos)) {
+            for (AvfFinInvoiceInfo avfWaitFinInvoiceInfo : invoiceInfos) {
+                AvfFinancingDemandInfo invoiceInfo = new AvfFinancingDemandInfo();
+                BeanUtils.copyProperties(avfWaitFinInvoiceInfo,invoiceInfo);
+                invoiceInfo.setId(invoiceInfo.getUuid());  //设置id
+                invoiceInfo.setFinancingNeedsNo(demandHead.getFinancingNeedsNo());
+                invoiceInfo.setFinInsCode(demandHead.getFinInsCode());
+                invoiceInfo.setFinInsName(demandHead.getFinInsName());
+                invoiceInfo.setFinInsShortName(demandHead.getFinInsShortName());
+                invoiceInfo.setBusinessDealStatus(demandHead.getBusinessDealStatus());
+                invoiceInfo.setBusinessDealInfo(demandHead.getBusinessDealInfo());
+                invoiceInfo.setIntentionFmoney(demandHead.getIntentionFmoney());
+                invoiceInfo.setIntentionFterm(demandHead.getIntentionFterm());
+                invoiceInfo.setIntentionFremark(demandHead.getIntentionFremark());
+                invoiceInfo.setGracePeriod(demandHead.getGracePeriod());
+                invoiceInfo.setCreatorId(demandHead.getCreatorId());
+                invoiceInfo.setCreator(demandHead.getCreator());
+                result.add(invoiceInfo);
+            }
+        }
+        return result;
+    }
+}

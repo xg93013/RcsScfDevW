@@ -1,0 +1,39 @@
+/**
+ * Created by Administrator on 2017/7/3.
+ */
+$(function () {
+        EUI.Store({
+            url: _ctxPath+"/avf/statistical/verifyQuota.json",
+            type:'GET',
+            success: function(response) {
+               console.log(response);
+               var i = 0,j = 0;
+               $('.showList').each(function () {
+                   var g = $(this);
+                   if(i == 0){
+                       g.html('待审核'+response.wait.bideNumber+'项 已驳回'+response.wait.feedbackNumber+'项');
+                   }else if(i == 1){
+                       g.html('待审核'+response.demand.bideNumber+'项 已驳回'+response.demand.feedbackNumber+'项');
+                   }else{
+                       g.html('已确认'+response.needConfirmQuota+'项');
+                   }
+                   i++
+               });
+                $('.listNum').each(function () {
+                    var g = $(this);
+                    if( j == 0){
+                        g.text(response.wait.feedbackNumber);
+                    }else if( j == 1){
+                        g.text(response.demand.bideNumber);
+                    }else{
+                        g.text(response.needConfirmQuota);
+                    }
+                    j++;
+                });
+            },
+            failure:function (response) {
+                errorInfo(response.msg);
+
+            }
+        });
+});

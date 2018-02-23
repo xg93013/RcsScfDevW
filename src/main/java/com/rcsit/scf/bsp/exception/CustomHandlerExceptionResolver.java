@@ -1,0 +1,30 @@
+package com.rcsit.scf.bsp.exception;
+
+
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.ServletRequestBindingException;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/**
+ * Created by wangdayin on 2017/5/27.
+ * spring 异常处理
+ */
+public class CustomHandlerExceptionResolver extends DefaultHandlerExceptionResolver {
+
+    @Override
+    protected ModelAndView doResolveException(HttpServletRequest request,
+                                              HttpServletResponse response, Object handler, Exception ex) {
+        if (ex instanceof MissingServletRequestParameterException || ex instanceof ServletRequestBindingException) {
+            ModelAndView mv = new ModelAndView();
+            mv.addObject("msg", ex.getMessage());
+            mv.addObject("status", false);
+            mv.setViewName("/error/400");
+            return mv;
+        }
+        return super.doResolveException(request, response, handler, ex);
+    }
+}

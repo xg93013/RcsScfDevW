@@ -1,0 +1,20 @@
+$(function(){
+    $.ajax({
+        type: 'get',
+        url: _ctxPath+"/avf/flow/financingFlow.json",
+        success: function(data){
+            $(".approveQuota").html(data.data.approveQuota);
+            // $(".tab_01_pass").html(data.wait.confirmNumber);
+            $(".loanQuato").html(data.data.loanQuato);
+            $(".receiptQuato").html(data.data.receiptQuato)
+            $(".tab_sum").each(function(){
+                if($(this).html() == "0"){
+                    $(this).remove();
+                }
+            });
+        },
+        error:function(){
+
+        }
+    });
+})

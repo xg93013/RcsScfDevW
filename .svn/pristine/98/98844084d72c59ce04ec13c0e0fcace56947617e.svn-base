@@ -1,0 +1,216 @@
+EUI.ExtendAccount = EUI.extend(EUI.CustomUI, {
+    renderTo: null,
+    //comboBoxBank: null,
+    data: null,
+    initComponent: function () {
+        /*this.comboBoxBank = new EUI.ComboBoxBank({
+         renderTo: this.renderTo
+         });*/
+        this.initGrid();
+        this.addEvents();
+        this.subMainForm();
+        this.getFormValue();
+
+    },
+    initHtml: function (data) {
+        var html = "";
+        for (var i = 0; i < data.length; i++) {
+
+        }
+        $("body").append(html);
+    },
+    initGrid: function () {
+        EUI.Container({
+            renderTo: this.renderTo,
+            layout: "border", //布局方式
+            padding: 20, //内边距
+            border: false, //是否显示边框，false为不显示
+            isOverFlow: false, //内容溢出时是否显示下拉滚动条，false为不显示
+            height: 317,
+            items: [{
+                xtype: "FormPanel",
+                region: "center",
+                id: "scanForm",
+                height: 277,
+                padding: 0,
+                layout: 'form',
+                items: [{
+                    xtype: "FieldGroup",
+                    title: "意向融资金额",
+                    //width: 150,
+                    height: 40,
+                    //allowBlank: false, //是否可以为空
+                    //name: "intentionFmoney",
+                    //id: "intentionFmoney",
+                    //unit: "元", // 单位
+                    //value: '476,834.34',
+                    labelWidth: 130,
+                    items: ["<div class='date'><span id='money'>" + $.formatMoney($('#intentionMoney').text(),2) + "</span><span class='font16'>元</span></div>"]
+                },
+                    {
+                        xtype: "NumberField",
+                        title: "意向融资金额",
+                        width: 300,
+                        height: 40,
+                        precision: 2, //设置精度
+                        //maxValue: $('#financeMoney').val(), // 允许输入的最大值
+                        minValue: 0, // 允许输入的最小值
+                        allowNegative : false,// 设置是否可以输入负数，false为不能输入负数
+                        allowChar : "0123456789",// 允许输入的数字
+                        fullPrecision : true,// 若填写的数据没有达到需要精确的位数，则用0自动补齐
+                        allowBlank: false, //是否可以为空
+                        value:0.00,
+                        name: "intentionFmoney",
+                        id: "intentionFmoney",
+                        unit: "元", // 单位
+                        labelWidth: 130,
+
+                    },
+                    {
+                        xtype: "FieldGroup",
+                        title: "意向融资到期日",
+                        //width: 332,
+                        height: 40,
+                        labelWidth: 130,
+                        style: {
+                            "margin-top": "20px",
+                        },
+                        items: ["<div class='date'><span id = 'date'>2018-12-14</span><span class='font16'>(约<font class='font20'>12</font>个月)</span></div>"]
+                    },
+                    {
+                        xtype: "DateField",
+                        title: "意向融资到期日",
+                        format: "Y-m-d", // 采用年月日的格式
+                        labelWidth: 130, //设置label的宽度
+                        maxDate: null, // 设置能够选择的最大日期
+                        minDate: "20170301", // 设置能够选择的最小日期，日期格式为"20170301"
+                        width: 300,
+                        height: 40,
+                        listWidth: 150,
+                        //allowBlank: false, //是否可以为空
+                        name: "intentionFterm", // 设置日期选择框的name,用于后台接受此name
+                        id: "intentionFterm",
+                        value: new Date().format("yyyy-MM-dd"),
+                        //msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+                        triggerCss: "ux-date-trigger", // 日期选择触发的样式
+                        triggerClickCss: "",
+                        afterValid: function () { // 事件：对日期校验后的操作
+                           // console.log(EUI.getCmp("intentionFterm").getValue());
+                        },
+                        afterSelect: function (data) { // 事件：选中日期后做的操作
+                            var a = EUI.getCmp("intentionFterm").getValue();
+                            console.log(a);
+                    }
+                    },
+                ],
+
+            }],
+        });
+
+    },
+    //提交表单
+    subMainForm: function () {
+        //申请融资
+        $("#applyAccount").live("click", function () {
+            if( $('.radio b.radio_1').attr('data') == 0){
+                //$('#date').text();
+                //$('#money').text();
+                var data = {isPast:true,intentionFmoney:$.unformatMoney($('#money').text()),intentionFterm:$('#date').text(),id:$('#demandHeadId').val()}
+            }else{
+                var data = EUI.getCmp("scanForm").getFormValue();
+                data.isPast = false;//同意或修改的标志
+                data.id = $('#demandHeadId').val();//同意或修改的标志
+                if (!EUI.getCmp("scanForm").isValid()) {
+                    return;
+                }
+            }
+            //表单验证通过
+            /*if (EUI.getCmp("scanForm").isValid()) {
+                var data = EUI.getCmp("scanForm").getFormValue();
+                data.agree = $('.radio b.radio_1').attr('data');//同意或修改的标志
+                var mask = EUI.LoadMask({
+                    msg: "正在保存，请稍后"
+                });*/
+                EUI.Store({
+                    url: _ctxPath + "/avf/financingDemand/maintainExtendMoney.json",
+                    params: data,
+                    success: function (status) {
+                        //mask.hide();
+                        EUI.ProcessStatus(status);
+                        window.location.href= _ctxPath +"/avf/financingDemand/toDemandPage?type=enterprise";
+                    },
+                    failure: function (response) {
+                       // mask.hide();
+                        EUI.ProcessStatus(response);
+                    }
+                });
+            /*}*/
+        });
+        //取消申请融资
+        $("#accountCancel").live("click", function () {
+            window.location.href= _ctxPath +"/avf/financingDemand/toDemandPage?type=enterprise";
+        });
+    },
+    getFormValue: function () {
+        //申请融资
+        /*$('#applyAccount').click(function () {
+            $('#date').text();
+            $('#money').text();
+            var b = EUI.getCmp("dateField").getValue();
+            console.log(b);
+            var c = EUI.getCmp("name1").getValue();
+            console.log(c);
+        });*/
+
+    },
+    addEvents: function () {
+        //点击单选框
+        $('.radio b').click(function () {
+            var _this = $(this);
+            if (_this.hasClass('radio_1')) {
+                $('#showInfoForm').css('display', 'none');
+                return false;
+            } else {
+                $('#showInfoForm').css('display', '');
+            }
+            $('.radio b.radio_1').addClass('radio_2').removeClass('radio_1');
+            _this.addClass('radio_1').removeClass('radio_2');
+        });
+        this.addTabEvents();
+    },
+    addTabEvents: function () {
+
+    },
+    loadData: function () {
+        /*var g = this;
+         EUI.Stor({
+         success: function(response) {
+         g.showCount(response.data);
+         }
+         })*/
+    },
+    showCount: function (data) {
+        $(".todo-count").text(data.count);
+    },
+    checkValid: function () {
+
+        return true;
+    },
+    getData: function () {
+        var data = {};
+        //TODO:
+        return data;
+    },
+    submit: function () {
+        if (!this.checkValid()) {
+            return;
+        }
+        EUI.Stor({
+            url: "",
+            params: this.getData(),
+            success: function (response) {
+                g.showCount(response.data);
+            }
+        });
+    }
+});

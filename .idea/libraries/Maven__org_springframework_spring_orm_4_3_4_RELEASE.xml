@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Maven: org.springframework:spring-orm:4.3.4.RELEASE">
+    <CLASSES>
+      <root url="jar://D:/Repositories/Maven/org/springframework/spring-orm/4.3.4.RELEASE/spring-orm-4.3.4.RELEASE.jar!/" />
+    </CLASSES>
+    <SOURCES>
+      <root url="jar://D:/Repositories/Maven/org/springframework/spring-orm/4.3.4.RELEASE/spring-orm-4.3.4.RELEASE-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

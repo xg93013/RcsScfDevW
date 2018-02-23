@@ -1,0 +1,51 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.exception.RequestErrorException;
+import com.rcsit.scf.bsp.model.avf.AvfAccountsRecTraNotice;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Created by hmily on 2017/6/2.
+ */
+public class AvfNoticeHandler {
+
+    public JSONObject noticesList(int page, int rows, String token){
+        Map<String,Object> param = new HashMap<>();
+        param.put("page",page);
+        param.put("rows",rows);
+        param.put("token",token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_NOTICE_NOTICELIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if(!HttpClientUtil.isOk(jsonObject))
+            throw new RequestErrorException();
+        return JSONObject.parseObject(jsonObject.getString("data"));
+    }
+
+
+    public AvfAccountsRecTraNotice noticeDetails(String id ,String token){
+        Map<String, String> param = new HashMap<>();
+        param.put("id", id);
+        param.put("token", token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_NOTICE_NOTICEDETAIL, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if(!HttpClientUtil.isOk(jsonObject))
+            throw new RequestErrorException();
+        return JSONObject.parseObject(jsonObject.getString("data"),new TypeReference<AvfAccountsRecTraNotice>(){});
+    }
+
+    public void noticeConfirm(String id ,String token){
+        Map<String, String> param = new HashMap<>();
+        param.put("id", id);
+        param.put("token", token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_NOTICE_NOTICECONFIRM, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if(!HttpClientUtil.isOk(jsonObject))
+            throw new RequestErrorException();
+    }
+}

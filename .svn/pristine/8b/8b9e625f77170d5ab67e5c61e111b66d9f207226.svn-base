@@ -1,0 +1,119 @@
+<%@ page language="java" contentType="text/html; charset=utf-8" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<jsp:include page="/WEB-INF/htmls/base/base.jsp"></jsp:include>
+		<!--xg addcss-->
+		<link rel="Shortcut Icon" href="/static/avf/images/logo2.ico" />
+		<link rel="stylesheet" href="/static/avf/css/base.css" />
+		<link rel="stylesheet" href="/static/avf/css/common.css" />
+		<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+		<link rel="stylesheet" href="/static/avf/css/supplyMain.css" />
+		
+		<script type="text/javascript" src="/static/avf/js/common.js" ></script>
+		<title>融资管理平台</title>
+	</head>
+
+	<body>
+		<!--top_common-->
+		<div class="header_com">
+			<div class="header_container">
+				<div class="com_left fl mg10">
+					<img  src="/static/avf/images/logo.png"/>
+				</div>
+				<div class="com_right fr mg10">
+					<div class="person_info fl">
+						<a>
+							<div class="info_graph fl"></div>
+							<!--登录成功-->
+							<div class="info_name fl">
+								<p class="font12">[核心企业]</p>
+								<p class="font18 mg10">用户名</p>
+							</div>
+							<!--未登录状态-->
+							<b></b>
+						</a>
+						<div class="hide_nlist">
+							<ul>
+								<li><a href="#">核心企业</a></li>
+								<li><a href="#">供应商</a></li>
+								<li><a href="#">金融机构</a></li>
+								<li><a href="#">系统管理</a></li>
+								<li><a href="#">密码修改</a></li>
+								<li><a href="#">用户中心</a></li>
+								<li><a href="#">融资配置</a></li>
+							</ul>
+						</div>
+					</div>
+
+					<div class="person_exit fl ml10">
+						<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--top_common end-->
+		
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li>首页</li>
+					<li><a href="PersonView.html">&nbsp;&gt;&nbsp;供应商管理</a></li>
+					<li><a href="SupplyView.html">&nbsp;&gt;&nbsp;核心企业详情</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content height_box">
+				<div class="supply_top">
+					<div class="supply_t_l">
+						<p class="font36">${company.companyName}</p>
+					</div>
+					<div class="supply_t_r sheet_list">
+						<div class="supply_items"><em class="sup_person"></em>联系人：<span>${company.linkMan}</span></div>
+						<div class="supply_items"><em class="sup_zuoji"></em>座&emsp;机：<span>${company.linkManTel}</span></div>
+						<div class="supply_items"><em class="sup_phone"></em>手&emsp;机：<span>${company.linkManMobile}</span></div>
+						<div class="supply_items end_items"><em class="sup_email"></em>邮&emsp;箱：<span>${company.linkManEmail}</span></div>
+					</div>
+				</div>
+				<!--supply list-->
+				<div class="supply_list">
+					<ul>
+						<li>法定代表人：<span>${company.legalRep}</span></li>
+						<li>所有制性质：<span>${company.ownership}</span></li>
+						<li>是否上市公司：<span>${company.isListedCompany}</span></li>
+						<li>邮编：<span>${company.postCode}</span></li>
+						<li>地址：<span>${company.address}</span></li>
+						<li>经营范围：<span>${company.businessScope}</span></li>
+					</ul>
+					<ul>
+						<li>核心企业代码：<span>${company.companyCode}</span></li>
+						<li>组织机构代码：<span>${company.organizationCode}</span></li>
+						<li>征信机构代码：<span>${company.organizationCode}</span></li>
+						<li>社会统一信用代码：<span>${company.socialCreditCode}</span></li>
+					</ul>
+					<ul>
+						<li>币种：<span>${company.currencyCode}</span></li>
+						<li>基本开户行：<span>${company.basicAccountBankName}</span></li>
+						<li>开户行行号：<span>${company.basicAccountBankCode}</span></li>
+						<li>开户行账号：<span>${company.basicAccount}</span></li>
+					</ul>
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<div class="footer">
+			<p>绵阳市高新区XXXXX</p>
+			<p>@速信融版权所有</p>
+		</div>
+		<!--footer end-->
+	</body>
+
+</html>

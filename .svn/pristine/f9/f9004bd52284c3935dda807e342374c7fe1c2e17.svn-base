@@ -1,0 +1,265 @@
+package com.rcsit.scf.bsp.utils;
+
+import com.rcsit.scf.bsp.exception.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.InputStream;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**
+ * Excel文件上传解析类
+ * Created by chenkai on 2017/5/16.
+ */
+public class ReadExcelUtil {
+    private static Long sizeMax = 5L; //文件大小限制MB为单位
+
+    /**
+     * @功能描述：数据上传
+     */
+    public static Map<Integer, List<String>> upload(MultipartFile file) {
+        //存储解读到的Excel数据
+        Map<Integer, List<String>> content = new HashMap<Integer, List<String>>();
+        //存在带*号的列index
+        Map<Integer, String> mustIndexs = new HashMap<Integer, String>();
+        //存发票代码号码集合
+        Map<String, String> codeNames = new HashMap<String, String>();
+        InputStream is = null;
+        Workbook wb = null;
+        //判断上传文件是否为空
+        if (file.isEmpty()) {
+            throw new FileNotSelectException();
+        }
+        String fileName = file.getOriginalFilename();
+        //判断文件大小是否超过最大大小
+        if (file.getSize() > sizeMax * 1024 * 1024) {
+            throw new FileSizeMaxException();
+        }
+        //判断文件是否为Excel文件
+        if (!fileName.matches("^.+\\.(?i)(xls)$") && !fileName.matches("^.+\\.(?i)(xlsx)$")) {
+            throw new FileTypeErrorException();
+        }
+        try {
+            is = file.getInputStream();
+            if (isExcel(fileName)) {
+                wb = new HSSFWorkbook(is);
+            } else {
+                wb = new XSSFWorkbook(is);
+            }
+        } catch (Exception ex) {
+            throw new FileReadFailException();
+        } finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (Exception ex) {
+                    throw new FileReadFailException();
+                }
+            }
+        }
+        FormulaEvaluator evaluator = wb.getCreationHelper().createFormulaEvaluator();
+        /** 得到第一个shell */
+        Sheet sheet = wb.getSheetAt(0);
+        /** 得到Excel的行数 */
+        int rowCount = sheet.getPhysicalNumberOfRows();
+        /** 循环Excel的行 */
+        for (int r = 0; r < rowCount; r++) {
+            Row row = sheet.getRow(r);
+            if (null == row) {
+                continue;
+            }
+            List<String> strs = new ArrayList<String>();  //把一行数据放到list
+            String key = null;   //发票代码
+            String value = null;  //发票号码
+            for (int c = 0; c < row.getPhysicalNumberOfCells(); c++) {
+                Cell cell = row.getCell(c);
+                if(null == cell){
+                    continue;
+                }
+                String cellValue = getValue(cell,evaluator);
+                //如果cellValue 为空 判断该列是否是必填字段
+                if (r != 0 && StringUtils.isEmpty(cellValue)) {  //是不列名这行，如果该字段值为空 才判断是否必填
+                    String must = mustIndexs.get(c);  //查询该列是否是必填
+                    if (null != must) { //如果存到值了就是必填抛错
+                        throw new FileNotNullException((c+1) + " 列为必填，第" + (r+1) + "行值为空!");
+                    }
+                    continue;
+                }
+                //判断是否有*  如果有存入map
+                if (r == 0 && cellValue.indexOf("*") != -1) {  //判断列名里面的*号  如果存在添加到map
+                    mustIndexs.put(c, cellValue);
+                } else {
+                    if (c == 4) {   //如果是发票代码
+                        if(StringUtils.isNotEmpty(cellValue) && cellValue.length() != 12){
+                            throw new RequestErrorException((c+1) + " 列 " + (r+1) + "行发票代码必须是12位数!");
+                        }
+                        key = cellValue;
+                    } else if (c == 5) {  //如果是发票号码
+                        if(StringUtils.isNotEmpty(cellValue) && cellValue.length() != 8){
+                            throw new RequestErrorException((c+1) + " 列 " + (r+1) + "行发票号码必须是8位数!");
+                        }
+                        value = cellValue;
+                    }
+                }
+                strs.add(cellValue);  //添加到行的list里
+            }
+            if (StringUtils.isNotEmpty(value) && value.equals(codeNames.get(key))) {  //判断发票代码和发票号码是否和之前数据重复
+                throw new FileInvoiceRepeatException("第" + r + "行代码号码重复!");
+            }
+            if(StringUtils.isNotEmpty(key)){
+                codeNames.put(key, value);  //发票代码和发票号码没有重复添加到map
+            }
+            if (r != 0) {  //不加入列名那一行
+                content.put(r, strs);
+            }
+        }
+        return content;
+    }
+
+    /**
+     * @param filePath
+     * @return
+     * @功能描述：判断文件后缀
+     */
+    public static boolean isExcel(String filePath) {
+        if (filePath.matches("^.+\\.(?i)(xls)$")) {
+            return true;
+        }
+        return false;
+    }
+    /**
+     * 移除map中的value空值
+     * @param map
+     * @return
+     */
+    public static void removeNullValue(Map map){
+        Set set = map.keySet();
+        for (Iterator iterator = set.iterator(); iterator.hasNext();) {
+            Object obj = (Object) iterator.next();
+            Object value =(Object)map.get(obj);
+            remove(value, iterator);
+        }
+    }
+    /**
+     * 移除map中的空值
+     *
+     * Iterator 是工作在一个独立的线程中，并且拥有一个 mutex 锁。
+     * Iterator 被创建之后会建立一个指向原来对象的单链索引表，当原来的对象数量发生变化时，这个索引表的内容不会同步改变，
+     * 所以当索引指针往后移动的时候就找不到要迭代的对象，所以按照 fail-fast 原则 Iterator 会马上抛出 java.util.ConcurrentModificationException 异常。
+     * 所以 Iterator 在工作的时候是不允许被迭代的对象被改变的。
+     * 但你可以使用 Iterator 本身的方法 remove() 来删除对象， Iterator.remove() 方法会在删除当前迭代对象的同时维护索引的一致性。
+     * @param obj
+     * @param iterator
+     */
+    private static void remove(Object obj,Iterator iterator){
+        if(obj instanceof String){
+            String str = (String)obj;
+            if(isEmpty(str)){  //过滤掉为null和""的值 主函数输出结果map：{2=BB, 1=AA, 5=CC, 8=  }
+//            if("".equals(str.trim())){  //过滤掉为null、""和" "的值 主函数输出结果map：{2=BB, 1=AA, 5=CC}
+                iterator.remove();
+            }
+
+        }else if(obj instanceof Collection){
+            Collection col = (Collection)obj;
+            if(col==null||col.isEmpty()){
+                iterator.remove();
+            }
+
+        }else if(obj instanceof Map){
+            Map temp = (Map)obj;
+            if(temp==null||temp.isEmpty()){
+                iterator.remove();
+            }
+
+        }else if(obj instanceof Object[]){
+            Object[] array =(Object[])obj;
+            if(array==null||array.length<=0){
+                iterator.remove();
+            }
+        }else{
+            if(obj==null){
+                iterator.remove();
+            }
+        }
+    }
+    public static boolean isEmpty(Object obj){
+        return obj == null || obj.toString().length() == 0;
+    }
+    /**
+     * @获取Excel中某个单元格的值
+     * @param cell      EXCLE单元格对象
+     * @param evaluator EXCLE单元格公式
+     * @return          单元格内容
+     */
+    public static String getValue(Cell cell, FormulaEvaluator evaluator) {
+
+        String value = "";
+        switch (cell.getCellType()) {
+            case HSSFCell.CELL_TYPE_NUMERIC:                        //数值型
+                if(HSSFDateUtil.isCellDateFormatted(cell)){ //如果是日期格式
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    Date date = cell.getDateCellValue();
+                    value = sdf.format(date);  //把读取日期转换为文本
+                }else{  //纯数字格式，转换防止科学计数法
+                    DecimalFormat df = new DecimalFormat("0.00");
+                    value = df.format(cell.getNumericCellValue());
+                }
+                break;
+            case HSSFCell.CELL_TYPE_STRING:                         //字符串型
+                value = cell.getStringCellValue();
+                break;
+            case HSSFCell.CELL_TYPE_BOOLEAN:                        //布尔
+                value = " " + cell.getBooleanCellValue();
+                break;
+            case HSSFCell.CELL_TYPE_BLANK:                          //空值
+                value = "";
+                break;
+            case HSSFCell.CELL_TYPE_ERROR:                          //故障
+                value = "";
+                break;
+            case HSSFCell.CELL_TYPE_FORMULA:                        //公式型
+                try {
+                    CellValue cellValue;
+                    cellValue = evaluator.evaluate(cell);
+                    switch (cellValue.getCellType()) {              //判断公式类型
+                        case Cell.CELL_TYPE_BOOLEAN:
+                            value  = String.valueOf(cellValue.getBooleanValue());
+                            break;
+                        case Cell.CELL_TYPE_NUMERIC:
+                            // 处理日期
+                            if (DateUtil.isCellDateFormatted(cell)) {
+                                SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+                                Date date = cell.getDateCellValue();
+                                value = format.format(date);
+                            } else {
+                                value  = String.valueOf(cellValue.getNumberValue());
+                            }
+                            break;
+                        case Cell.CELL_TYPE_STRING:
+                            value  = cellValue.getStringValue();
+                            break;
+                        default:
+                            value = "";
+                            break;
+                    }
+                } catch (Exception e) {
+                    value = cell.getStringCellValue().toString();
+                    cell.getCellFormula();
+                }
+                break;
+            default:
+                value = cell.getStringCellValue().toString();
+                break;
+        }
+        return value;
+    }
+
+}
+

@@ -1,0 +1,237 @@
+var timer = 5;
+//初始融资机构-融资审批的表格
+EUI.FinanceApproval = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	height:'auto',
+	//width:1188,
+	initComponent: function() {
+		var _this = this;
+		_this.initGrid();
+		_this.addEvents();
+	},
+	initGrid: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: g.renderTo,
+			padding: 0, //设置表格的内边距
+			exportXls: false,
+			searchConfig: null,
+			showRefresh: false,
+			id: "approvalTab",
+			//autoLoad: true, //自动加载
+			height: 'auto',
+			gridCfg: {
+				rownumbers: false, //去掉表格序号
+				//shrinkToFit: false,//表格宽度自适应
+                url:_ctxPath+"/avf/financingApprove/financingApproveList.json",//获取后端数据
+                rowNum: 10,//一页显示几条数据
+                mtype:"get",
+                loadonce:false,//true数据一次性加载,每页返回加载每页的数据
+				colModel: [{
+					label: "序号",
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					hidden: true //隐藏不显示这一组
+				}, {
+					label: "融资需求编号",
+					name: "financingNeedsNo",
+					index: "financingNeedsNo",
+
+				}, {
+					label: "供应商",
+					name: "supplyShortName",
+					index: "supplyShortName",
+
+				}, {
+					label: "核心企业",
+					name: "companyShortName",
+					index: "companyShortName",
+				}, {
+					label: "融资金额（元）",
+					name: "totalMoney",
+					index: "totalMoney",
+					formatter: function(value, id, rowdata) {
+						return '<span class="font20">' + $.formatMoney(rowdata.intentionFmoney,2) + '</span>';
+					}
+
+				},{
+                    name: "financeStart",
+                    index: "financeStart",
+					hidden:true,
+                },{
+					label: "期限",
+					name: "financeEnd",
+					index: "financeEnd",
+					formatter: function(value, id, rowdata) {
+                        var startTime = $.myTime.UnixToDate(rowdata.financeStart);
+                        var endTime = $.myTime.UnixToDate(rowdata.financeEnd);
+                        if(startTime != 'NaN-NaN-NaN' && endTime != 'NaN-NaN-NaN'){
+                            return startTime+'<p>~</p>'+ endTime;
+                        }else{
+                            return '-- -- --';
+                        }
+                        // return '<span class="font20">' + $.myTime.UnixToDate(rowdata.financeEnd) + '</span>';
+					}
+
+				}, {
+					label: "状态",
+					name: "businessDealInfo",
+					index: "businessDealInfo",
+				}, {
+					label: "操作",
+					name: "businessDealStatus",
+					index: "businessDealStatus",
+					formatter: function(value, id, rowdata) {
+						if(parseInt(rowdata.businessDealStatus)  == 1022) {
+							return '<div class="btn_defend look_financial" data='+rowdata.id+'>查看</div>';
+						} else {
+							return '<div class="btn_detail defend_financial" data='+rowdata.id+'>拒绝</div>';
+						}
+
+					}
+				}],
+				//data: g.loadData(),
+			}
+
+		});
+	},
+	loadData: function() {
+	},
+	afterRender: function() {
+		console.log('渲染完成');
+	},
+	addEvents: function() {
+		//跳转到拒绝页面
+		$('.defend_financial').live('click', function() {
+            var id =$(this).attr('data');
+            window.location.href = _ctxPath+'/avf/financingApprove/financingDemandRejectPage?id='+id;
+        });
+		//跳转到查看详情页面
+        $('.look_financial').live('click', function() {
+            var id =$(this).attr('data');
+            window.location.href = _ctxPath+'/avf/financingApprove/financingApproveHeadDetailsPage?id='+id;
+        });
+	},
+});
+
+EUI.formRecord = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	height: 200,
+	width: 390,
+	initComponent: function() {
+		var g = this;
+		EUI.FormPanel({
+			renderTo: this.renderTo,
+			height: 200,
+			id:'formMakeUp',
+			items: [{
+				xtype: "NumberField",
+				title: "放款金额",
+				labelWidth: 100,
+				width: 304,
+				height: 35,
+				unit: '元',
+				//displayText: "请输入数字,只能输入正数",
+				//hintText: "金额不能大于融资金额",
+				allowBlank: false,
+				name:'loanMoney',
+				//value: 1.00,
+				maxValue: $('#financeMoney').val(), // 允许输入的最大值
+				minValue: 1, // 允许输入的最小值
+				precision: 2, // 输入的数据精确到多少位，默认值0表示精确到个位
+				allowNegative: false, // 设置是否可以输入负数，false为不能输入负数
+				allowChar: "0123456789", // 允许输入的数字
+				fullPrecision: true, // 若填写的数据没有达到需要精确的位数，则用0自动补齐
+                //validater: function(value) {}
+
+			}, {
+				xtype: "DateField",
+				title: "放款日期",
+				format: "Y-m-d", // 采用年月日的格式
+				labelWidth: 100, //设置label的宽度
+				maxDate: null, // 设置能够选择的最大日期
+				minDate: new Date($('#financeStart').val()).format('yyyyMMdd'), // 设置能够选择的最小日期，日期格式为"20170301"
+				width: 300,
+				height: 40,
+				listWidth: 150,
+				allowBlank: false, //是否可以为空
+				name: "loanDate", // 设置日期选择框的name,用于后台接受此name
+				id: "loanDate",
+				//value: new Date().format("yyyy-MM-dd"),
+				//msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+				triggerCss: "ux-date-trigger", // 日期选择触发的样式
+				triggerClickCss: "",
+				// afterValid: function() { // 事件：对日期校验后的操作
+				// 	//console.log(this.getValue());
+				// },
+				afterSelect: function(data) { // 事件：选中日期后做的操作
+					//var a = EUI.getCmp("dateField").getValue();
+					//console.log(a);
+				}
+			}, ]
+		});
+		g.addEvent();
+		g.removeStar();
+	},
+	addEvent: function() {
+		//$("#integer input").on("input propertychange", function() {
+		//确认补录
+		$('#confirm_record').click(function () {
+           if( !EUI.getCmp("formMakeUp").isValid()){
+              // messageDemo.messageError('表单格式或数据不正确');
+               return;
+		   }
+            var makeUp = EUI.getCmp("formMakeUp").getFormValue();
+            makeUp.id = $('#makeUpId').val();
+            EUI.Store({
+                url: _ctxPath+'/avf/financingLoan/financingLoanMakeup.json',
+                params:makeUp,
+                async:false,
+                success: function (d) {
+                    $('#overlay,#loadingTip').css('display', 'block');
+                    $('#confirm_record').css('display','none');
+                    Countdown();
+                },
+                failure: function (d) {
+                    errorInfo(d.msg);
+                    //messageDemo.messageError(d.msg);
+                }
+            });
+		});
+        // $('#loadingTip').click(function() {
+        //     $('#overlay,#loadingTip').css('display', 'none');
+        // });
+
+			/*EUI.ProcessStatus({ // ProcessStatus不用写renderTo是因为每个页面只允许有一个状态提示框
+				msg: "数字输入框的值：" + vl
+			});*/
+			/*
+			 * EUI.Container({ //测试事件里面使用其他插件时的样式 html:"这是一段测试文本",
+			 * renderTo:"renderto", height:50 });
+			 */
+	},
+	removeStar: function() {
+		$('.close_store b').click(function() {
+			if($(this).hasClass('b_1')) {
+				$(this).removeClass('b_1').addClass('b_2');
+			} else {
+				$(this).removeClass('b_2').addClass('b_1');
+			}
+		});
+		$('.ux-field-label .ux-field-must').remove();
+		$('#formMakeUp .ux-line-row').eq(0).append('<div class="tip">金额不能大于融资金额'+$('#financeMoney').val()+'元</div>');
+	}
+});
+var clear;
+function Countdown() {
+    if (timer >= 1) {
+        timer -= 1;
+        $('#successInfo').text('补录成功'+timer+'秒后自动跳转');
+        clear = setTimeout(function() {
+            Countdown();
+        }, 1000);
+    }else{
+        clearInterval(clear);
+        window.location.href=_ctxPath+'/avf/financingLoan/financingLoanListPage';
+    }
+}

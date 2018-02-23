@@ -1,0 +1,75 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<!--xg addcss-->
+	<link rel="stylesheet" href="/static/avf/css/mainView.css" />
+
+	<!--xg addjs-->
+	<%--<script type="text/javascript" src="/static/base/js/jquery-2.0.0.min.js" ></script>--%>
+	<script type="text/javascript" src="/static/base/js/public.js" ></script>
+	<script type="text/javascript" src="/static/base/js/common.js" ></script>
+	<script type="text/javascript" src="/static/avf/js/invoice_prepare.js" ></script>
+	<script>
+        EUI.onReady(function() {
+            new EUI.InvoicePrepare({
+                renderTo: "rz_box",
+                cfgId: "InvoicePre1"
+            });
+        });
+	</script>
+	<%--<title>融资管理平台</title>--%>
+</head>
+
+<body>
+
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li><a href="/avf/invoice/toWaitPage?type=enterprise">首页</a></li>
+			<li><a href="/avf/invoice/toWaitPage?type=enterprise">&nbsp;&gt;&nbsp;准备发票</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 step_content">
+		<c:set var="tab_state" scope="session" value="1"/>
+		<%@ include file="/base/tab_enterprise.jsp"%>
+		<div class="rz_container">
+			<div class="re_con_left fl">
+				<p class="fl">待审核：<span class="org_color">${waitNumber.bideNumber}</span>项</p>
+				<%--<p>供应商：<span>${waitNumber.supplyNumber}</span>项</p>--%>
+				<p class="fl">总金额：<span class="font24 money org_color" data="${waitNumber.totalMoney}"></span>元</p>
+			</div>
+			<div class="re_con_right fr">
+				<div class="re_conr_items">
+					<div class="search_invoice">
+						<input type="text" />
+						<span>搜索</span>
+					</div>
+
+				</div>
+				<div class="prpare_btn">
+					<a href="javascript:void(0)" class="blueBg">高级查询</a>
+					<a href="javascript:void(0)"  id="import_model" class="blueBg">下载文件模板</a>
+					<a href="/avf/invoice/toAddInvoice?type=enterprise"  id="input_invoice" class="orgBg">手动录入发票</a>
+					<a href="javascript:void(0)" id="import_ticket" class="btns">导入发票</a>
+				</div>
+			</div>
+		</div>
+		<div class="rz_result">
+			<div id="rz_box" ></div>
+		</div>
+	</div>
+
+</div>
+<!--main content end-->
+
+<%@ include file="/base/footer.jsp"%>
+</body>
+</html>

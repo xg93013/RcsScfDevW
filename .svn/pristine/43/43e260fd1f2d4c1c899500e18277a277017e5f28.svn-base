@@ -1,0 +1,342 @@
+EUI.ApplyFinance2 = EUI.extend(EUI.CustomUI, {
+	renderTo: null,
+	//comboBoxBank: null,
+	height: 'auto',
+	data: null,
+	initComponent: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		/*this.comboBoxBank = new EUI.ComboBoxBank({
+			renderTo: this.renderTo
+		});*/
+        _this.initGrid();
+        _this.addEvents();
+        _this.initSearchForm();
+	},
+	initHtml: function(data) {
+		var html = "";
+		for(var i = 0; i < data.length; i++) {
+
+		}
+		$("body").append(html);
+	},
+	initGrid: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		EUI.GridPanel({
+			//xtype: "GridPanel",
+			//loadonce: true, //true数据一次性加载,每页返回加载每页的数据
+			//url:_ctxPath+"/dfdf/dd";//获取后端数据
+			//rowNum:10,//一页显示几条数据
+            width:1160,
+			renderTo: _this.renderTo,
+			padding: 0, //设置表格的内边距
+			exportXls: false,
+			searchConfig: null,
+			showRefresh: false,
+			id: "applyFinancingTab2",
+			//autoLoad: true, //自动加载
+			height: 'auto',
+			gridCfg: {
+				rownumbers: false, //去掉表格序号
+				loadonce: false, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+                url:_ctxPath+"/avf/financingDemand/demandList.json",//获取后端数据
+                rowNum:10,//一页显示几条数据
+				// shrinkToFit: true, //表格宽度不自适应
+				//height:300,
+				colModel: [{
+					label: "序号",
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					width: 50,
+					hidden: true //隐藏不显示这一组
+				}, {
+					label: "核心企业",
+					name: "companyShortName",
+					index: "companyShortName",
+					//width: 124,
+
+				}, {
+					label: "融资银行",
+					name: "finInsShortName",
+					index: "finInsShortName",
+					//width: 124,
+
+				}, {
+					label: "银行利率(%)",
+					name: "bankRate",
+					index: "bankRate",
+					//width: 120,
+                    formatter: function(value, id, rowdata) {
+                        return parseFloat(rowdata.bankRate).toFixed(2);
+                    }
+				}, {
+					label: "融资金额(元)<b class='sorting desc' data='intentionFmoney'></b>",
+					name: "intentionFmoney",
+					index: "intentionFmoney",
+					width: 200,
+                    formatter: function(value, id, rowdata) {
+                        return '<span class="font20">￥' + $.formatMoney(rowdata.intentionFmoney,2) + '</span>';
+                    }
+
+				}, {
+                    label: "发票总金额",
+                    name: "invoiceTotalMoney",
+                    index: "invoiceTotalMoney",
+					hidden:true,
+
+                }, {
+					label: "融资比例(%)",
+					name: "name4",
+					index: "name4",
+					//width: 120,
+                    formatter: function(value, id, rowdata) {
+                        return Math.round(rowdata.intentionFmoney/rowdata.invoiceTotalMoney*100);
+                    }
+
+				}, {
+					label: "融资起始日",
+					name: "financeStart",
+					index: "financeStart",
+                    hidden:true,
+					// width: 130,
+                    // formatter: function(value, id, rowdata) {
+					// 	return GetDateT(new Date(rowdata.financeStart));
+                    // }
+
+				}, {
+					name:"intentionFterm",
+					index:"intentionFterm",
+					hidden:true,
+				},{
+					label: "融资期限<b class='sorting desc' data='financeStart'></b>",
+					name: "financeEnd",
+					index: "financeEnd",
+					width: 300,
+                    formatter: function(value, id, rowdata) {
+						if(rowdata.businessDealStatus == '2020'){
+                            return GetDateT(new Date(rowdata.financeStart))+'~'+GetDateT(new Date(rowdata.intentionFterm));
+						}else{
+                            return GetDateT(new Date(rowdata.financeStart))+'~'+GetDateT(new Date(rowdata.financeEnd));
+						}
+
+                    }
+				}, {
+					label: "状态<b class='b_btn b_state' data='businessDealInfo'></b>",
+					name: "businessDealInfo",
+					index: "businessDealInfo",
+					width: 200,
+
+				}, {
+					label: "操作",
+					name: "businessDealStatus",
+					index: "businessDealStatus",
+					width: 200,
+					formatter: function(value, id, rowdata) {
+					    if(rowdata.businessDealStatus == '2020'){
+                            return '<div class="search_a"><a class="sxf_btn icon_detail look_detail" title="查看明细" data='+rowdata.id+'></a><span class="sxf_btn icon_edit edit_finance ml20" title="编辑申请融资" data-id="' + rowdata.id + '"></span><span class="sxf_btn icon_delete del_finance ml20" title="删除申请融资" data-id="' + rowdata.id + '"></span></div>';
+                        }else{
+                            return '<div class="search_a"><a class="sxf_btn icon_detail look_detail" title="查看明细" data='+rowdata.id+'></a></div>';
+                        }
+					}
+				}],
+				//data: _this.loadData(),
+			}
+		});
+	},
+    //初始化高级查询表单
+    initSearchForm:function(){
+        var g = this;
+        var options = {
+            id: "searchForm2", //表单id
+            renderTo: "formBox1",//表单容器id
+            submitId:"submitId",//提交按钮id
+            tableId:"applyFinancingTab2",//要刷新的表格id
+            title:"高级查询",//查询标题
+            formGrid: [{
+                xtype: "ComboBox",
+                field: ['companyCode'], // 表示哪些值需要提交到后端
+                name: 'companyName',
+                labelWidth: 120,
+                id: "companyCode",
+                title: '核心企业',
+                width: 280,
+                allowBlank: true,
+                displayText: '请选择核心企业',
+                async: true, // 是否异步，true为异步
+                store: {
+                    type:"get",
+                    url: _ctxPath + "/avf/financingRelConfigure/findRelBySupplyCode.json"
+                }, // 从后台获取数据的地址
+                editable: true, // 是否可编辑
+                loadMask: true, // 是否有遮罩层
+                showSearch: false, // 是否展开下拉框
+                searchText: "companyName", // 下拉框的内容
+                canClear: true,
+                deforeLoad: function(store) {},
+                afterLoad: function(data) {
+
+                },
+                afterSelect:function(d){
+                    EUI.getCmp("finInsCode").store.params.companyCode=d.data.companyCode;
+                }
+            },{
+                xtype: "ComboBox",
+                field: ['finInsCode'], // 表示哪些值需要提交到后端
+                name: 'finInsName',
+                labelWidth: 120,
+                id: "finInsCode",
+                title: '融资银行',
+                width: 280,
+                allowBlank: true,
+                displayText: '请选择融资银行',
+                async: true, // 是否异步，true为异步
+                store: {
+                    type:"get",
+                    url: _ctxPath + "/avf/financingRelConfigure/findRelByCompanyCodeAndSupplyCode.json",
+                    params: {'companyCode':''},
+                }, // 从后台获取数据的地址
+                editable: true, // 是否可编辑
+                loadMask: true, // 是否有遮罩层
+                showSearch: false, // 是否展开下拉框
+                searchText: "finInsName", // 下拉框的内容
+                canClear: true,
+                deforeLoad: function(store) {},
+                afterLoad: function(data) {
+
+                },
+                afterSelect:function(data){
+
+                }
+            },{
+                xtype: "FieldGroup",
+                width:500,
+                itemspace:10,
+                items: [{
+                    xtype: "DateField",
+                    title: "融资期限",
+                    format: "Y-m-d", // 采用年月日的格式
+                    labelWidth: 120, //设置label的宽度
+                    //maxDate: null, // 设置能够选择的最大日期
+                    // minDate: new Date($('#financeEnd').val()).format('yyyyMMdd'), // 设置能够选择的最小日期，日期格式为"20170301"
+                    width: 109,
+                    // height: 40,
+                    // listWidth: 150,
+                    allowBlank: true, //是否可以为空
+                    name: "minDate", // 设置日期选择框的name,用于后台接受此name
+                    id: "minDate",
+                    // value: new Date().format('yyyy-MM-dd'),
+                    //msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+                    // triggerCss: "ux-date-trigger", // 日期选择触发的样式
+                    // triggerClickCss: "",
+                    // afterValid: function () { // 事件：对日期校验后的操作
+                    //    // console.log(EUI.getCmp("intentionFterm").getValue());
+                    // },
+                    afterSelect: function (data) { // 事件：选中日期后做的操作
+                        // EUI.getCmp("maxDate").minDate = new Date(data).format('yyyyMMdd');
+                    }
+                },{
+                    xtype: "DateField",
+                    title: "到",
+                    format: "Y-m-d", // 采用年月日的格式
+                    labelWidth: 44, //设置label的宽度
+                    //maxDate: null, // 设置能够选择的最大日期
+                    // minDate: new Date($('#financeEnd').val()).format('yyyyMMdd'), // 设置能够选择的最小日期，日期格式为"20170301"
+                    width: 109,
+                    // height: 40,
+                    // listWidth: 150,
+                    allowBlank: true, //是否可以为空
+                    name: "maxDate", // 设置日期选择框的name,用于后台接受此name
+                    id: "maxDate",
+                    // value: new Date().format('yyyy-MM-dd'),
+                    //msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+                    // triggerCss: "ux-date-trigger", // 日期选择触发的样式
+                    // triggerClickCss: "",
+                    // afterValid: function () { // 事件：对日期校验后的操作
+                    //    // console.log(EUI.getCmp("intentionFterm").getValue());
+                    // },
+                    checkInitValue: false,
+                    // displayText: "融资到期日", // 显示在文本框内的提示语
+                    validateText: "融资到期日必须大于融资开始日",
+                    validaterDate: function (data) {
+                        var financeStart = new Date(EUI.getCmp("minDate").getValue());
+                        var maturityDate = new Date(data);
+                        if (maturityDate >= financeStart) {
+                            return true;
+                        }
+                    },
+                    afterSelect: function (data) { // 事件：选中日期后做的操作
+                        // var a = EUI.getCmp("minDate").getValue();
+                        // console.log(a);
+                    }
+                }]
+            }] //表单配置
+        }
+        searchWin = new showSearchWin(options);
+    },
+	addEvents: function() {
+		//查看详情
+		$(".look_detail").live("click", function() {
+			var id = $(this).attr('data');
+			window.location.href=_ctxPath+'/avf/financingApprove/financingApproveHeadDetailsPage?id='+id;
+		});
+		//删除融资申请
+        $(".del_finance").live("click", function() {
+            var id = $(this).attr('data-id');
+            delInfoWin(_ctxPath + "/avf/financingDemand/deleteDemand.json?id="+id,'applyFinancingTab2',id,function () {
+                $('#bideNumber').text(parseInt($('#bideNumber').text()) - 1);
+            });
+        });
+        //编辑融资申请
+        $(".edit_finance").live("click", function() {
+            var id = $(this).attr('data-id');
+            window.location.href=_ctxPath+'/avf/financingDemand/editDemand?id='+id;
+        });
+		//开始融资
+		$('#startFinance').click(function () {
+			window.location.href = _ctxPath+'/avf/financingDemand/toAddFinanceFirst';
+        });
+        //追加状态
+        var obj = {'data1':[{statusCode:null,statusDetail:'全部'},
+            {statusCode:'2020',statusDetail:'待维护'},
+            {statusCode:'2030,2031,2040',statusDetail:'已申请'},
+            {statusCode:'1022',statusDetail:'已驳回'}]};
+        tabHeadSearch.clickElement(obj,'applyFinancingTab2','businessDealStatus');
+		//this.addTabEvents();
+	},
+	addTabEvents: function() {
+
+	},
+	loadData: function() {
+		/*var g = this;
+		EUI.Stor({
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		})*/
+	},
+	showCount: function(data) {
+		$(".todo-count").text(data.count);
+	},
+	checkValid: function() {
+
+		return true;
+	},
+	getData: function() {
+		var data = {};
+		//TODO:
+		return data;
+	},
+	submit: function() {
+		if(!this.checkValid()) {
+			return;
+		}
+		EUI.Stor({
+			url: "",
+			params: this.getData(),
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		});
+	}
+});

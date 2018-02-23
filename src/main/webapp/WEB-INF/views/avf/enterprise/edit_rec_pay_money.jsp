@@ -1,0 +1,154 @@
+<%--
+  User: Wenjun Sun
+  Date: 2017/8/30
+  Time: 10:24
+  des:核心企业、供应商编辑应付、应收账款
+--%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+         contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<%
+    Cookie[] requestCookies = request.getCookies();
+    for (Cookie cookie : requestCookies) {
+        if (cookie.getName().equalsIgnoreCase("userIdentityType"))
+            request.setAttribute("userIdentityType", URLDecoder.decode(cookie.getValue(), "utf-8"));
+    }
+%>
+<html>
+<head>
+    <!--xg addcss-->
+    <link rel="stylesheet" href="/static/avf/css/mainView.css" />
+    <link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+    <link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+    <!--xg addjs-->
+    <script type="text/javascript" src="/static/base/js/public.js"></script>
+    <script type="text/javascript" src="/static/base/js/common.js"></script>
+    <script type="text/javascript" src="/static/avf/js/edit_rec_pay_money.js" ></script>
+    <script type="text/javascript">
+        EUI.onReady(function() {
+            var identity =$('.identity').val();
+            if(identity == 'ENTERPRISE'){
+                var reyPayMoneyForm = new EUI.reyPayMoneyForm({
+                    renderTo : "formAddRecPayMoney",
+                    renderTo1:"formBatchNumbers",
+                    title:'供应商名称',
+                    displayText:'请选择供应商',
+                    url:_ctxPath+"/avf/financingRelConfigure/findRelByCompanyCode.json",
+                    code:'supplyCode',
+                    name:'supplyName',
+                    value:$('#getSupplyName').val(),
+                    title1:'应付凭证号'
+                    //padding: 5,
+                });
+            }else{
+                var reyPayMoneyForm = new EUI.reyPayMoneyForm({
+                    renderTo : "formAddRecPayMoney",
+                    renderTo1:"formBatchNumbers",
+                    title:'核心企业名称',
+                    displayText:'请选择核心企业',
+                    url:_ctxPath+"/avf/financingRelConfigure/findRelBySupplyCode.json",
+                    code:'companyCode',
+                    name:'companyName',
+                    value:$('#getCompanyName').val(),
+                    title1:'应收凭证号'
+                    //padding: 5,
+                });
+            }
+            var addFinance1 = new EUI.AddFinance1({
+                renderTo : "rzInvoice1",
+                renderTo1 : "formBatchNumbers",
+                renderTo2 : "rzInvoice2",
+            });
+            if(identity == 'ENTERPRISE'){
+                var accountForm = new EUI.AccountForm({
+                    renderTo : "accountsForm",
+                    title:'应付账款金额'
+                });
+            }else{
+                var accountForm = new EUI.AccountForm({
+                    renderTo : "accountsForm",
+                    title:'应收账款金额'
+                });
+            }
+        });
+    </script>
+</head>
+<body>
+<!--main content-->
+<div class="main_content">
+    <!--tab_list-->
+    <div class="container1200">
+        <ul class="tab_list">
+            <li><a href="<c:if test="${userIdentityType == 'ENTERPRISE'}">
+           /avf/invoice/toWaitPage?type=enterprise
+        </c:if><c:if test="${userIdentityType == 'SUPPLIER'}">
+           /avf/invoice/toWaitPage?type=supplier
+        </c:if>">首页</a></li>
+            <li><a href="/avf/accountRPInfo/accountRPInfoPage">&gt;&nbsp;
+                <c:if test="${userIdentityType == 'ENTERPRISE'}">应付账款</c:if>
+                <c:if test="${userIdentityType == 'SUPPLIER'}">应收账款</c:if>
+            </a></li>
+            <li><a href="#">&gt;&nbsp;
+                <c:if test="${userIdentityType == 'ENTERPRISE'}">编辑应付账款</c:if>
+                <c:if test="${userIdentityType == 'SUPPLIER'}">编辑应收账款</c:if>
+            </a></li>
+        </ul>
+    </div>
+    <input class="identity" type="hidden" value="${userIdentityType}">
+    <input id="getBatchNumbers" type="hidden" value="${accountsRPInfo.batchNumber}">
+    <input id="getDateYear" type="hidden" value="${accountsRPInfo.dateYear}">
+    <input id="getLineItemNumber" type="hidden" value="${accountsRPInfo.lineItemNumber}">
+    <input id="getCompanyName" type="hidden" value="${accountsRPInfo.companyName}">
+    <input id="getSupplyName" type="hidden" value="${accountsRPInfo.supplyName}">
+    <input id="getCompanyCode" type="hidden" value="${accountsRPInfo.companyCode}">
+    <input id="getSupplyCode" type="hidden" value="${accountsRPInfo.supplyCode}">
+    <input id="id" type="hidden" value="${accountsRPInfo.id}">
+    <input id="getVoucherNo" type="hidden" value="${accountsRPInfo.voucherNo}">
+    <input id="getMaturityDate" type="hidden" value="${accountsRPInfo.maturityDate}">
+    <input id="getRecPayMoney" type="hidden" value="${accountsRPInfo.recPayMoney}">
+    <!--tab_list end-->
+    <div class="container1200 step_content">
+        <c:if test="${userIdentityType == 'ENTERPRISE'}">
+            <p class="form_p mt20"><label>核心企业：</label><font>${userName}</font></p>
+            <%--<p class="form_p"><label>公司代码：</label><font>${identityList[0].companycode}</font></p>--%>
+        </c:if>
+        <c:if test="${userIdentityType == 'SUPPLIER'}">
+            <p class="form_p mt20"><label>供应商：</label><font>${userName}</font></p>
+            <%--<p class="form_p"><label>公司代码：</label><font>${identityList[0].supplycode}</font></p>--%>
+        </c:if>
+        <div style="height:300px;">
+            <div id="formAddRecPayMoney"></div>
+        </div>
+        <div style="height:60px;">
+            <div id="formBatchNumbers"></div>
+        </div>
+        <div id="showHideAccounts" style="height:110px;">
+            <div id="accountsForm"></div>
+        </div>
+        <div id="showHideBatchNumbers" style="height:auto;">
+            <ul class="ul_list ml20"><li>所有发票</li><li class="li_1 bor_b0">已选发票</li></ul><div class="ml20 total_invoice">已选<font id="invoiceNum">0</font>张发票，总金额<font id="allMoney">0.00</font>元</div>
+            <div class="ul_tab" id="ul_tab_0" data="0">
+                <div class="rz_result">
+                    <div id="rzInvoice1"></div>
+                </div>
+            </div>
+            <div class="ul_tab" id="ul_tab_1" data="1">
+                <div class="rz_result">
+                    <div id="rzInvoice2"></div>
+                </div>
+            </div>
+            <%--<div id="tabInvoiceChoice"></div>--%>
+        </div>
+        <div class="btn_form">
+            <span class="btn_submit ml10" id = "editReyPayMoney"><b></b>提&nbsp;交</span>
+            <span class="btn_cancel" id="reyPayMoneyCancel">取消</span>
+        </div>
+    </div>
+</div>
+<!--footer-->
+<%--<%@ include file="/base/footer.jsp"%>--%>
+<!--footer end-->
+</body>
+</html>

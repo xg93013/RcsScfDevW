@@ -1,0 +1,49 @@
+/**
+ * Created by Administrator on 2017/6/8.
+ * des:金融机构拒绝融资审批js
+ * jspPath:WEB-INF/views/avf/financial/refuse_finance.jsp
+ */
+$(function () {
+    var startTime = new Date($('#time').attr('data'));
+    var endTime = new Date($('#time').attr('fc-data'));
+    GetDateT(startTime);
+    GetDateT(endTime);
+    $('#time').html(GetDateT(startTime)+'-'+GetDateT(endTime));
+    $('#totalMoney').html($.formatMoney(parseFloat($('#totalMoney').attr('data')),2));
+    $('#financialMoney').html($.formatMoney(parseFloat($('#financialMoney').attr('data')),2));
+    $('#rate').html(parseFloat($('#rate').attr('data')).toFixed(2)+'%');
+    //弹出或关闭供应商或核心企业详情
+    $('body').append('<div id="detail" class="overlay" style="display: none;"></div>'+
+        '<div id="detailTip" class="loading_tip" style="width:1020px; margin-left: -510px;display: none;"></div>');
+    $('.company_detail').click(function () {
+        var companyCode = $(this).attr('data');
+        $('#detail,#detailTip').css('display','block');
+        $('#detailTip').load(_ctxPath+'/pbm/company/companyDetail?companyCode='+companyCode);
+    });
+    $('.supply_detail').click(function () {
+        var supplyCode = $(this).attr('data');
+        $('#detail,#detailTip').css('display','block');
+        $('#detailTip').load(_ctxPath+'/pbm/verdor/verdorDetail?supplyCode='+supplyCode);
+    });
+    $(document).on('click','.b_close',function () {
+        $('#detail,#detailTip').css('display','none');
+    });
+    //取消拒绝融资
+    $('#finacialCancel').click(function () {
+        window.location.href=_ctxPath+"/avf/financingApprove/financingApproveListPage";
+    });
+    //提交拒绝融资
+    $('#financialSubmit').click(function () {
+        var id = $('#refusedId').val();
+        $.get(_ctxPath + '/avf/financingApprove/doFinancingDemandReject.json',{id:id}, function(d, s) {
+            if(d.status == true){
+                // showToPageInfo('',url)
+                $('.btn_refuse').css('display','none');
+                $('.refused').css('display','block');
+                // window.location.href=_ctxPath+"/avf/financingApprove/doFinancingDemandRejectPage?id="+id;
+            }else{
+                messageDemo.messageError(d.msg);
+            }
+        });
+    });
+});

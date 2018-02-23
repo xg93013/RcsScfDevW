@@ -1,0 +1,98 @@
+EUI.Repayment = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+	initComponent: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			xtype: "GridPanel",
+			padding: 0, //设置表格的内边距
+			overflow: "hidden",
+			height:"auto",
+			id: g.cfgId,
+			autoLoad: true, //自动加载
+			gridCfg: g.initGrid()
+		});
+		g.addEvent();
+	},
+	addEvent:function(){
+		$(".see_back").live("click",function(){
+			console.log($(".backMoney_des").css("display"));
+			if($(".backMoney_des").css("display")== "block"){
+                $(".backMoney_des").slideUp();
+			}else{
+                $(".backMoney_des").slideDown();
+			}
+
+		});
+	},
+	initGrid: function() {
+		var g = this;
+		//配置表格
+		var cfgData = {
+            url:_ctxPath+"/avf/financingDemand/repaymentList.json",//获取后端数据
+            rownumbers: false,
+            rowNum: 10,
+            mtype : "get",
+			loadonce: false, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+			colModel: [{
+				label: "融资服务器编号",
+				name: "id", //列显示的名称
+				index: "id", //传到服务器端用来排序的列名称
+				hidden: false //隐藏不显示这一组
+			}, {
+                label: "供应商代码",
+                name: "supplyCode", //列显示的名称
+                index: "supplyCode", //传到服务器端用来排序的列名称
+                hidden: true //隐藏不显示这一组
+            },{
+				label: "供应商<span class='down_icon'></span>",
+				name: "supplyName",
+				index: "supplyName",
+				formatter: function(value, id, rowdata) {
+					var url ="/pbm/verdor/verdorDetail?supplyCode="+rowdata.supplyCode;
+					return '<a href="'+url+'">' + rowdata.supplyName + '</a>';
+				}
+			}, {
+				label: "融资金额(元)<span class='down_icon'></span>",
+				name: "intentionFmoney",
+				index: "intentionFmoney",
+				formatter: function(value, id, rowdata) {
+					return '<span class="font30">' + rowdata.intentionFmoney + '</span>';
+				}
+			},{
+                label: "融资开始日",
+                name: "financeStart",
+                index: "financeStart",
+				hidden:true,
+            }, {
+				label: "融资期限<span class='down_icon'></span>",
+				name: "intentionFterm",
+				index: "intentionFterm",
+				formatter: function(value, id, rowdata) {
+					return '<span class="font30">' + getLimitTime(GetDateT(new Date(rowdata.financeStart)),GetDateT(new Date(rowdata.financeEnd))) + '</span>个月';
+				}
+			}, {
+				label: "资金提供方<span class='down_icon'></span>",
+				name: "finInsName",
+				index: "finInsName"
+			}, {
+				label: "融资到期日",
+				name: "financeEnd",
+				index: "financeEnd",
+                formatter:function(value,id,rowdata){
+                    return '<span>'+GetDateT(new Date(rowdata.financeEnd))+'</span>';
+                }
+			},{
+                label: "操作",
+                name: "",
+                index: "",
+				formatter:function(value, id, rowdata){
+                	var url = '/avf/financingDemand/toMaintainExtendPage?type=true&id='+rowdata.id;
+                	return '<a href="'+url+'"  class="table_btn" data-id="' + rowdata.id + '">融资明细</a>';
+				}
+			}]
+		}
+		return cfgData;
+	}
+});

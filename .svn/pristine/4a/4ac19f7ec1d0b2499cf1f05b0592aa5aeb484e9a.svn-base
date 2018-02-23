@@ -1,0 +1,15 @@
+$("#agree_sheet").live("click", function () {
+    if($("#agree_sheet").hasClass("confirm_ok") == false){
+        var id = $(this).attr('data');
+		EUI.Store({
+			url: _ctxPath + "/avf/notice/noticeConfirm.json?id="+id,
+			type : "get",
+			success: function (msg) {
+                showToPageInfo("成功确认通知单！","/avf/notice/noticesListPage?identityType=SUPPLIER");
+			},
+			failure: function (msg) {
+				errorInfo(msg.msg);
+			}
+		});
+    }
+});

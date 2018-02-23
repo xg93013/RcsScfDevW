@@ -1,0 +1,178 @@
+EUI.InvoicePrepare = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+	initComponent: function() {
+		var g = this;
+		this.initTableData();
+		this.initGridTable();
+//		EUI.Container({
+//			renderTo: this.renderTo,
+//			items: [{
+//				xtype: "GridPanel",
+//				padding: 0, //设置表格的内边距
+//				overflow: "hidden",
+//				//				height:"auto",
+//				id: g.cfgId,
+//				autoLoad: true, //自动加载
+//				gridCfg: g.initGridTable()
+//			}]
+//		});
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			padding: 0, //设置表格的内边距
+			overflow: "hidden",
+			height: "auto",
+			id: g.cfgId,
+			autoLoad: true, //自动加载
+			gridCfg: g.initGridTable()
+		});
+		this.addEvents();//
+		this.importFile();//导入文件
+		this.initWin();//初始化弹出框
+	},
+	addEvents: function() {
+		var g = this;
+		$(".deleteRow").live("click", function() {
+			//			$("#gradelist").deleteRow($(this).attr("data-id"));
+			//			console.log(g.deleteRow($(this).attr("data-id")));
+			g.deleteOneRow("gradelist", $(this).attr("data-id"));
+
+		});
+	},
+	//删除一行数据
+	deleteOneRow: function(tableId, rowId) {
+		var g = this;
+		var htmls = '	<div class="import_line">';
+		htmls += '<p class="del_info">确认删除信息？</p>';
+		htmls += '	</div>';
+		htmls += '	<div class="import_line">';
+		htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+		htmls += '	<input type="button" value="确定" class="import_btn import_ok" id="delete_ok"/>';
+		htmls += '	</div>';
+		g.showWin(htmls);
+		$("#delete_ok").live("click", function() {
+			//后端删除成功后删除表格内容
+			EUI.getCmp(tableId).deleteRow(rowId);
+		});
+	},
+	initTableData: function() {
+		EUI.Store({
+			url:"",//请求url
+			data:"",//数据
+			params:""//传递的参数
+		});
+		var tableData = [{
+			id: "1",
+			name: "四川虹信软件有限公司",
+			money: "123",
+			nums: "123",
+			state: 0
+		}, {
+			id: "2",
+			name: "四川虹信软件有限公司",
+			money: "123",
+			nums: "123",
+			state: 1
+		},{
+			id: "2",
+			name: "四川虹信软件有限公司",
+			money: "123",
+			nums: "123",
+			state: 1
+		}];
+		return tableData;
+	},
+	initGridTable:function(){
+		//配置表格
+		var cfgData = {
+//			url:_ctxPath+"/dfdf/dd";//获取后端数据
+			rownumbers: false,
+			rowNum:"10",
+			loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据,false加载一页数据
+			colModel: [{
+				name: "id", //列显示的名称
+				index: "id", //传到服务器端用来排序的列名称
+				hidden: true //隐藏不显示这一组
+			}, {
+				label: "供应商<span class='down_icon'></span>",
+				name: "name",
+				index: "name"
+			}, {
+				label: "合计金额(元)<span class='down_icon'></span>",
+				name: "money",
+				index: "money",
+				formatter: function(value, id, rowdata) {
+					return '<span class="font20">' + rowdata.money + '</span>';
+				}
+			}, {
+				label: "数量(张)",
+				name: "nums",
+				index: "nums",
+				formatter: function(value, id, rowdata) {
+					return '<span class="font20">' + rowdata.nums + '</span>';
+				}
+			}, {
+				label: "状态<span class='down_icon'></span>",
+				name: "state",
+				index: "state"
+			}, {
+				label: "操作",
+				name: "operate",
+				index: "operate",
+				formatter: function(value, id, rowdata) {
+					return(rowdata.state == "0") ? '<a href="CheckTickView.html"  class="table_btn" data-id="' + rowdata.id + '">立即审核</a>' : '<a href="TicketProView.html"  class="btn_success" data-id="' + rowdata.id + '">查看详情</a>';
+				}
+			}, {
+				label: "",
+				name: "",
+				index: "",
+				width: 100,
+				formatter: function(value, id, rowdata) {
+					return '<div class="coop_a fl"><span class="deleteRow" data-id="' + rowdata.id + '">删除</span><span class="editRow" data-id="' + rowdata.id + '">编辑</span></div>';
+				}
+			}],
+			data: this.initTableData()
+		}
+		return cfgData;
+	},
+	importFile:function(){
+		var g = this;
+		//导入文件模板
+		$("#import_model").live("click", function() {
+			var htmls = '<span class="down_btn excel_down"></span>';
+			htmls += '<span class="down_btn txt_down"></span>';
+			g.showWin(htmls);
+		})
+		//导入发票
+		$("#import_ticket").live("click", function() {
+			var htmls = '<div class="import_line">';
+			htmls += '	<input type="text" placeholder="文件地址" class="importfile_input"/><input type="button" value="上传文件" class="importfile_btn"/>';
+			htmls += '	</div>';
+			htmls += '	<div class="import_line">';
+			htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+			htmls += '	<input type="button" value="保存" class="import_btn import_ok" id="import_ok"/>';
+			htmls += '	</div>';
+			g.showWin(htmls);
+		})
+		//取消保存
+		$(".black_win, .cancel_btn").live("click", function() {
+			g.closeWin();
+		});
+	},
+	initWin:function(){
+		var winHtmls = '<div class="black_win"></div><div class="show_win"></div>';
+		$("body").append(winHtmls);
+	},
+	showWin:function(htmls){
+		$(".black_win").show();
+		$(".show_win").show().html(htmls);
+		var sHeight = parseInt($(".show_win").css("height")) / 2;
+		$(".show_win").css({
+			"margin-top": "-" + sHeight + "px"
+		});
+		console.log(sHeight);
+	},
+	closeWin:function(){
+		$(".black_win").hide().next(".show_win").hide();
+	}
+});

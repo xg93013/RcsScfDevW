@@ -1,0 +1,395 @@
+/**
+ * User:xionggang
+ * Date:2017/08/30
+ * Time:10:30
+ * des:核心企业还款列表
+ */
+EUI.Repayment = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgId: "",
+    calendar:"",
+    eventsData:[],
+    oldData:"",
+    backMoneyNum:0,
+    backMoneySum:0,
+    waitBackSum:0,
+    datetime:new Date().format("yyyy-MM-dd"),
+	initComponent: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: this.renderTo,
+			xtype: "GridPanel",
+			padding: 0, //设置表格的内边距
+			overflow: "hidden",
+			height:"auto",
+			id: g.cfgId,
+			width:"1160",
+			autoLoad: true, //自动加载
+			gridCfg: g.initGrid()
+		});
+		g.addEvent();
+		g.initSearchForm();
+		g.getfinInsInfo();
+		g.renderCalendar();
+		g.changeCalendar();
+	},
+	addEvent:function(){
+		var g = this;
+		$(".see_back").live("click",function(){
+			if($(".backMoney_des").css("display")== "block"){
+                $(".backMoney_des").slideUp();
+                $(".see_back").find(".sxf_btn").removeClass("icon_ups").addClass("icon_downs");
+			}else{
+                $(".backMoney_des").slideDown();
+                $(".see_back").find(".sxf_btn").removeClass("icon_ups").addClass("icon_ups");
+			}
+		});
+        $(".fc-button").live("click",function(){
+            g.datetime = new Date($('#calendar').fullCalendar('getDate')).format("yyyy-MM-dd");
+            g.changeCalendar();
+        });
+	},
+    //渲染日历
+    renderCalendar:function(){
+	    var g = this;
+	    var colorText = "#FF7043";
+	    var dateNow = new Date().format("yyyy-MM-dd");
+        EUI.Store({
+            url:_ctxPath+"/avf/requite/repaymentQuota.json",
+            type:"get",
+            params:{"datetime":"all"},
+            success:function (msg) {
+                g.oldData = msg.data;
+                $.each(g.oldData, function(i,item) {
+                    if(item.title == "已还款"){
+                        colorText = "#666";
+                    }
+                    if(item.datetime == dateNow){
+                        colorText = "#fff";
+                    }
+                    if(item.title == "已还款"){
+                        g.eventsData.push({
+                            title: item.title + "￥"+item.money,
+                            start: item.datetime,
+                            allDay:true,
+                            textColor:colorText
+                        })
+                        g.backMoneyNum ++;
+                        g.backMoneySum = parseFloat(parseFloat(g.backMoneySum) + parseFloat(item.money));
+                    }
+                    if(item.title == "待还款"){
+                        g.eventsData.push({
+                            title: item.title + "￥"+item.money,
+                            start: item.datetime,
+                            allDay:true,
+                            textColor:colorText
+                        })
+                        g.waitBackSum = parseFloat(parseFloat(g.waitBackSum) + parseFloat(item.money));
+                    }
+                });
+                g.calendar = $('#calendar').fullCalendar({
+                    header: {
+                        left: 'prevYear,title,nextYear',
+                        center:'prev,titleMonth,next',
+                        right: 'today'
+                    },
+                    editable: false,
+                    events: g.eventsData
+                });
+                $(".backMoney_des").hide();
+                g.calCalendarSum();
+            },
+            failure:function () {
+
+            }
+        });
+    },
+    //重新渲染日历
+    changeCalendar:function(){
+        var g = this;
+        g.backMoneyNum = 0,
+        g.backMoneySum = 0,
+        g.waitBackSum = 0,
+        EUI.Store({
+            url:_ctxPath+"/avf/requite/repaymentQuota.json",
+            type:"get",
+            async:true,
+            params:{"datetime":g.datetime},
+            success:function (msg) {
+                g.oldData = msg.data;
+                if(msg.data.length != 0){
+                    $.each(g.oldData, function(i,item) {
+                        if(item.title == "已还款"){
+                            g.backMoneyNum ++;
+                            g.backMoneySum = parseFloat(parseFloat(g.backMoneySum) + parseFloat(item.money));
+                        }
+                        if(item.title == "待还款"){
+                            g.waitBackSum = parseFloat(parseFloat(g.waitBackSum) + parseFloat(item.money));
+                        }
+                    });
+                }else{
+                    g.backMoneyNum =0;
+                    g.backMoneySum =0;
+                    g.waitBackSum =0;
+                }
+                g.calCalendarSum();
+            },
+            failure:function () {
+
+            }
+        });
+    },
+    calCalendarSum:function(){
+        var g = this;
+        $("#total_back_num").empty().html(g.backMoneyNum);
+        $("#total_back_money").empty().html($.formatMoney(g.waitBackSum,2));
+        $("#back_money").empty().html($.formatMoney(g.backMoneySum,2));
+    },
+	initGrid: function() {
+		var g = this;
+		//配置表格
+		var cfgData = {
+            url:_ctxPath+"/avf/requite/repaymentList.json",//获取后端数据
+            rownumbers: false,
+            rowNum: 10,
+            mtype : "get",
+			loadonce: false, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+			colModel: [{
+				label: "融资需求编号",
+				name: "financingNeedsNo", //列显示的名称
+				index: "financingNeedsNo", //传到服务器端用来排序的列名称
+				hidden: false, //隐藏不显示这一组
+				width:180
+			}, {
+                label: "供应商代码",
+                name: "supplyCode", //列显示的名称
+                index: "supplyCode", //传到服务器端用来排序的列名称
+                hidden: true //隐藏不显示这一组
+            },{
+				label: "供应商",
+				name: "supplyShortName",
+				index: "supplyShortName",
+				width:230,
+				formatter: function(value, id, rowdata) {
+					var url ="/pbm/verdor/verdorDetail?supplyCode="+rowdata.supplyCode;
+                    return '<div style="width:180px;white-space:normal;text-align: center"><a href="'+url+'">' + rowdata.supplyShortName + '</a>';
+				}
+			}, {
+				label: "融资金额(元)<b class='sorting no_sort' data='financeMoney'></b>",
+				name: "financeMoney",
+				index: "financeMoney",
+				width:230,
+				formatter: function(value, id, rowdata) {
+					return '<span class="font18 bold">￥' + $.formatMoney(rowdata.financeMoney,2) + '</span>';
+				}
+			}, {
+				label: "资金提供方<b class='b_btn b_state' data='finInsShortName'></b>",
+				name: "finInsShortName",
+				index: "finInsShortName",
+                width:190,
+                formatter: function(value, id, rowdata) {
+					if(rowdata.finInsShortName == "" || rowdata.finInsShortName == undefined){
+						return "";
+					}else{
+                        return '<div style="width:160px;white-space:normal;text-align: center">' + rowdata.finInsShortName + '</div>';
+					}
+                }
+			},{
+                label: "金融机构放款日",
+                name: "loanDate",
+                index: "loanDate",
+                formatter:function(value,id,rowdata){
+                    return '<span>'+GetDateT(new Date(rowdata.loanDate))+'</span>';
+                }
+            },{
+                label: "融资开始日",
+                name: "financeStart",
+                index: "financeStart",
+                hidden:false,
+                formatter:function(value,id,rowdata){
+                    return '<span>'+GetDateT(new Date(rowdata.financeStart))+'</span>';
+                }
+            }, {
+				label: "融资到期日",
+				name: "financeEnd",
+				index: "financeEnd",
+                formatter:function(value,id,rowdata){
+                    return '<span>'+GetDateT(new Date(rowdata.financeEnd))+'</span>';
+                }
+			},{
+                label: "操作",
+                name: "",
+                index: "",
+				width:200,
+				formatter:function(value, id, rowdata){
+                	var url = '/avf/requite/toRepaymentDetails?type=true&id='+rowdata.id;
+                	return '<a href="'+url+'"  class="table_btn" data-id="' + rowdata.id + '" title="融资明细">融资明细</a>';
+				}
+			}]
+		}
+		return cfgData;
+	},
+    getfinInsInfo:function(){
+	    var g = this;
+        EUI.Store({
+            url: _ctxPath + "/avf/financingRelConfigure/findFinByCompanyCode.json",
+            type : "get",
+            success: function (msg) {
+                var obj = [];
+                $.each(msg.data, function(i) {
+                    objItem = {statusCode:msg.data[i].finInsCode,statusDetail:msg.data[i].finInsShortName};
+                    obj.push(objItem);
+                });
+                var newobj = {'data1':obj};
+                tabHeadSearch.clickElement(newobj,g.cfgId,"finInsCode");
+            },
+            failure: function (msg) {
+
+            }
+        });
+    },
+    //初始化高级查询表单
+    initSearchForm:function(){
+        var g = this;
+        var options = {
+            id: "repaymentForm", //表单id
+            renderTo: "formBox1",//表单容器id
+            submitId:"submitId",//提交按钮id
+            tableId:g.cfgId,//要刷新的表格id
+            title:"高级查询",//查询标题
+            formGrid: [{
+                xtype: "ComboBox",
+                field: ["supplyCode"], // 表示哪些值需要提交到后端
+                name: "supplyName",
+                labelWidth: 122,
+                id: "supplyCode",
+                title: "供应商",
+                width: 280,
+                allowBlank: true,
+                displayText: "请选择供应商",
+                async: true, // 是否异步，true为异步
+                store: {
+                    type:"get",
+                    url: _ctxPath + "/avf/financingRelConfigure/findRelByCompanyCode.json"
+                }, // 从后台获取数据的地址
+                editable: true, // 是否可编辑
+                loadMask: true, // 是否有遮罩层
+                showSearch: false, // 是否展开下拉框
+                searchText:"supplyCode", // 下拉框的内容
+                canClear: true,
+                deforeLoad: function(store) {},
+                afterLoad: function(data) {
+
+                },
+                afterSelect:function(data){
+
+                }
+            },{
+                xtype: "ComboBox",
+                field: ["finInsCode"], // 表示哪些值需要提交到后端
+                name: "finInsName",
+                labelWidth: 122,
+                id: "finInsCode",
+                title: "资金提供方",
+                width: 280,
+                allowBlank: true,
+                displayText: "请选择资金提供方",
+                async: true, // 是否异步，true为异步
+                store: {
+                    type:"get",
+                    url: _ctxPath + "/avf/financingRelConfigure/findFinByCompanyCode.json"
+                }, // 从后台获取数据的地址
+                editable: true, // 是否可编辑
+                loadMask: true, // 是否有遮罩层
+                showSearch: false, // 是否展开下拉框
+                searchText:"finInsCode", // 下拉框的内容
+                canClear: true,
+                deforeLoad: function(store) {},
+                afterLoad: function(data) {
+
+                },
+                afterSelect:function(data){
+
+                }
+            },{
+				xtype: "FieldGroup",
+				width:500,
+                title:"融资期限",
+                labelWidth: 122,
+				itemspace:10,
+				items: [{
+					xtype: "DateField",
+					width: 105,
+					allowBlank: true,
+					displayText: "融资开始日",
+					name: "financeStart",
+					id:"financeStart",
+					checkInitValue:false,
+					validateText: "请输入正确的融资开始日！"
+				},{
+					xtype: "DateField",
+					labelWidth: 45,
+					width: 105,
+					title:"到",
+					id:"financeEnd",
+					name: "financeEnd",
+					checkInitValue:false,
+					allowBlank: true,
+					displayText: "融资到期日", // 显示在文本框内的提示语
+					validateText:"融资到期日必须大于融资开始日",
+					validaterDate:function(data){
+						var financeStart = new Date(EUI.getCmp("financeStart").getValue());
+						var maturityDate = new Date(data);
+						if(maturityDate >= financeStart){
+							return true;
+						}
+					}
+				}]
+			},{
+                xtype: "FieldGroup",
+                width:500,
+                itemspace:10,
+                items: [{
+                    xtype: "NumberField",
+                    width: 85,
+                    labelWidth: 122,
+                    precision : 0,
+                    // value:0,
+                    allowBlank: true,
+                    // minlength:1,
+                    title:"融资金额范围",
+                    // minValue:1,
+                    displayText: "最小融资金额",
+                    name: "minMoney",
+                    unit: "元",
+                    id:"minMoney",
+                    checkInitValue:false,
+                    validateText: "请输入正确的最小融资金额！"
+                },{
+                    xtype: "NumberField",
+                    precision : 0,
+                    labelWidth: 45,
+                    width: 85,
+                    // value:0,
+                    title: "到",
+                    // minlength:1,
+                    // minValue:1,
+                    id:"maxMoney",
+                    name: "maxMoney",
+                    checkInitValue:false,
+                    allowBlank: true,
+                    displayText: "最大融资金额", // 显示在文本框内的提示语
+                    validateText:"最大融资金额不能小于最小融资金额",
+                    unit: "元",
+                    validater:function(value){
+                        var minMoney = parseFloat(EUI.getCmp("minMoney").getValue().toFixed(2));
+                        if(minMoney>value){
+                            return false;
+                        }
+                    }
+                }]
+            }] //表单配置
+        }
+        searchWin = new showSearchWin(options);
+    }
+});

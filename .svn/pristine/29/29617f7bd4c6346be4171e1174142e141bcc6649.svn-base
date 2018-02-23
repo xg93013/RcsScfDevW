@@ -1,0 +1,144 @@
+EUI.FinanceCredit = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	cfgData: "",
+	cfgId: "",
+	initComponent: function() {
+		var g = this;
+		EUI.Container({
+			renderTo: this.renderTo,
+			items: [{
+				xtype: "GridPanel",
+				padding: 0, //设置表格的内边距
+				overflow: "hidden",
+				//				height:"auto",
+				id: g.cfgId,
+				autoLoad: true, //自动加载
+				gridCfg: g.initGrid()
+			}]
+		});
+		this.addEvents();
+	},
+	initData: function() {
+		var tableData = [{
+			id: "1",
+			num: "67245",
+			name: "四川虹信软件有限公司",
+			mainEnterprise: "核心企业",
+			rzMoney: "1238，412",
+			dateLimit: "1",
+			state: "0"
+		}, {
+			id: "1",
+			num: "67245",
+			name: "四川虹信软件有限公司",
+			mainEnterprise: "核心企业",
+			rzMoney: "1238，412",
+			dateLimit: "1",
+			state: "1"
+		}];
+		return tableData;
+	},
+	initGrid: function() {
+		var g = this;
+		//配置表格
+		//配置表格
+		var cfgData = {
+			rownumbers: false,
+			loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+			colModel: [{
+				name: "id", //列显示的名称
+				index: "id", //传到服务器端用来排序的列名称
+				hidden: true //隐藏不显示这一组
+			}, {
+				label: "融资需求编号",
+				name: "num",
+				index: "num"
+			}, {
+				label: "供应商<span class='down_icon'></span>",
+				name: "name",
+				index: "name"
+			}, {
+				label: "核心企业<span class='down_icon'></span>",
+				name: "mainEnterprise",
+				index: "mainEnterprise",
+			}, {
+				label: "融资金额(元)<span class='down_icon'></span>",
+				name: "rzMoney",
+				index: "rzMoney",
+				formatter: function(value, id, rowdata) {
+					return '<span class="font20">' + rowdata.rzMoney + '</span>';
+				}
+			}, {
+				label: "期限<span class='down_icon'></span>",
+				name: "dateLimit",
+				index: "dateLimit",
+				formatter: function(value, id, rowdata) {
+					return '<span class="font20">' + rowdata.dateLimit + '</span>个月';
+				}
+			}, {
+				label: "状态<span class='down_icon'></span>",
+				name: "state",
+				index: "state",
+				formatter: function(value, id, rowdata) {
+					return(rowdata.state == "0") ? '<span data-id="' + rowdata.id + '">待补录</span>' : '<span data-id="' + rowdata.id + '">供应商确认</span>';
+				}
+			}, {
+				label: "操作",
+				name: "operate",
+				index: "operate",
+				formatter: function(value, id, rowdata) {
+					return(rowdata.state == "0") ? '<a href="CheckTickView.html"  class="table_btn" data-id="' + rowdata.id + '">补录</a>' : '<a href="TicketProView.html"  class="btn_success" data-id="' + rowdata.id + '">详情</a>';
+				}
+			}, {
+				label: "",
+				name: "",
+				index: "",
+				width: 100,
+				formatter: function(value, id, rowdata) {
+					return '<div class="coop_a fl"><span class="deleteRow" data-id="' + rowdata.id + '">关闭</span>';
+				}
+			}],
+			data: g.initData()
+		}
+		return cfgData;
+	},
+	addEvents: function() {
+		var g = this;
+		$(".deleteRow").live("click", function() {
+			g.deleteOneRow("gradelist", $(this).attr("data-id"));
+
+		});
+	},
+	//删除一行数据
+	deleteOneRow: function(tableId, rowId) {
+		var g = this;
+		var htmls = '	<div class="import_line">';
+		htmls += '<p class="del_info">确认删除信息？</p>';
+		htmls += '	</div>';
+		htmls += '	<div class="import_line">';
+		htmls += '	<input type="button" value="取消" class="import_btn cancel_btn"/>';
+		htmls += '	<input type="button" value="确定" class="import_btn import_ok" id="delete_ok"/>';
+		htmls += '	</div>';
+		showWin(htmls);
+		$("#delete_ok").live("click", function() {
+			//后端删除成功后删除表格内容
+			EUI.getCmp(tableId).deleteRow(rowId);
+		});
+	},
+	initWin: function() {
+		var winHtmls = '<div class="black_win"></div><div class="show_win"></div>';
+		$("body").append(winHtmls);
+	},
+	showWin: function(htmls) {
+		$(".black_win").show();
+		$(".show_win").show().html(htmls);
+		var sHeight = parseInt($(".show_win").css("height")) / 2;
+		$(".show_win").css({
+			"margin-top": "-" + sHeight + "px"
+		});
+		console.log(sHeight);
+	},
+	closeWin: function() {
+		$(".black_win").hide().next(".show_win").hide();
+	}
+});

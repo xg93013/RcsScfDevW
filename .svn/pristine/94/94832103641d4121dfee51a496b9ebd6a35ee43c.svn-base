@@ -1,0 +1,122 @@
+package com.rcsit.scf.bsp.model.pbm;
+
+import com.rcsit.scf.bsp.domain.PbmExtensionDomain;
+
+/**
+ * Created by hmily on 2017/5/5.
+ */
+public class PbmCompany extends PbmExtensionDomain{
+
+    //企业集团代码
+    private String groupCompanyCode;
+    //企业集团名字
+    private String groupCompanyName;
+    //企业集团简称
+    private String groupCompanyShortName;
+    //征信机构代码
+    private String creditAgencyCode;
+    //基本户开户行行名
+    private String basicAccountBankName;
+    //基本户开户行行号
+    private String basicAccountBankCode;
+    //基本户账号
+    private String basicAccount;
+    //基本户户名
+    private String basicAccountName;
+    //财务主管
+    private String financeSupervisor;
+    //公司代码
+    private String companyCode;
+    //公司名称
+    private String companyName;
+    //公司简称
+    private String companyShortName;
+
+    public String getGroupCompanyCode() {
+        return groupCompanyCode;
+    }
+
+    public void setGroupCompanyCode(String groupCompanyCode) {
+        this.groupCompanyCode = groupCompanyCode;
+    }
+
+    public String getGroupCompanyName() {
+        return groupCompanyName;
+    }
+
+    public void setGroupCompanyName(String groupCompanyName) {
+        this.groupCompanyName = groupCompanyName;
+    }
+
+    public String getGroupCompanyShortName() {
+        return groupCompanyShortName;
+    }
+
+    public void setGroupCompanyShortName(String groupCompanyShortName) {
+        this.groupCompanyShortName = groupCompanyShortName;
+    }
+
+    public String getCreditAgencyCode() {
+        return creditAgencyCode;
+    }
+
+    public void setCreditAgencyCode(String creditAgencyCode) {
+        this.creditAgencyCode = creditAgencyCode;
+    }
+
+    public String getBasicAccountBankName() {
+        return basicAccountBankName;
+    }
+
+    public void setBasicAccountBankName(String basicAccountBankName) {
+        this.basicAccountBankName = basicAccountBankName;
+    }
+
+    public String getBasicAccountBankCode() {
+        return basicAccountBankCode;
+    }
+
+    public void setBasicAccountBankCode(String basicAccountBankCode) {
+        this.basicAccountBankCode = basicAccountBankCode;
+    }
+
+    public String getBasicAccount() {
+        return basicAccount;
+    }
+
+    public void setBasicAccount(String basicAccount) {
+        this.basicAccount = basicAccount;
+    }
+
+    public String getFinanceSupervisor() {
+        return financeSupervisor;
+    }
+
+    public void setFinanceSupervisor(String financeSupervisor) {
+        this.financeSupervisor = financeSupervisor;
+    }
+
+    public String getCompanyCode() {
+        return companyCode;
+    }
+
+    public void setCompanyCode(String companyCode) {
+        this.companyCode = companyCode;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName = companyName;
+    }
+
+    public String getCompanyShortName() {
+        return companyShortName;
+    }
+
+    public void setCompanyShortName(String companyShortName) {
+        this.companyShortName = companyShortName;
+    }
+}

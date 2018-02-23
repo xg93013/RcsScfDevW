@@ -1,0 +1,240 @@
+//初始融资机构-融资审批的表格
+EUI.FinanceApproval = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	height:'auto',
+	width:1188,
+	initComponent: function() {
+		var _this = this;
+		_this.initGrid();
+		_this.addEvents();
+	},
+	initGrid: function() {
+		var g = this;
+		EUI.GridPanel({
+			renderTo: g.renderTo,
+			padding: 0, //设置表格的内边距
+			exportXls: false,
+			searchConfig: null,
+			showRefresh: false,
+			id: "approvalTab",
+			//autoLoad: true, //自动加载
+			height: 'auto',
+			gridCfg: {
+				rownumbers: false, //去掉表格序号
+				loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+				//shrinkToFit: false,//表格宽度自适应
+				colModel: [{
+					label: "序号",
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					hidden: true //隐藏不显示这一组
+				}, {
+					label: "<span>融资需求编号</span>",
+					name: "name",
+					index: "name",
+
+				}, {
+					label: "<span>供应商</span><b></b>",
+					name: "name1",
+					index: "name1",
+
+				}, {
+					label: "<span>核心企业</span><b></b>",
+					name: "name2",
+					index: "name2",
+				}, {
+					label: "<span>融资金额（元）</span><b></b>",
+					name: "name3",
+					index: "name3",
+					formatter: function(value, id, rowdata) {
+						return '<span class="font20">' + rowdata.name3 + '</span>';
+					}
+
+				}, {
+					label: "<span>期限</span><b></b>",
+					name: "name4",
+					index: "name4",
+					formatter: function(value, id, rowdata) {
+						return '<span>' + rowdata.name4 + '</span><br/>~<br/><span>' + rowdata.name4 + '</span>';
+					}
+
+				}, {
+					label: "<span>状态</span><b></b>",
+					name: "name5",
+					index: "name5",
+					formatter: function(value, id, rowdata) {
+						if(parseInt(rowdata.id) % 2 == 0) {
+							return '待处理';
+						} else {
+							return '已拒绝';
+						}
+
+					}
+
+				}, {
+					label: "操作",
+					name: "name6",
+					index: "name6",
+					formatter: function(value, id, rowdata) {
+						if(parseInt(rowdata.id) % 2 == 0) {
+							return '<div class="btn_defend">拒绝</div>';
+						} else {
+							return '<div class="btn_detail">查看</div>';
+						}
+
+					}
+				}],
+				data: g.loadData(),
+			}
+
+		});
+	},
+	loadData: function() {
+		var data = [{
+				id: 1,
+				name: '520009894',
+				name1: '四川长虹网络有限公司',
+				name2: '核心企业A',
+				name3: '7678900.00',
+				name4: '2018-12-14',
+				name5: 0
+			},
+			{
+				id: 2,
+				name: '520009894',
+				name1: '四川长虹网络有限公司',
+				name2: '核心企业A',
+				name3: '7678900.00',
+				name4: '2018-12-14',
+				name5: 1
+			},
+			{
+				id: 3,
+				name: '520009894',
+				name1: '四川长虹网络有限公司',
+				name2: '核心企业A',
+				name3: '7678900.00',
+				name4: '2018-12-14',
+				name5: 2
+			},
+			{
+				id: 4,
+				name: '520009894',
+				name1: '四川长虹网络有限公司',
+				name2: '核心企业A',
+				name3: '7678900.00',
+				name4: '2018-12-14',
+				name5: 3
+			}
+		];
+		return data;
+	},
+	afterRender: function() {
+		console.log('渲染完成');
+	},
+	addEvents: function() {
+		var _self = this;
+		/*$('.del_table').live('click', function() {
+			var _this = $(this);
+			messageDemo.messageBox(function(){
+				var tableRowId = _this.attr('id');
+			    var gridPanel = EUI.getCmp("tablePrepareInvoice");
+			    gridPanel.deleteRow(tableRowId);
+			});
+		});*/
+		$('.btn_defend').live('click', function() {
+			window.location.href = 'extend_account.html';
+		});
+	},
+});
+
+EUI.formRecord = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	height: 200,
+	width: 390,
+	initComponent: function() {
+		var g = this;
+		EUI.Container({
+			renderTo: this.renderTo,
+			height: 200,
+			items: [{
+				xtype: "NumberField",
+				title: "放款金额",
+				labelWidth: 100,
+				width: 304,
+				height: 35,
+				unit: '元',
+				//displayText: "请输入数字,只能输入正数",
+				//hintText: "金额不能大于融资金额",
+				allowBlank: false,
+				//value: 1.298,
+				maxValue: Number.MAX_VALUE, // 允许输入的最大值
+				minValue: Number.NEGATIVE_INFINITY, // 允许输入的最小值
+				precision: 2, // 输入的数据精确到多少位，默认值0表示精确到个位
+				allowNegative: false, // 设置是否可以输入负数，false为不能输入负数
+				allowChar: "0123456789", // 允许输入的数字
+				fullPrecision: true
+				// 若填写的数据没有达到需要精确的位数，则用0自动补齐
+			}, {
+				xtype: "DateField",
+				title: "放款日期",
+				format: "Y-m-d", // 采用年月日的格式
+				labelWidth: 100, //设置label的宽度
+				maxDate: null, // 设置能够选择的最大日期
+				minDate: "20170301", // 设置能够选择的最小日期，日期格式为"20170301"
+				width: 300,
+				height: 40,
+				listWidth: 150,
+				//allowBlank: false, //是否可以为空
+				name: "dateField", // 设置日期选择框的name,用于后台接受此name
+				id: "dateField",
+				value: new Date().format("yyyy-MM-dd"),
+				//msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+				triggerCss: "ux-date-trigger", // 日期选择触发的样式
+				triggerClickCss: "",
+				afterValid: function() { // 事件：对日期校验后的操作
+					console.log(this.getValue());
+				},
+				afterSelect: function(data) { // 事件：选中日期后做的操作
+					var a = EUI.getCmp("dateField").getValue();
+					console.log(a);
+				}
+			}, ]
+		});
+		g.addEvent();
+		g.removeStar();
+	},
+	addEvent: function() {
+		$("#integer input").on("input propertychange", function() {
+			var vl = EUI.getCmp("integer").getValue();
+			EUI.ProcessStatus({ // ProcessStatus不用写renderTo是因为每个页面只允许有一个状态提示框
+				msg: "数字输入框的值：" + vl
+			});
+			/*
+			 * EUI.Container({ //测试事件里面使用其他插件时的样式 html:"这是一段测试文本",
+			 * renderTo:"renderto", height:50 });
+			 */
+		});
+	},
+	removeStar: function() {
+		$('.close_store b').click(function() {
+			if($(this).hasClass('b_1')) {
+				$(this).removeClass('b_1').addClass('b_2');
+			} else {
+				$(this).removeClass('b_2').addClass('b_1');
+			}
+		});
+		$('.ux-field-label .ux-field-must').remove();
+		$('#recordForm .ux-line-row').eq(0).append('<div class="tip">金额不能大于融资金额</div>');
+	}
+});
+
+$(function() {
+	//确认补录
+	$('#confirm_record').click(function() {
+		$('#overlay,#loadingTip').css('display', 'block');
+	});
+	$('#loadingTip').click(function() {
+		$('#overlay,#loadingTip').css('display', 'none');
+	});
+});

@@ -1,0 +1,183 @@
+
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Access-Control-Allow-Origin" content="*">
+    <!--xg addcss-->
+    <link rel="stylesheet" href="/static/avf/css/base.css" />
+    <link rel="stylesheet" href="/static/avf/css/base.css" />
+    <link rel="stylesheet" href="/static/avf/css/common.css" />
+    <link rel="stylesheet" href="/static/base/css/swiper-3.4.2.min.css" />
+    <!--<link rel="stylesheet" href="/static/avf/css/mainView.css" />-->
+    <link rel="stylesheet" href="/static/login/css/login.css" />
+
+    <link rel="Shortcut Icon" href="/static/avf/images/logo2.ico" />
+    <script type="text/javascript" src="/static/base/js/jquery.min.js" ></script>
+    <script type="text/javascript" src="/static/login/js/vcode.js" ></script>
+    <script type="text/javascript" src="/static/base/js/jquery.cookie.js" ></script>
+    <script type="text/javascript" src="/static/login/js/IndexView.js" ></script>
+    <script type="text/javascript" src="/static/base/js/swiper-3.4.2.min.js" ></script>
+    <title>融资管理平台</title>
+</head>
+
+<body>
+<!--top_common-->
+<div class="header_com">
+    <div class="container1200">
+        <div class="com_left fl mg10">
+            <a href="IndexView.html"><img  src="/static/avf/images/logo.png"/></a>
+        </div>
+        <div class="com_right fr">
+            <a href="#" class="login_href">快速注册</a>
+        </div>
+    </div>
+</div>
+<!--top_common end-->
+
+<!--banner_box-->
+<div class="banner_con">
+    <!--banner-->
+    <div class="banner_box">
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide banner_1"></div>
+                <div class="swiper-slide banner_2"></div>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+    </div>
+    <!--banner end-->
+
+    <!--login box-->
+    <div class="login_con">
+        <div class="login_box container1200">
+            <div class="form_box">
+                <form action="<c:url value="/ura/user/login" />" method="POST">
+                    <p>账户登录</p>
+                    <div class="lform_item">
+                        <span class="lform_icon fl"><img src="/static/avf/images/account.png" /></span>
+                        <input type="text" placeholder="账户名" name="loginName"  id="loginName"/>
+                    </div>
+                    <div class="lform_item">
+                        <span class="lform_icon fl"><img src="/static/avf/images/password.png" /></span>
+                        <input type="password" placeholder="密码" name="loginPwd" id="loginPwd" />
+                    </div>
+                    <div class="lform_item">
+                        <span class="lform_icon fl"><img src="/static/avf/images/yzmcode.png" /></span>
+                        <input type="text" placeholder="验证码" class="yzmCode" id="userYzm" />
+                        <span class="yzm_pos" id="yzmCode"></span>
+                    </div>
+                    <div class="rember_pwd">
+                        <input type="checkbox" id="rember_pwd" class="login_checkbox"/>
+                        <span><label for="rember_pwd">记住密码(公共电脑上慎选)</label></span>
+                    </div>
+                    <input type="button" value="登录" id="login_btn" class="login_btn"/>
+                    <input type="submit" id="submit_btn" style="display: none;"/>
+                    <div class="info_text" style="color: red">${msg}</div>
+                </form>
+            </div>
+        </div>
+        <!--login box end-->
+    </div>
+</div>
+<!--banner_box end-->
+
+<!--main content-->
+<div class="main_content" >
+    <!--newlogin-->
+    <div class="quick_area">
+        <div class="container1200 quick_area_box">
+            <div class="quick_area_items">
+                <p class="quick_area_img"><img src="/static/login/images/image_03.png"/></p>
+                <p>随心融资</p>
+                <p class="quick_area_text">融单持有人可根据融资需求在融单到期前任意时间、任意金额选择融资，降低融资成本。</p>
+            </div>
+            <div class="quick_area_items">
+                <p class="quick_area_img"><img src="/static/login/images/image_05.png"/></p>
+                <p>随心融资</p>
+                <p class="quick_area_text">融单持有人可根据融资需求在融单到期前任意时间、任意金额选择融资，降低融资成本。</p>
+            </div>
+            <div class="quick_area_items">
+                <p class="quick_area_img"><img src="/static/login/images/image_07.png"/></p>
+                <p>随心融资</p>
+                <p class="quick_area_text">融单持有人可根据融资需求在融单到期前任意时间、任意金额选择融资，降低融资成本。</p>
+            </div>
+        </div>
+    </div>
+
+    <!--news_list-->
+    <div class="news_box container1200">
+        <div class="news_box_left fl">
+            <div class="news_title w730">
+                <span>政府关怀</span>
+                <a href="#">更多&gt;</a>
+            </div>
+            <div class="news_items_box">
+                <div class="news_items">
+                    <a href="news_detail.html">
+                        <p class="news_items_img"><img src="/static/login/images/news1.jpg" /></p>
+                        <p class="news_items_text">国家工信部人民银行调研绵阳应收账款融资服务试点工作</p>
+                    </a>
+                </div>
+                <div class="news_items">
+                    <a href="news_detail.html">
+                        <p class="news_items_img"><img src="/static/login/images/news2.jpg" /></p>
+                        <p class="news_items_text">国家工信部人民银行调研绵阳应收账款融资服务试点工作</p>
+                    </a>
+                </div>
+                <div class="news_items noMarginRight">
+                    <a href="news_detail.html">
+                        <p class="news_items_img"><img src="/static/login/images/news3.jpg" /></p>
+                        <p class="news_items_text">国家工信部人民银行调研绵阳应收账款融资服务试点工作</p>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+        <div class="news_box_right fl">
+            <div class="news_title w330">
+                <span>媒体报道</span>
+                <a href="#">更多&gt;</a>
+            </div>
+            <ul>
+                <li><a href="news_detail.html"><span class="news_r_text">融单持有人可根据融资需求在融单到期前任意时间、任意金额选择融资，降低融资成本。</span><span class="news_r_date">5月2日</span></a></li>
+                <li><a href="news_detail.html"><span class="news_r_text">融单持有人可根据融资需求在融单到期前任意时间、任意金额选择融资，降低融资成本。</span><span class="news_r_date">5月2日</span></a></li>
+                <li><a href="news_detail.html"><span class="news_r_text">融单持有人可根据融资需求在融单到期前任意时间、任意金额选择融资，降低融资成本。</span><span class="news_r_date">5月2日</span></a></li>
+                <li><a href="news_detail.html"><span class="news_r_text">融单持有人可根据融资需求在融单到期前任意时间、任意金额选择融资，降低融资成本。</span><span class="news_r_date">5月2日</span></a></li>
+                <li><a href="news_detail.html"><span class="news_r_text">融单持有人可根据融资需求在融单到期前任意时间、任意金额选择融资，降低融资成本。</span><span class="news_r_date">5月2日</span></a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!--合作伙伴-->
+    <div class="coop_box container1200">
+        <div class="news_title coop_title">
+            <span>合作伙伴</span>
+        </div>
+        <ul>
+            <li><img src="/static/login/images/partner_03.png"></li>
+            <li><img src="/static/login/images/partner_15.png"></li>
+            <li><img src="/static/login/images/partner_25.png"></li>
+            <li><img src="/static/login/images/partner_23.png"></li>
+            <li class="noMarginRight"><img src="/static/login/images/partner_16.png"></li>
+            <li><img src="/static/login/images/partner_09.png"></li>
+            <li><img src="/static/login/images/partner_07.png"></li>
+            <li><img src="/static/login/images/partner_18.png"></li>
+            <li><img src="/static/login/images/partner_17.png"></li>
+            <li class="noMarginRight"><img src="/static/login/images/partner_05.png"></li>
+        </ul>
+    </div>
+</div>
+<!--main content end-->
+
+<!--footer-->
+<div class="footer">
+    <p>友情链接：中国人民银行&nbsp;|&nbsp;</p>
+    <p>四川虹信智远软件有限公司   版权所有　　Copyright www.sxrfinance.com All right reserved.　 　 蜀ICP备13007670号-1</p>
+    <p>地址：四川省绵阳市涪城区绵安路35号（绵阳科技城软件产业园） 电话：0816-2680591</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,400 @@
+EUI.Sheet = EUI.extend(EUI.CustomUI, {
+	renderTo: null,
+    renderTo1: null,
+	//comboBoxBank: null,
+	width:1188,
+	height: 'auto',
+	data: null,
+	initComponent: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		/*this.comboBoxBank = new EUI.ComboBoxBank({
+			renderTo: this.renderTo
+		});*/
+		this.initGrid();
+		this.addEvents();
+		this.initSearchForm();
+	},
+	initHtml: function(data) {
+		var html = "";
+		for(var i = 0; i < data.length; i++) {
+
+		}
+		$("body").append(html);
+	},
+	initGrid: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		EUI.GridPanel({
+			renderTo: _this.renderTo,
+			padding: 0, //设置表格的内边距
+			exportXls: false,
+			searchConfig: null,
+			showRefresh: false,
+			id: "sheetTab",
+			//autoLoad: true, //自动加载
+			height: 'auto',
+			gridCfg: {
+                url:_ctxPath+"/avf/notice/noticesList.json?tab=notice",//获取后端数据
+                rowNum: 10,//一页显示几条数据
+                loadonce:false,//true数据一次性加载,每页返回加载每页的数据
+				//shrinkToFit: false,//表格宽度自适应
+				rownumbers: false, //去掉表格序号
+				colModel:_this.getColModel(0),
+				//data: _this.loadData(),
+			}
+		});
+        EUI.GridPanel({
+            renderTo: _this.renderTo1,
+            padding: 0, //设置表格的内边距
+            exportXls: false,
+            searchConfig: null,
+            showRefresh: false,
+            id: "tradeTab",
+            //autoLoad: true, //自动加载
+            height: 'auto',
+            gridCfg: {
+                url:_ctxPath+"/avf/notice/noticesList.json?tab=deal",//获取后端数据
+                rowNum: 10,//一页显示几条数据
+                loadonce:false,//true数据一次性加载,每页返回加载每页的数据
+                // shrinkToFit: true,//表格宽度自适应
+                rownumbers: false, //去掉表格序号
+                colModel:_this.getColModel(1),
+                //data: _this.loadData(),
+            }
+        });
+	},
+    getColModel:function (flag) {
+		return [{
+            label: "序号",
+            name: "id", //列显示的名称
+            index: "id", //传到服务器端用来排序的列名称
+            hidden: true, //隐藏不显示这一组
+        }, {
+            label: "供应商",
+            name: "supplyShortName",
+            index: "supplyShortName",
+			width:100,
+
+        }, {
+            label: "融资银行",
+            name: "finInsShortName",
+            index: "finInsShortName",
+            width:100,
+        }, {
+            label: "银行利率(%)",
+            name: "bankRate",
+            index: "bankRate",
+            width:110,
+            formatter: function(value, id, rowdata) {
+                return parseFloat(rowdata.bankRate).toFixed(2);
+            }
+
+        },{
+            label: "融资金额(元)<b class='sorting desc' data='financeMoney'></b>",
+            name: "financeMoney",
+            index: "financeMoney",
+            width:153,
+            // align:'right',
+            formatter: function(value, id, rowdata) {
+                return '<span class="font20">￥' + $.formatMoney(rowdata.financeMoney,2) + '</span>';
+            }
+
+        },{
+            label: "融资比例(%)",
+            name: "invoiceTotalMoney",
+            index: "invoiceTotalMoney",
+            width:110,
+            formatter: function(value, id, rowdata) {
+                return '<span class="font20">' + Math.round(rowdata.financeMoney/rowdata.invoiceTotalMoney*100) + '</span>';
+            }
+
+        },{
+            label: "融资起始日",
+            name: "financeStart",
+            index: "financeStart",
+            width:110,
+            hidden:true,
+        },{
+            label: "融资期限<b class='sorting desc' data='financeStart'></b>",
+            name: "financeEnd",
+            index: "financeEnd",
+            width:220,
+            formatter: function(value, id, rowdata) {
+                return GetDateT(new Date(rowdata.financeStart))+'~'+GetDateT(new Date(rowdata.financeEnd));
+            }
+
+        }, {
+            label: "状态<b class='b_btn b_state' data='businessDealInfo'></b>",
+            name: "businessDealInfo",
+            index: "businessDealInfo",
+            width:150,
+            // align:'left',
+
+        }, {
+            label: "操作",
+            name: "businessDealStatus",
+            index: "businessDealStatus",
+            width:175,
+            formatter: function(value, id, rowdata) {
+                if(parseInt(rowdata.businessDealStatus)  == 3020) {
+                    return '<div class="btn_defend sheet_confirm" data='+rowdata.id+'>通知单确认</div>';
+                } else{
+                    return '<div class="w104 search_a"><a class="sxf_btn icon_detail lookDetail" data='+rowdata.id+' title="查看明细"></a></div>';
+                    // return '<div class="btn_detail lookDetail" data='+rowdata.id+'>查看明细</div>';
+                }
+                //return '<div class="btn_wait waitSupplier">等待供应商确认</div>';
+
+
+            }
+        },
+			/*{
+			 label: "操作",
+			 formatter: function(value, id, rowdata) {
+			 return '<div class="del_sheet btn_div">删除</div><div class="edit_sheet btn_div">编辑</div>';
+
+			 }
+			 }*/
+        ];
+    },
+    //初始化高级查询表单
+    initSearchForm:function(){
+        var g = this;
+        var options = {
+            id: "searchForm2", //表单id
+            renderTo: "formBox1",//表单容器id
+            submitId:"submitId",//提交按钮id
+            tableId:"sheetTab",//要刷新的表格id
+            title:"高级查询",//查询标题
+            formGrid: [{
+                xtype: "ComboBox",
+                field: ['companyCode'], // 表示哪些值需要提交到后端
+                name: 'companyName',
+                labelWidth: 120,
+                id: "companyCode",
+                title: '供应商',
+                width: 280,
+                allowBlank: true,
+                displayText: '请选择供应商',
+                async: true, // 是否异步，true为异步
+                store: {
+                    type:"get",
+                    url: _ctxPath + "/avf/financingRelConfigure/findRelByCompanyCode.json"
+                }, // 从后台获取数据的地址
+                editable: true, // 是否可编辑
+                loadMask: true, // 是否有遮罩层
+                showSearch: false, // 是否展开下拉框
+                searchText: "supplyCode", // 下拉框的内容
+                canClear: true,
+                deforeLoad: function(store) {},
+                afterLoad: function(data) {
+
+                },
+                afterSelect:function(data){
+
+                }
+            }, {
+                xtype: "ComboBox",
+                field: ['finInsCode'], // 表示哪些值需要提交到后端
+                name: 'finInsName',
+                labelWidth: 120,
+                id: "finInsCode",
+                title: '融资银行',
+                width: 280,
+                allowBlank: true,
+                displayText: '请选择融资银行',
+                async: true, // 是否异步，true为异步
+                store: {
+                    type:"get",
+                    url: _ctxPath + "/avf/financingRelConfigure/findFinByCompanyCode.json"
+                }, // 从后台获取数据的地址
+                editable: true, // 是否可编辑
+                loadMask: true, // 是否有遮罩层
+                showSearch: false, // 是否展开下拉框
+                searchText: "finInsName", // 下拉框的内容
+                canClear: true,
+                deforeLoad: function(store) {},
+                afterLoad: function(data) {
+
+                },
+                afterSelect:function(data){
+
+                }
+            },{
+                xtype: "FieldGroup",
+                width:500,
+                itemspace:10,
+                items: [{
+                    xtype: "DateField",
+                    title: "融资期限",
+                    format: "Y-m-d", // 采用年月日的格式
+                    labelWidth: 120, //设置label的宽度
+                    //maxDate: null, // 设置能够选择的最大日期
+                    // minDate: new Date($('#financeEnd').val()).format('yyyyMMdd'), // 设置能够选择的最小日期，日期格式为"20170301"
+                    width: 109,
+                    // height: 40,
+                    // listWidth: 150,
+                    allowBlank: true, //是否可以为空
+                    name: "minDate", // 设置日期选择框的name,用于后台接受此name
+                    id: "minDate",
+                    value: new Date().format('yyyy-MM-dd'),
+                    //msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+                    // triggerCss: "ux-date-trigger", // 日期选择触发的样式
+                    // triggerClickCss: "",
+                    // afterValid: function () { // 事件：对日期校验后的操作
+                    //    // console.log(EUI.getCmp("intentionFterm").getValue());
+                    // },
+                    afterSelect: function (data) { // 事件：选中日期后做的操作
+                        var a = EUI.getCmp("minDate").getValue();
+                        console.log(a);
+                    }
+                },{
+                    xtype: "DateField",
+                    title: "到",
+                    format: "Y-m-d", // 采用年月日的格式
+                    labelWidth: 44, //设置label的宽度
+                    //maxDate: null, // 设置能够选择的最大日期
+                    // minDate: new Date($('#financeEnd').val()).format('yyyyMMdd'), // 设置能够选择的最小日期，日期格式为"20170301"
+                    width: 109,
+                    // height: 40,
+                    // listWidth: 150,
+                    allowBlank: true, //是否可以为空
+                    name: "maxDate", // 设置日期选择框的name,用于后台接受此name
+                    id: "maxDate",
+                    value: new Date().format('yyyy-MM-dd'),
+                    //msg: "选择的日期范围未在设置之内", // 如果选择的日期未在设置的minDate或者maxDate之中，就显示设置的提示消息
+                    // triggerCss: "ux-date-trigger", // 日期选择触发的样式
+                    // triggerClickCss: "",
+                    // afterValid: function () { // 事件：对日期校验后的操作
+                    //    // console.log(EUI.getCmp("intentionFterm").getValue());
+                    // },
+                    afterSelect: function (data) { // 事件：选中日期后做的操作
+                        var a = EUI.getCmp("minDate").getValue();
+                        console.log(a);
+                    }
+                }]
+            },
+            //     {
+            //     xtype: "ComboBox",
+            //     field: ["businessDealStatus"], // 表示哪些值需要提交到后端
+            //     name: "name",
+            //     labelWidth: 120,
+            //     id: "businessDealStatus",
+            //     title: "状态",
+            //     width: 280,
+            //     allowBlank: true,
+            //     displayText: "请选择状态",
+            //     async: true, // 是否异步，true为异步
+            //     // store: {
+            //     //     type:"get",
+            //     //     url: _ctxPath + "/avf/financingRelConfigure/findRelByCompanyCode.json"
+            //     // }, // 从后台获取数据的地址
+            //     data : [{
+            //         businessDealStatus : "0",
+            //         name : "全部"
+            //     }, {
+            //         businessDealStatus : "1011",
+            //         name : "已录入"
+            //     }, {
+            //         businessDealStatus : "1020",
+            //         name : "已融资"
+            //     }],
+            //     editable: true, // 是否可编辑
+            //     loadMask: true, // 是否有遮罩层
+            //     showSearch: false, // 是否展开下拉框
+            //     searchText: "businessDealStatus", // 下拉框的内容
+            //     canClear: true,
+            //     deforeLoad: function(store) {},
+            //     afterLoad: function(data) {
+            //
+            //     },
+            //     afterSelect:function(data){
+            //
+            //     }
+            // }
+            ] //表单配置
+        }
+        searchWin = new showSearchWin(options);
+    },
+	addEvents: function() {
+		//通知单确认
+        var g = this;
+        $(".sheet_confirm").live("click", function () {
+			var id = $(this).attr('data');
+			window.location.href =_ctxPath+ '/avf/notice/noticeConfirmPage?id='+id+'&identityType=ENTERPRISE';
+		});
+        //查看明细
+        $(".lookDetail").live("click", function () {
+            var id = $(this).attr('data');
+            window.location.href =_ctxPath+ '/avf/notice/noticeDetailPage?id='+id+'&identityType=ENTERPRISE';
+		});
+        //放款成交单
+        // $('.trade_ticket').click(function () {
+        //     errorInfo('放款成交单功能正在开发中');
+        // });
+        //追加状态
+        var obj = {'data1':[{statusCode:null,statusDetail:'全部'},
+            {statusCode:'3010',statusDetail:'供应商确认'},
+            {statusCode:'3020',statusDetail:'核心企业确认'},
+            {statusCode:'3030',statusDetail:'已确认'}]};
+        tabHeadSearch.clickElement(obj,'sheetTab','businessDealStatus');
+
+		//切换通知单和成交单
+		$('.ul_sheet li').click(function () {
+            $('.ul_sheet li').removeClass('bac');
+			if($(this).hasClass('bac')){}else{
+				$(this).addClass('bac');
+			}
+			if($(this).attr('data') == 0){
+				$('#tradeTab').css('display','none');
+                $('#sheetTab').css('display','block');
+
+                searchWin.options.tableId = 'sheetTab';
+                // tabHeadSearch.clickElement(obj,'sheetTab','businessDealStatus');
+			}else{
+                $('#tradeTab').css('display','block');
+                $('#sheetTab').css('display','none');
+                searchWin.options.tableId = 'tradeTab';
+                tabHeadSearch.clickElement(obj,'tradeTab','businessDealStatus');
+                // searchWin.options.title = 'tradeTab';
+                // g.initSearchForm();
+			}
+        });
+
+	},
+	addTabEvents: function() {
+
+	},
+	loadData: function() {
+		/*var g = this;
+		EUI.Stor({
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		})*/
+	},
+	showCount: function(data) {
+		$(".todo-count").text(data.count);
+	},
+	checkValid: function() {
+
+		return true;
+	},
+	getData: function() {
+		var data = {};
+		//TODO:
+		return data;
+	},
+	submit: function() {
+		if(!this.checkValid()) {
+			return;
+		}
+		EUI.Stor({
+			url: "",
+			params: this.getData(),
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		});
+	}
+});

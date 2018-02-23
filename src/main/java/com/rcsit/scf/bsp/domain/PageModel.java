@@ -1,0 +1,101 @@
+package com.rcsit.scf.bsp.domain;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.github.miemiedev.mybatis.paginator.domain.PageList;
+import com.github.miemiedev.mybatis.paginator.domain.Paginator;
+import com.rcsit.scf.bsp.exception.DataErrorException;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+/**
+ * Created by wangdayin.
+ * 分页返回对象
+ */
+public class PageModel<T> implements Serializable {
+    //数据
+    private List<T> rows;
+    //当前页
+    private int page;
+    //页数
+    private int total;
+    //总行数
+    private int records;
+
+    public PageModel() {
+    }
+
+    public PageModel(List<T> list) {
+        if (CollectionUtils.isNotEmpty(list)) {
+            Paginator paginator = ((PageList) list).getPaginator();
+            this.rows = list;
+            this.page = paginator.getPage();
+            this.total = paginator.getTotalPages();
+            this.records = paginator.getTotalCount();
+        }
+    }
+
+    public PageModel(List<T> list, JSONObject jsonObject) {
+        if (CollectionUtils.isNotEmpty(list)) {
+            this.rows = list;
+            this.page = jsonObject.getInteger("page");
+            this.total = jsonObject.getInteger("pageCount");
+            this.records = jsonObject.getInteger("rowsCount");
+        }
+    }
+    public PageModel(JSONObject jsonObject) {
+        Optional.ofNullable(jsonObject).orElseThrow(DataErrorException::new);
+        String lists = jsonObject.getString("list");
+        if (StringUtils.isNotEmpty(lists)) {
+            this.rows = JSONObject.parseObject(lists, new TypeReference<List>() {
+            });
+            if (null == rows)
+                this.rows=new ArrayList<>();
+            this.page = jsonObject.getInteger("page");
+            this.total = jsonObject.getInteger("pageCount");
+            this.records = jsonObject.getInteger("rowsCount");
+        }
+    }
+
+
+    public static <T> PageModel<T> form(List<T> list) {
+        return new PageModel<>(list);
+    }
+
+    public void setRows(List<T> rows) {
+        this.rows = rows;
+    }
+
+    public List<T> getRows() {
+        return rows;
+    }
+
+    public int getPage() {
+        return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
+    }
+
+    public int getTotal() {
+        return total;
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
+    }
+
+    public int getRecords() {
+        return records;
+    }
+
+    public void setRecords(int records) {
+        this.records = records;
+    }
+}

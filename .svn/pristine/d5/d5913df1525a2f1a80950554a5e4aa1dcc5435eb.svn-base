@@ -1,0 +1,123 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/base.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="stylesheet" href="/static/avf/css/base.css" />
+		<link rel="stylesheet" href="/static/avf/css/common.css" />
+		
+		<link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+		<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+		
+		<!--xg addjs-->	
+		<script type="text/javascript" src="/static/base/js/common.js" ></script>
+		<script type="text/javascript" src="/static/base/js/public.js" ></script>
+		<script type="text/javascript" src="/static/avf/js/sheet.js" ></script>
+		
+		<title>首页-通知单</title>
+		<script type="text/javascript">
+			EUI.onReady(function() {
+				var sheet = new EUI.Sheet({
+					renderTo : "rzSheet",
+					//padding: 5,
+				});
+			});
+		</script>
+	</head>
+
+	<body>		
+		<!--top_common-->
+		<div class="header_com">
+			<div class="header_container">
+				<div class="com_left fl mg10">
+					<img src="/static/avf/images/logo.png"  />
+				</div>
+				<div class="com_right fr mg10">
+					<div class="person_info fl">
+						<a>
+							<div class="info_graph fl"></div>
+							<!--登录成功-->
+							<div class="info_name fl">
+								<p class="font12">[核心企业]</p>
+								<p class="font18 mg10">用户名</p>
+							</div>
+							<!--未登录状态-->
+							<b></b>
+						</a>
+					</div>
+					<div class="hide_nlist">
+						<ul>
+							<li><a href="#">核心企业</a></li>
+							<li><a href="#">供应商</a></li>
+							<li><a href="#">金融机构</a></li>
+							<li><a href="#">系统管理</a></li>
+							<li><a href="#">密码修改</a></li>
+							<li><a href="#">用户中心</a></li>
+						</ul>
+					</div>
+					<div class="person_exit fl ml10">
+						<a href="javascript:void(0)" class="exit_link" id="exit_login">退出</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--top_common end-->
+		
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li><a href="#">首页</a></li>
+					<li><a href="#">&gt;&nbsp;申请融资</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<div class="rz_nav">
+						<a href="/avf/invoice/toWaitPage?type=enterprise" class="tab_01"><div class="on_state" style="display: none;">1.准备发票</div><div class="off_state" style="display: block;"><p class="msg_num">1.准备发票<span>1</span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="/avf/financingDemand/toDemandPage?type=enterprise" class="tab_02"><div class="on_state">2.申请融资</div><div class="off_state"><p><span class="msg_num">2.申请融资<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="/avf/notice/noticesListPage?type=ENTERPRISE" class="tab_03_over"><div class="on_state"  style="display: block;">3.通知单</div><div class="off_state"  style="display: none;"><p><span class="msg_num">3.通知单<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="#" class="tab_04"><div class="on_state">4.还款</div><div class="off_state"><p><span class="msg_num">4.还款<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="#" class="tab_05"><div class="on_state">5.还款</div><div class="off_state"><p><span class="msg_num">5.还款<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+				</div>
+				<div class="rz_p">
+					
+					<p class="fl">待确认<span class="org_color">${needConfirmQuota}</span>项</p>
+					<span class="trade_ticket btn fr  mt15">放弃成交单（<font>9</font>）</span>
+					
+				</div>
+				<div class="rz_result">
+					<div>
+						<div class="chioce pos_supplier" style="display: none;">
+							<b class="triangle"></b>
+							<div class="chioce_list">
+								<ul class="box_shadow">
+									<li><span class="serach_icon"></span><input class="serach_ipt" placeholder="搜索"/></li>
+									<li><span class="b_1 all_chioce"></span><span>全选</span></li>                  
+									<li><b class="b_1"></b><span>广州市xxxx公司</span></li>
+									<li><b class="b_2"></b><span>四川长虹有限公司</span></li>
+									<li style="border-bottom: 0px;"><b class="b_1"></b><span>上海市xxxx公司</span></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div id="rzSheet"></div>
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<div class="footer">
+			<p>绵阳市高新区XXXXX</p>
+			<p>@速信融版权所有</p>
+		</div>
+		<!--footer end-->
+	</body>
+</html>

@@ -1,0 +1,84 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.exception.RequestErrorException;
+import com.rcsit.scf.bsp.model.avf.AvfFinancingDemandHead;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by chenkai on 2017/5/26.
+ */
+
+public class AvfFinancingDemandHandler {
+
+    public JSONObject doDemandList(String token , int page,int rows){
+        String param="token="+token+"&page="+page+"&rows="+rows;
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_DEMAND_LIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        return jsonObject.getJSONObject("data");
+    }
+
+    public AvfFinancingDemandHead doDemandProgress(String id) {
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_DEMAND_PROGRESS, "id="+id);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        AvfFinancingDemandHead head = JSONObject.parseObject(jsonObject.getString("data"), new TypeReference<AvfFinancingDemandHead>(){});
+        return head;
+    }
+
+    public void doSaveFinancingDemand(String token, AvfFinancingDemandHead demandHead, String infos) throws Exception {
+        List<NameValuePair> pairs = HttpClientUtil.commonParam(demandHead);
+        pairs.add(new BasicNameValuePair("token",token));
+        pairs.add(new BasicNameValuePair("infos",infos));
+        String result = HttpClientUtil.httpPairsPost(ServerConstant.URL_AVF_SAVE_DEMAND, pairs);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+    }
+
+    public void doMaintainExtendMoney(String token, String id, boolean isPast, String intentionFmoney, String intentionFterm) {
+        Map<String ,String> param = new HashMap<>();
+        param.put("id",id);
+        param.put("isPast",String.valueOf(isPast));
+        param.put("intentionFmoney",intentionFmoney);
+        param.put("intentionFterm",intentionFterm);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_EXTEND_MONEY, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+    }
+
+    public JSONObject doRepaymentList(String token, int page, int rows) {
+        String param="token="+token+"&page="+page+"&rows="+rows;
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_REPAYMENT_LIST, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        return jsonObject.getJSONObject("data");
+    }
+
+    public int doRepaymentCountDown(String id) {
+        String result = HttpClientUtil.httpGets(ServerConstant.URL_AVF_COUNT_DOWN, "id="+id);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        if (!HttpClientUtil.isOk(jsonObject)) {
+            throw new RequestErrorException(jsonObject.getString("message"));
+        }
+        return jsonObject.getInteger("data");
+    }
+}

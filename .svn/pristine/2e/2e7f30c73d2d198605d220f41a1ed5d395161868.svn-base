@@ -1,0 +1,147 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<!--xg addcss-->
+	<link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+	<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+	<link rel="stylesheet" href="/static/avf/css/supplyMain.css" />
+	<!-- 数字签章的css-->
+	<style type="text/css">
+		.objCss{
+			Z-INDEX: 999;
+			POSITION: absolute;
+			left:1180px;
+			top:360px;
+			WIDTH: 200px;
+			HEIGHT:200px
+		}
+		@media screen and (max-width: 1400px) {
+			.objCss{
+				Z-INDEX: 999;
+				POSITION: absolute;
+				left:980px;
+				top:360px;
+				WIDTH: 200px;
+				HEIGHT:200px
+			}
+		}
+	</style>
+
+	<!--xg addjs-->
+	<script type="text/javascript" src="/static/base/js/public.js" ></script>
+	<script type="text/javascript" src="/static/base/js/common.js" ></script>
+	<script type="text/javascript" src="/static/avf/js/supply_sheet.js" ></script>
+	<%--<title>融资管理平台</title>--%>
+</head>
+<body>
+<!--main content-->
+<div class="main_content">
+	<!--tab_list-->
+	<div class="container1200">
+		<ul class="tab_list">
+			<li><a href="/avf/invoice/toWaitPage?type=supplier">首页</a></li>
+			<li><a href="/avf/notice/noticesListPage?identityType=SUPPLIER">&nbsp;&gt;&nbsp;通知单列表</a></li>
+			<li><a href="javascript:void(0)">&nbsp;&gt;&nbsp;确认通知单</a></li>
+		</ul>
+	</div>
+	<!--tab_list end-->
+
+	<div class="container1200 step_content">
+		<div class="wyzzk">
+			<div class="wyzzk_top_left fl">
+				<div class="whyzzk_company">
+					<div class="w360 fl">
+						<span class="span_1">${avfAccountsRecTraNotice.companyName}</span>
+					</div>
+					<div class="w299 fl">
+						<span class="font14">供应商：${pbmVerdor.supplyName}</span>
+					</div>
+					<div class="fl">
+						<span class="font16">到期日：<label class="time" data="${avfAccountsRecTraNotice.financeEnd}"></label></span>
+					</div>
+				</div>
+				<div class="whyzzk_money">
+					<div class="w360 fl">
+						<span>开户行名称</span>
+						<span class="font20">${pbmVerdor.basicAccountBankName}</span>
+					</div>
+					<div class="w299 fl">
+						<span>账号名称:</span>
+						<span class="font20">${pbmVerdor.basicAccountName}</span>
+					</div>
+					<div class="fl">
+						<span>账号：</span>
+						<span class="font20">${pbmVerdor.basicAccount}</span>
+					</div>
+				</div>
+			</div>
+			<div class="wyzzk_top_right fr">
+				<p class="p_1"><span class="f20 lh30">发票总计(${financingDemand.invoiceTotalNumber}张)：</span><br/>总金额<font class="f36 money" data="${financingDemand.totalMoney}"></font><font class="f16">元</font></p>
+			</div>
+		</div>
+		<div class="showInfo">
+
+			<div class="show_sheet">
+				<p class="f24 lh60">申请通过，请确认以下应收账款转让通知单！</p>
+				<div class="show_sheet_info">
+					<div class="show_sheet_info_top">
+						<c:if test="${businessDealStatus=='1022'}">
+							<div class="confirm" style="display: none">
+								<img src="/static/avf/images/icon_2.png">
+							</div>
+						</c:if>
+
+						<div class="w288 fl">
+							<label>金额：</label>
+							<span><font class="font_f30 money" data="${avfAccountsRecTraNotice.financeMoney}"></font><font>元</font></span>
+						</div>
+						<div class="w294 fl">
+							<label>期限：</label>
+							<span class="w307 term" style="font-size: 20px;" data="${avfAccountsRecTraNotice.financeStart}" fc-data="${avfAccountsRecTraNotice.financeEnd}"><font class="font_f30">10</font><font>个月</font></span>
+						</div>
+						<div class="w176 fl">
+							<label>起始日：</label>
+							<span class="time" data="${avfAccountsRecTraNotice.financeStart}"></span>
+						</div>
+						<div class="w176 fl">
+							<label>到期日：</label>
+							<span class="time" data="${avfAccountsRecTraNotice.financeEnd}"></span>
+						</div>
+					</div>
+					<div class="show_sheet_info_bottom">
+						<span class="w288"><label>平台账款编号：</label><font>${avfAccountsRecTraNotice.platformLedgerNo}</font></span>
+						<span class="w490 tc"><label>企业账款编号：</label><font>${avfAccountsRecTraNotice.enterpriseLedgerNo}</font></span>
+						<span><label>账款来源：</label><font>${avfAccountsRecTraNotice.ledgerSource}</font></span>
+					</div>
+				</div>
+
+				<div class="btn_form mg20">
+					<span class="confirm_prev" id="agree_sheet" data="${avfAccountsRecTraNotice.id}">同&nbsp;意</span>
+				</div>
+			</div>
+
+			<!--<div id='date'></div>-->
+		</div>
+	</div>
+
+</div>
+<!--main content end-->
+
+<!-- 加载数字签章的控件-->
+<FORM name=AztSignSealFrom action="">
+	<OBJECT class="objCss"
+			id=AztWebSignSealkeyPublic
+			classid=clsid:07121F49-A0DC-4EBD-A2A2-A0A71DC6FDB9></OBJECT>
+	<DIV style="POSITION: absolute; WIDTH: 200px; HEIGHT: 200px"
+		 id=jfdiv bgcolor="#ffffff"></DIV>
+</FORM>
+<!--遮罩层结束-->
+<!--footer-->
+<%@ include file="/base/footer.jsp"%>
+<!--footer end-->
+</body>
+</html>

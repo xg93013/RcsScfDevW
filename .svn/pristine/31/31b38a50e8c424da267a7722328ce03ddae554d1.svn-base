@@ -1,0 +1,84 @@
+$(function() {
+	//单选
+	$('.chioce_list ul li b').click(function() {
+		var _this = $(this);
+		var count = $('.chioce_list ul li b').length;
+		var count1 = 0; 
+		var count2 = 0;
+		if(_this.hasClass('b_1')) {
+			_this.removeClass('b_1').addClass('b_2');			
+		} else {
+			_this.removeClass('b_2').addClass('b_1');
+		}
+		count1 = $('.chioce_list ul li b.b_1').length;
+		count2 = $('.chioce_list ul li b.b_2').length;
+		if(count == count2){
+			$('.chioce_list ul li .all_chioce').removeClass('b_1').addClass('b_2');
+		}else{
+			$('.chioce_list ul li .all_chioce').removeClass('b_2').addClass('b_1');
+		}
+
+	});
+	/*全选按钮*/
+	$('.chioce_list ul li .all_chioce').click(function() {
+		var _this = $(this);
+		if(_this.hasClass('b_1')) {
+			_this.removeClass('b_1').addClass('b_2');
+			$('.chioce_list ul li b').removeClass('b_1').addClass('b_2');
+		} else {
+			_this.removeClass('b_2').addClass('b_1');
+			$('.chioce_list ul li b').removeClass('b_2').addClass('b_1');
+
+		}
+	});
+	$('.ui-jqgrid-htable th').live('mouseenter', function() {
+		$('.chioce').show();
+	});
+	$('.ui-jqgrid-htable th').live('mouseleave', function() {
+		$('.chioce').hide();
+	});
+	
+	//同意弹出弹出框
+	var timer =60;
+	$('#agree').click(function(){
+		$('#overlay').css('display','block');
+		$('#loadingTip').css('display','block');
+		timer =60;
+		Countdown();
+	});
+	$('.overlay').click(function(){
+		$('#overlay').css('display','none');
+		$('#loadingTip').css('display','none');
+		timer = 0;
+		Countdown();
+	});
+	//倒计时
+	function Countdown() {
+		var clear;
+	    if (timer >= 1) {
+	        timer -= 1;
+	        $('#second').text(timer);
+	        clear = setTimeout(function() {
+	            Countdown();
+	        }, 1000);
+	    }else{
+	    	clearInterval(clear);
+	    	$('#overlay').css('display','none');
+		    $('#loadingTip').css('display','none');
+	    }
+	}
+	//用户退出
+	$("#exit_login").live("click",function(){
+        console.log("退出!");
+		$.ajax({
+			type: 'get',
+			url: _ctxPath+"/ura/user/logout.json",
+			success: function(data){
+				console.log("退出成功");
+			},
+			error:function(){
+				console.log("error");
+			}
+		});
+	});
+});

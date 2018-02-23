@@ -1,0 +1,145 @@
+!(function(window, document) {
+	function showSearchWin(options) { //创建一个图形验证码对象，接收options对象为参数
+		this.options = { //默认options参数值
+			id:"",//表单id
+			renderTo:"",//容器id
+			formGrid:"",//表单配置
+			submitId:"",//提交按钮id
+			tableId:"",//刷新表格
+			title:""//查询标题
+		}
+		
+		if(Object.prototype.toString.call(options) == "[object Object]"){//判断传入参数类型
+			for(var i in options) { //根据传入的参数，修改默认参数值
+				this.options[i] = options[i];
+			}
+		}else{
+			this.options.id = options;
+		}
+		this._init();
+		this.setCssStyle();
+		this.addEvent();
+	}
+
+	showSearchWin.prototype = {
+		/**初始化方法**/
+		_init: function() {
+			var x = this;
+//			$(".content_box").empty();
+			$("body").append("<div class='show_win common_search'></div>");
+			var htmls = "<p class='update_title'>"+x.options.title+"</p><div id='"+x.options.renderTo+"'></div>";
+			var addHtmls = "<div class='position_box'><div class='content_box'>"+htmls+"</div><div class='close_b close_high'></div></div>";
+//		    closePwdWin();
+		    $(".common_search").show().html(addHtmls);
+		    EUI.Container({
+	            renderTo: x.options.renderTo,
+	            width: 450,
+	            height: "auto",
+	            items: [{
+	                xtype: "FormPanel",
+	                itemspace: 20,
+	                height: "auto",
+	                id: x.options.id,
+	                items: x.options.formGrid
+	            }]
+	        });
+	        //定位到屏幕中间
+	        var sHeight = parseInt($(".common_search").css("height")) / 2;
+		    $(".common_search").css({
+		        "margin-top": "-" + sHeight + "px"
+		    });	
+		    x.setBtnDoms();
+	        x.closeSearchWin();
+		},
+		addEvent:function(){
+			var x = this;
+			$(".close_high").live("click",function(){
+				x.closeSearchWin();
+			})
+			//重置
+			$("#reset_s_btn").live("click",function(){
+				EUI.getCmp(x.options.id).reset();
+			})
+			//提交
+			$(".submit_s_btn").live("click",function(){
+				x.closeSearchWin();
+			})
+			//刷新
+			$("#detail_fresh").live("click",function(){
+				EUI.getCmp(x.options.tableId).setPostParams({
+					"keyWord":"",
+					"query":""
+				},true);
+			})
+			//模糊查询
+			$(".search_btns").live("click",function(){
+				var keyWord = $(this).prev().val();//获取模糊查询字段
+                EUI.getCmp(x.options.tableId).setPostParams({
+                    "keyWord":keyWord,
+                    "query":""
+                },true);
+			});
+            //高级查询
+            $("#detail_query").live("click", function() {
+                x.openSearchWin();
+            });
+            //提交高级查询
+            $("#"+x.options.submitId).live("click",function(){
+                if(EUI.getCmp(x.options.id).isValid()){
+                    var query = EUI.getCmp(x.options.id).getFormValue();
+                    var queryArray = JSON.stringify(query);
+                    EUI.getCmp(x.options.tableId).setPostParams({
+                        "query":queryArray
+                    },true);
+                    x.closeSearchWin();
+                }
+            });
+		},
+		/**显示高级查询弹窗**/
+		openSearchWin:function(){
+			$(".blackCom").show();
+			$(".common_search").show();
+		},
+		/**关闭弹窗**/
+		closeSearchWin:function(){
+			$(".blackCom").hide();
+			$(".common_search").hide();
+		},
+		/**重构样式**/
+		setCssStyle:function(){
+			$(".ux-field-label span").css({
+	            "float": "none",
+	            "margin-right": "10px"
+	        });
+			$(".ux-field-element").css({
+				"border-radius":"4px",
+				"height":"36px",
+				"line-height":"36px"
+			})
+			$(".ux-tooltip").css({
+				"z-index":"9999"
+			});
+			$(".ux-list").css({
+				"z-index":"10000"
+			});
+			$(".ux-field .ux-field-text").css({
+				"font-size":"14px",
+				"color":"#999"
+			});
+		},
+		/**添加按钮**/
+		setBtnDoms:function(){
+			var x = this;
+			var htmls = '<div class="search_btns_box fr">';
+			htmls += '<div id="reset_s_btn" class="h_search_btns go_reset fl">清空</div>';
+			htmls += '	<div id="'+x.options.submitId+'" class="h_search_btns go_search fl">查询</div>';
+			htmls += '	</div>';
+			$(".common_search").append(htmls);
+			
+		},
+		getFormValue:function(){
+			return EUI.getCmp(this.options.id).getValue();
+		},
+	}
+	window.showSearchWin = showSearchWin;
+})(window, document);

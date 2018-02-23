@@ -1,0 +1,17 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: wangwen
+  Date: 2017/5/25
+  Time: 14:08
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>500</title>
+</head>
+<body>
+<h1>500-服务器开了点小差</h1>
+<h2>错误信息：${msg}</h2>
+</body>
+</html>

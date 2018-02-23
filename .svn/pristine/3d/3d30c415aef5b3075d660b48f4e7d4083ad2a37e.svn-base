@@ -1,0 +1,93 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		
+		<link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+		<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+		
+		<!--xg addjs-->
+		<script type="text/javascript" src="/static/base/js/common.js" ></script>
+		<script type="text/javascript" src="/static/base/js/public.js" ></script>
+		<script type="text/javascript" src="/static/avf/js/sheet.js" ></script>
+		<style>
+			.off_state p {
+				display: block;
+			}
+		</style>
+		<script type="text/javascript">
+			EUI.onReady(function() {
+				var sheet = new EUI.Sheet({
+					renderTo : "rzSheet",
+                    renderTo1 : "rzTrade",
+					//padding: 5,
+				});
+			});
+		</script>
+	</head>
+
+	<body>		
+		<!--top_common-->
+		<!--top_common end-->
+		
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li><a href="/avf/invoice/toWaitPage?type=enterprise">首页</a></li>
+					<li><a href="#">&gt;&nbsp;通知单</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<!--<div class="rz_nav">
+						<a href="/avf/invoice/toWaitPage?type=enterprise" class="tab_01"><div class="on_state" style="display: none;">1.准备发票</div><div class="off_state" style="display: block;"><p class="msg_num">1.准备发票<span>1</span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="/avf/financingDemand/toDemandPage?type=enterprise" class="tab_02"><div class="on_state">2.申请融资</div><div class="off_state"><p><span class="msg_num">2.申请融资<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="/avf/notice/noticesListPage?identityType=ENTERPRISE" class="tab_03_over"><div class="on_state"  style="display: block;">3.通知单</div><div class="off_state"  style="display: none;"><p><span class="msg_num">3.通知单<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="/avf/financingDemand/toRepaymentPage" class="tab_04"><div class="on_state">4.还款</div><div class="off_state"><p><span class="msg_num">4.还款<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+						<a href="#" class="tab_05"><div class="on_state">5.融资跟踪</div><div class="off_state"><p><span class="msg_num">5.融资跟踪<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>
+				</div>-->
+				<c:set var="tab_state" scope="session" value="4"/>
+				<%@ include file="/base/tab_enterprise.jsp"%>
+				<div class="container1188 rz_result">
+					<div class="rz_p">
+						<p class="fl">待确认: <span class="org_color">${needConfirmQuota} </span>项</p>
+						<ul class="ul_sheet"><li class="bac" data="0">通知单</li><li class="bor_b0" data="1">成交单</li></ul>
+						<%--<span class="trade_ticket btn fr  mt15">放款成交单（<font>9</font>）</span>--%>
+					</div>
+					<div>
+						<div class="chioce pos_supplier" style="display: none;">
+							<b class="triangle"></b>
+							<div class="chioce_list">
+								<ul class="box_shadow">
+									<li><span class="serach_icon"></span><input class="serach_ipt" placeholder="搜索"/></li>
+									<li><span class="b_1 all_chioce"></span><span>全选</span></li>                  
+									<li><b class="b_1"></b><span>广州市xxxx公司</span></li>
+									<li><b class="b_2"></b><span>四川长虹有限公司</span></li>
+									<li style="border-bottom: 0px;"><b class="b_1"></b><span>上海市xxxx公司</span></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div>
+						<div id="rzSheet"></div>
+						<div id="rzTrade" style="display: none;"></div>
+					</div>
+
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<%@ include file="/base/footer.jsp"%>
+		<!--footer end-->
+	</body>
+</html>

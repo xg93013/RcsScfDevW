@@ -1,0 +1,728 @@
+/*发票准备*/
+.rz_container{
+	width:1160px;
+	margin: 20px 0 0 20px;
+	overflow: hidden;
+}
+
+.re_con_left p{
+	font-size: 18px;
+	line-height: 34px;
+}
+.re_conr_items{
+	float: left;
+}
+.lr_tickets{
+	display: block;
+	width:230px;
+	height:40px;
+	text-align: center;
+	line-height: 40px;
+	font-size: 18px;
+	margin-right: 10px;
+	border:2px solid #ccc;
+	border-radius: 4px;
+}
+.dr_ticket{
+	display: block;
+	width:250px;
+	height:100px;
+	text-align: center;
+	line-height: 100px;
+	font-size: 18px;
+	background:#FD7138;
+	color:#fff;
+	border-radius: 6px;
+}
+.dr_ticket:hover{
+	color:#fff;
+}
+
+.rz_result{
+	width:1160px;
+	margin:20px auto;
+}
+#rz_box, #supply_ticket{
+	/*height:500px;*/
+	/*height:auto;
+	overflow: hidden;*/
+}
+#AuditTable{
+	width:1160px;
+	margin:20px auto;
+}
+.table_btn{
+	display: block;
+	width:144px;
+	height:40px;
+	text-align: center;
+	line-height: 40px;
+	background:#00b9f2;
+	border-radius: 4px;
+	color:#fff;
+	font-size: 16px;
+	margin:0 auto;
+}
+.btn_success{
+	display: block;
+	width:144px;
+	height:40px;
+	text-align: center;
+	line-height: 40px;
+	background:#fff;
+	border-radius: 4px;
+	border:1px solid #ccc;
+	color:#333;
+	font-size: 16px;
+	margin:0 auto;
+}
+.table_btn:hover{
+	color:#fff;
+	background:#006699;
+}
+.coop_a{
+	display: block;
+	width:100px;
+	margin:0 auto;
+}
+.coop_a span{
+	display: block;
+	font-size: 16px;
+	margin: 0 auto;
+	line-height: 26px;
+	color:#00B9F2;
+	cursor: pointer;
+}
+.coop_a span:hover{
+	color:#00B9F2
+}
+
+#gradelist_pager{
+	background:#fff;
+}
+#g_gradelist{
+	padding-bottom:50px;
+}
+
+
+/**/
+
+.com_right{
+	position: relative;
+}
+
+
+
+/*录入发票*/
+.ticket_form_mid{
+	width:100%;
+	overflow: hidden;
+}
+
+.invoice_box{
+	float: left;
+	overflow: hidden;
+	margin-left: 20px;
+}
+#ticket_box_list{
+	width:620px;
+	border:1px solid #ccc;
+	height:486px;
+	overflow: auto;
+	float: left;
+	/*position: relative;*/
+	margin-top:30px;
+}
+.ticket_form_top{
+	width:100%;
+	padding:20px 0 20px 0;
+	border-bottom: 1px solid #ccc;
+	overflow: hidden;
+	position: relative;
+}
+.ticket_form_l{
+	width:750px;
+	float: left;
+}
+.ticket_form_r{
+	width: 450px;
+	float: right;
+	text-align: right;
+	position: absolute;
+	right:30px;
+	bottom:30px;
+}
+
+.ticket_count{
+	height:44px;
+	margin:20px 0 0 10px;
+	line-height: 44px;
+	font-size: 16px;
+}
+.ticket_count label{
+	display: block;
+	width:152px;
+	float: left;
+	color:#666;
+	font-size: 16px;
+	text-align: right;
+	padding-right:10px
+}
+.end_num{
+	line-height: 44px;
+	color:#fd7138;
+}
+.tickets_list{
+	width:100%;
+	height:442px;
+	overflow: auto;
+	/*margin-top:44px;*/
+}
+.ticket_item{
+	display:block;
+	width:100%;
+	height:50px;
+	line-height: 50px;
+	color:#333;
+	/*background:#ccc;*/
+	font-size: 16px;
+	border-bottom: 1px dashed #ccc;
+	overflow: hidden;
+	position: relative;
+}
+
+
+/*准备发票*/
+.choice_box{
+	width:200px;
+	height:400px;
+	background:#333;
+	position: absolute;
+	z-index: 999;
+}
+.ui-jqgrid .ui-jqgrid-htable th div.ui-th-column{
+	overflow: none;
+	position: relative;
+}
+
+/*发票录入*/
+.ux-field label.ux-field-label{
+	font-size: 16px;
+	height:44px;
+	line-height: 44px;
+	text-align: right;
+	padding-top:0;
+	color:#666;
+}
+.ux-field-element{
+	width:300px;
+	/*height:44px;*/
+	line-height: 44px;
+}
+.ux-field-element input{
+	width:300px;
+	/*height:44px;*/
+	line-height: 44px;
+	font-size: 16px;
+}
+.ux-field .ux-field-readonly{
+	background: none;
+}
+.ux-field-readonly{
+	border:none;
+	
+}
+#TextArea1014 .ux-field-element{
+	width:670px;
+}
+.ux-field .ux-field-readonly input{
+	background: none;
+	font-size: 16px;
+	height:44px;
+	line-height: 44px;
+}
+.ux-field label.ux-field-label span{
+	float: none;
+}
+#TextField1004 .ux-field-element, #TextField1005 .ux-field-element{
+	width:114px;
+}
+.ticket_search_box{
+	width:100%;
+	height:40px;
+	/*position: absolute;
+	top:0;
+	left: 0;*/
+	line-height: 40px;
+	overflow: hidden;
+	border-bottom: 1px solid #ccc;
+}
+.ticket_search_box .search_txt{
+	width:500px;
+	height:40px;
+	font-size: 16px;
+	border: none;
+	padding-left: 10px;
+	outline: none;
+	float: left;
+}
+#submit_ticket_form{
+	display: block;
+	overflow: hidden;
+	background:#fd7138;
+	color:#fff;
+	float: right;
+	font-size: 26px;
+	width:240px;
+	height:60px;
+	cursor: pointer;
+	overflow: hidden;
+	line-height: 60px;
+}
+/*#submit_ticket_form*/
+#submit_ticket_form em, .submit_btn em{
+	display: block;
+	width:24px;
+	height:24px;
+	float: left;
+	margin:18px 10px 0 70px;
+	background:url(../images/icon.png) -355px 0 no-repeat;
+}
+#submit_ticket_form span{
+	float: left;
+}
+.search_bt{
+	display: block;
+	width:40px;
+	height:40px;
+	border:none;
+	outline: none;
+	float: right;
+	margin:2px 10px 0 0;
+	cursor: pointer;
+	background:url(../images/icon.png) -310px 0 no-repeat;
+}
+.close_ico{
+	position: absolute;
+	right:0;
+	width:40px;
+	height:40px;
+	top:0;
+	display: none;
+	cursor: pointer;
+	background:url(../images/icon.png) -274px 12px no-repeat
+}
+
+.ux-tab-item-close{
+	display: none;
+}
+
+.ticket_btn{
+	overflow: hidden;
+	margin:20px 0;
+}
+.ticket_form_midl{
+	overflow: hidden;
+}
+.pos_wid{
+	width:170px;
+	height:40px;
+}
+.ticket_btn_box{
+	overflow: hidden;
+	margin:20px 0;
+}
+.reset_btn{
+	width:88px;
+	height:44px;
+	text-align: center;
+	line-height: 44px;
+	text-align: center;
+	font-size: 20px;
+	border:1px solid #ccc;
+	border-radius: 4px;
+	cursor: pointer;
+}
+.submit_btn{
+	width:187px;
+	height:44px;
+	font-size: 20px;
+	line-height: 44px;
+	background:#00b9f2;
+	color:#fff;
+	cursor: pointer;
+	margin:0 0 0 30px;
+	border-radius: 4px;
+}
+.submit_btn em{
+	margin:10px 0 0 40px;
+}
+.submit_btn span{
+	margin-left: 20px;
+}
+
+
+/*发票详情*/
+.ticket_pro{
+	background:#fff;
+	margin:10px auto;
+}
+.ticket_pro_top{
+	width:1150px;
+	margin:25px 0 0 25px;
+	overflow: hidden;
+}
+#ticket_pro_box{
+	width:1160px;
+	margin:30px 0 0 20px;
+}
+.tick_item{
+	width:200px;
+	float: left;
+}
+.check_now{
+	display: block;
+	float: right;
+	width:240px;
+	height:60px;
+}
+.tick_container{
+	width:100%;
+	margin-top:20px;
+}
+.tick_item{
+	font-size: 16px;
+	color:#666;
+	width:100%;
+	line-height: 30px;
+	margin:10px 0 0 0;
+}
+.tick_item span{
+	display: inline-block;
+}
+.tick_item span.w140{
+	width: 140px;
+}
+.tick_item span.w200{
+	width:200px;
+}
+.tick_item span.w90{
+	width:90px;
+}
+.txt_r{
+	text-align: right;
+}
+.color111{
+	color:#111;
+}
+.color666{
+	color:#666;
+}
+
+.tick_table{
+	font-size: 16px;
+	line-height: 26px;
+	color:#666;
+	text-align: left;
+	margin:10px 0;
+}
+.tick_table .w100{
+	display: inline-block;
+	width: 100px;
+	text-align: right;
+}
+
+
+/*审核发票*/
+#checkTicket{
+	width:1160px;
+	overflow: hidden;
+	height:400px;
+	margin:20px;
+}
+#checkTicket .ui-jqgrid-hdiv{
+	display: none;
+}
+.pro_top_item{
+	width:45%;
+	overflow: hidden;
+	font-size: 16px;
+}
+.copy_btn{
+	display: block;
+	float: right;
+	border: 1px solid #999;
+	border-radius: 4px;
+	outline: none;
+	background:none;
+	width:130px;
+	height:44px;
+	cursor: pointer;
+	margin-top:10px;
+	text-align: center;
+	font-size: 20px;
+}
+.copy_btn:hover{
+	background:#eee
+}
+.bordert_box{
+	width:1160px;
+	margin:20px 0 0 20px;
+	border-top:1px solid #ccc;
+}
+.line_item{
+	height:60px;
+	line-height: 60px;
+	overflow: hidden;
+}
+.radio_box{
+	appearance: none;
+	-webkit-appearance: none;
+	display: inline-block;
+	width:24px;
+	height:24px;
+	float: left;
+	margin:19px 0 0 10px;
+	background:url(../images/icon.png) -220px -2px no-repeat;
+}
+.lbl_txt{
+	float: left;
+	font-size: 20px;
+	margin:0 0 0 10px;
+	cursor: pointer;
+}
+.radio_box:checked{
+	background:url(../images/icon.png) -250px -2px no-repeat;
+}
+.check_btn{
+	background:#fd7138;
+}
+.normal_text{
+	display: inline-block;
+	width:300px;
+	padding:0 10px;
+	height:44px;
+	line-height: 44px;
+	font-size: 16px;
+	color:#666;
+	border:1px solid #999;
+	outline: none;
+	margin-left: 20px;
+}
+.down_icon{
+	display: inline-block;
+	position: absolute;
+    right: 20px;
+    top: 0px;
+    width: 12px;
+    height: 8px;
+    background:url(../images/icon.png) -167px  -6px no-repeat;
+    font-size: 0;
+    line-height: 0;
+    margin:6px 0 0 0px;
+}
+.ui-th-column:hover .down_icon{
+	background:url(../images/icon.png) -194px  -6px no-repeat;
+}
+
+/*还款主页*/
+.ui-common-table{
+	font-size: 16px;
+}
+.total_info{
+	font-size: 16px;
+	overflow: hidden;
+	margin-top:15px;
+}
+.total_info p{
+	float: left;
+	margin-right: 60px;
+}
+.total_info span{
+	font-size: 20px;
+	color:#fd7138;
+}
+.see_back{
+	width:240px;
+	height:44px;
+	line-height: 44px;
+	border:1px solid #ccc;
+	overflow: hidden;
+	font-size: 16px;
+    color:#333;
+    cursor: pointer;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+}
+.see_back:hover{
+	background:#eee;
+}
+.see_back span{
+	display: block;
+	margin:0 0 0 60px;
+}
+.see_back em{
+	display: block;
+	width: 12px;
+    height: 8px;
+    float: left;
+	background:url(../images/icon.png) -167px  -6px no-repeat;
+	margin:18px 0 0 10px;
+}
+.see_back em.active{
+	background:url(../images/icon.png) -194px  -6px no-repeat;
+}
+#back_money_list{
+	width:1160px;
+	margin:0 20px;
+	height:500px;
+}
+/*.jqgrid-rownum{
+	display: none;
+}*/
+
+.backMoney_des{
+	width:1158px;
+	border:1px solid #ccc;
+	height:100px;
+	background:#eee;
+	margin:10px 20px;
+}
+
+
+/*还款倒计时*/
+.time_box{
+	width:100%;
+	text-align: center;
+}
+.time_chart_title{
+	width:200px;
+	font-size: 20px;
+	color:#666;
+	text-align: center;
+	margin:100px auto 0;
+}
+.time_chart{
+	width:175px;
+	height:175px;
+	line-height: 175px;
+	font-size: 30px;
+	color:#2989da;
+	border-radius: 50%;
+	background:#eee;
+	text-align: center;
+	background:url(../images/timeEnd.png) center no-repeat;
+	margin:20px auto 150px;
+}
+
+/*供应商详情*/
+.height_box{
+	min-height: 700px;
+}
+.supply_top{
+	width:1160px;
+	margin:30px auto;
+	padding-bottom: 30px;
+	border-bottom: 1px solid #ccc;
+	overflow: hidden;
+}
+.supply_t_l{
+	width:730px;
+	overflow: hidden;
+}
+.supply_t_money{
+	width:100%;
+	overflow: hidden;
+}
+.supply_t_money .st_money_item{
+	width:50%;
+	float: left;
+	font-size: 16px;
+	color:#666;
+	margin-top:25px;
+}
+.st_money_item p{
+	line-height: 34px;
+}
+.supply_t_r{
+	width:400px;
+	border-left: 1px solid #ccc;
+}
+.supply_items{
+	width:380px;
+	height:22px;
+	margin-left: 20px;
+	line-height: 22px;
+	font-size: 16px;
+	margin-bottom: 14px;
+}
+.end_items{
+	margin-bottom: 0;
+}
+.supply_items em{
+	display: inline-block;
+	width:22px;
+	height:22px;
+	float: left;
+	margin:0 10px;
+}
+.supply_items em.sup_person{
+	background:url(../images/icon.png) 0px 0px no-repeat;
+}
+.supply_items em.sup_zuoji{
+	background:url(../images/icon.png) -79px 0px no-repeat;
+}
+.supply_items em.sup_phone{
+	background:url(../images/icon.png) -27px 0px no-repeat;
+}
+.supply_items em.sup_email{
+	background:url(../images/icon.png) -53px 0px no-repeat;
+}
+.supply_list{
+	width:1160px;
+	margin:20px auto;
+	overflow: hidden;
+}
+.supply_list ul{
+	display: block;
+	float: left;
+	width:33%;
+	overflow: hidden;
+}
+.supply_list ul li{
+	font-size: 16px;
+	line-height: 40px;
+	color:#666;
+}
+.supply_list ul li span{
+	color:#111;
+}
+
+.dr_ticket em{
+	display: inline-block;
+	width:24px;
+	height:24px;
+	margin:38px 10px 0 60px;
+	float: left;
+	background:url(../images/icon.png) -357px 0px no-repeat;
+}
+.dr_ticket span{
+	float: left;
+	font-size: 20px;
+}
+
+.ux-combo-list-item{
+	padding:10px;
+}
+
+.show_win input{
+	font-family:"microsoft yahei";
+}
+.ux-field-element input{
+	font-family:"microsoft yahei";
+}
+.ux-field-label .ux-field-must{
+	display: none;
+}
+

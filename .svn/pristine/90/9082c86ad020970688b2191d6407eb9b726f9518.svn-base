@@ -1,0 +1,7126 @@
+/**
+ * UI框架核心架构文件
+ */
+window.EUI = {
+	version : '1.0.0',
+	namespace : function() {
+		var o, d, s;
+		for (var i = 0; i < arguments.length; i++) {
+			d = arguments[i].split(".");
+			o = window[d[0]] = window[d[0]] || {};
+			s = d.slice(1);
+			for (var m = 0; m < s.length; m++) {
+				o = o[s[m]] = o[s[m]] || {};
+			}
+		}
+		return o;
+	},
+	BLANK_IMAGE_URL : 'http://' + window.location.host
+			+ '/EasyFee/UI/resources/images/s.gif',
+	managers : {},
+	managerCount : 0,
+	zindex : 100,
+	isDefined : function(v) {
+		return typeof v !== 'undefined';
+	},
+	getId : function(type) {
+		var prefix = type ? type : "";
+		var id = prefix + (1000 + EUI.managerCount);
+		EUI.managerCount++;
+		return id;
+	},
+	applyIf : function(o, c) {
+		if (o) {
+			for (var p in c) {
+				if (!EUI.isDefined(o[p])) {
+					o[p] = c[p];
+				}
+			}
+		}
+		return o;
+	},
+	apply : function(o, c, defaults) {
+		if (!o) {
+			o = {};
+		}
+		if (defaults) {
+			EUI.apply(o, defaults);
+		}
+		if (c && typeof c == 'object') {
+			for (var p in c) {
+				o[p] = c[p];
+			}
+		}
+		return o;
+	},
+	applyHave : function(o, c) {
+		if (o && c && typeof c == 'object') {
+			for (var p in o) {
+				if (c[p] != undefined && c[p] != null)
+					o[p] = c[p];
+			}
+		}
+		return o;
+	},
+	override : function(origclass, overrides) {
+		if (overrides) {
+			var p = origclass.prototype;
+			EUI.apply(p, overrides);
+			if (overrides.hasOwnProperty('toString')) {
+				p.toString = overrides.toString;
+			}
+		}
+	},
+	extend : function() {
+		// inline overrides
+		var io = function(o) {
+			for (var m in o) {
+				this[m] = o[m];
+			}
+		};
+		var oc = Object.prototype.constructor;
+
+		return function(sb, sp, overrides) {
+			if (typeof sp == 'object') {
+				overrides = sp;
+				sp = sb;
+				sb = overrides.constructor != oc
+						? overrides.constructor
+						: function() {
+							sp.apply(this, arguments);
+						};
+			}
+			var F = function() {
+			}, sbp, spp = sp.prototype;
+
+			F.prototype = spp;
+			sbp = sb.prototype = new F();
+			sbp.constructor = sb;
+			sb.superclass = spp;
+			if (spp.constructor == oc) {
+				spp.constructor = sp;
+			}
+			sb.override = function(o) {
+				EUI.override(sb, o);
+			};
+			sbp.superclass = sbp.supr = (function() {
+				return spp;
+			});
+			sbp.override = io;
+			EUI.override(sb, overrides);
+			sb.extend = function(o) {
+				return EUI.extend(sb, o);
+			};
+			return sb;
+		};
+	}(),
+	remove : function(arg) {
+		var cmp = null;
+		if (typeof arg == "string") {
+			cmp = this.managers[arg];
+		} else if (typeof arg == "object" && arg instanceof EUI.UIComponent) {
+			cmp = this.managers[arg.id];
+		}
+		if (cmp) {
+			if (cmp.items) {
+				for (var i = 0; i < cmp.items.length; i++) {
+					this.remove(EUI.getCmp(cmp.items[i]));
+				}
+			}
+			cmp.remove();
+		}
+
+	},
+	getCmp : function() {
+		return EUI.managers[arguments[0]];
+	},
+	resizeAll : function() {
+		var cmps = EUI.managers;
+		for (var cmp in cmps) {
+			if (cmps[cmp] || cmps[cmp].type == "Window"
+					&& cmps[cmp].ismax === true) {
+				cmps[cmp].onResize();
+			}
+		}
+	},
+	resize : function() {
+		var cmp = arguments[0];
+		cmp.onResize();
+		if (cmp.items) {
+			for (var i = 0; i < cmp.items.length; i++)
+				EUI.resize(EUI.getCmp(cmp.items[i]));
+		}
+	},
+	onReady : function() {
+		if (arguments)
+			$(window).load(arguments[0]);
+	},
+	importJs : function(js, fn, cache) {
+		var fnJs = function(j, f, c, num, sum) {
+			$.ajax({
+						url : j[num],
+						dataType : "script",
+						cache : c == undefined ? true : false,
+						success : function(e) {
+							if (num == (sum - 1)) {
+								f.call(f, e);
+							} else {
+								num++;
+								fnJs(j, f, c, num, sum);
+							}
+						}
+					});
+		};
+		if (js instanceof Array) {
+			fnJs(js, fn, cache, 0, js.length);
+		} else {
+			fnJs([js], fn, cache, 0, 1);
+		}
+	},
+	toArray : function() {
+		return function(a, i, j) {
+			return Array.prototype.slice.call(a, i || 0, j || a.length);
+		};
+	}(),
+	checkAuth : function(code) {
+		return true;
+	}
+};
+
+/**
+ * 组件基类
+ */
+EUI.UIComponent = function(options) {
+	// 保存初始配置文件
+	this.options = options || {};
+	EUI.apply(this, options);
+	// 生成组件Id
+	this.genCmpId();
+	this.initComponent();
+	return this;
+};
+
+EUI.UIComponent.prototype = {
+	id : null,
+	renderTo : null,
+	options : null,
+	items : null,
+
+	getType : function() {
+		return "UIComponent";
+	},
+
+	genCmpId : function() {
+		var options = this.options;
+		if (!options || (!options.id && !options.renderTo)) {
+			var prefix = this.getType();
+			this.id = prefix + (1000 + EUI.managerCount);
+			EUI.managerCount++;
+		} else {
+			this.id = options.id ? options.id : options.renderTo;
+			if (EUI.managers[this.id]) {
+				throw new Error(String
+						.format(EUI.error.managerIsExist, this.id));
+			}
+		}
+	},
+	initComponent : function() {
+		this.initItems();
+		this.initDom();
+		this.preRender();
+		this.render();
+		EUI.managers[this.id] = this;
+		this.addItems();
+		this.afterRender();
+	},
+	initItems : function() {
+		var items = this.options.items;
+		if (items) {
+			this.items = [];
+			for (var i = 0; i < items.length; i++) {
+				items[i].parentCmp = this.id;
+			}
+		}
+	},
+	initDom : function() {
+		this.dom = this.renderTo ? $("#" + this.renderTo) : $("<div></div>");
+		this.dom.attr("id", this.id);
+	},
+	preRender : function() {
+	},
+	render : function() {
+	},
+	afterRender : function() {
+		if (this.style) {
+			this.dom.css(this.style);
+		}
+		if (this.hidden) {
+			this.dom.hide();
+		}
+	},
+	addItems : function() {
+		var items = this.options.items;
+		if (items) {
+			for (var i = 0; i < items.length; i++) {
+				var item = items[i];
+				EUI.applyIf(item, this.defaultConfig);
+				EUI.applyIf(item, this.defaultStyle);
+				var xtype = item.xtype;
+				if (!xtype) {
+					throw new Error(EUI.error.noXtype);
+				}
+				var cmp = eval("EUI." + xtype);
+				if (!cmp) {
+					throw new Error(String.format(EUI.error.noCmp, xtype));
+				}
+				cmp = cmp.call(cmp, item);
+				this.items.push(cmp.id);
+			}
+		}
+	},
+	show : function() {
+		this.dom && this.dom.show();
+		this.changeVisiable(true);
+	},
+	hide : function() {
+		this.dom && this.dom.hide();
+		this.changeVisiable(false);
+	},
+	changeVisiable : function(visiable) {
+
+	},
+	getDom : function() {
+		return this.dom;
+	},
+	onResize : function() {
+	},
+	remove : function() {
+		this.dom.remove();
+		delete EUI.managers[this.id];
+		if (!this.items) {
+			return;
+		}
+		for (var i = 0; i < this.items.length; i++) {
+			var cmp = EUI.getCmp(this.items[i]);
+			cmp && cmp.remove();
+		}
+	}
+};
+EUI.CustomUI = function() {
+	EUI.apply(this, arguments[0]);
+	this.initComponent();
+	return this;
+};
+EUI.CustomUI.prototype = {
+	lang : {},
+	initComponent : function() {
+
+	}
+};
+/**
+ * UI框架初始化
+ */
+(function($) {
+	/**
+	 * 窗口变化事件
+	 */
+	$(window).bind("resize", function() {
+				EUI.resizeAll();
+			});
+
+	EUI.ns = EUI.namespace;
+	EUI.ns("EUI.core", "EUI.util", "EUI.container", "EUI.grid", "EUI.msg",
+			"EUI.form", "EUI.layout", "EUI.window", "EUI.widgets", "EUI.data",
+			"EUI.other", "EUI.calendar");
+	Date.prototype.format = function(fmt) { // author: meizz
+		var o = {
+			"M+" : this.getMonth() + 1, // 月份
+			"d+" : this.getDate(), // 日
+			"h+" : this.getHours(), // 小时
+			"m+" : this.getMinutes(), // 分
+			"s+" : this.getSeconds(), // 秒
+			"q+" : Math.floor((this.getMonth() + 3) / 3), // 季度
+			"S" : this.getMilliseconds()
+			// 毫秒
+		};
+		if (/(y+)/.test(fmt))
+			fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4
+							- RegExp.$1.length));
+		for (var k in o)
+			if (new RegExp("(" + k + ")").test(fmt))
+				fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1)
+								? (o[k])
+								: (("00" + o[k]).substr(("" + o[k]).length)));
+		return fmt;
+	};
+
+	EUI.applyIf(String, {
+				format : function(format) {
+					var args = EUI.toArray(arguments, 1);
+					return format.replace(/\{(\d+)\}/g, function(m, i) {
+								return args[i];
+							});
+				}
+			});
+	EUI.applyIf(Object, {
+				isEmpty : function(obj) {
+					for (var key in obj) {
+						return false;
+					}
+					return true;
+				},
+				toFormValue : function(a, traditional) {
+					if (!a) {
+						return a;
+					}
+					var r20 = /%20/g;
+
+					var s = [];
+
+					if (traditional === undefined) {
+						traditional = jQuery.ajaxSettings.traditional;
+					}
+					if (jQuery.isArray(a) || a.jquery) {
+						jQuery.each(a, function() {
+									add(this.name, this.value);
+								});
+
+					} else {
+						for (var prefix in a) {
+							buildParams(prefix, a[prefix]);
+						}
+					}
+					return s.join("&").replace(r20, "+");
+
+					function buildParams(prefix, obj) {
+						if (jQuery.isArray(obj)) {
+							jQuery.each(obj, function(i, v) {
+										if (traditional) {
+											add(prefix, v);
+										} else {
+											buildParams(
+													prefix
+															+ "["
+															+ (typeof v === "object"
+																	|| jQuery
+																			.isArray(v)
+																	? i
+																	: "") + "]",
+													v);
+										}
+									});
+
+						} else if (!traditional && obj != null
+								&& typeof obj === "object") {
+							jQuery.each(obj, function(k, v) {
+										buildParams(prefix + "." + k, v);
+									});
+
+						} else {
+							add(prefix, obj);
+						}
+					}
+
+					function add(key, value) {
+						value = jQuery.isFunction(value) ? value() : value;
+						if (value == null) {
+							s[s.length] = encodeURIComponent(key) + "=";
+						} else {
+							s[s.length] = encodeURIComponent(key) + "="
+									+ encodeURIComponent(value);
+						}
+					}
+				}
+			});
+})(jQuery);
+EUI.util = {
+	getUrlParam : function(name) {
+		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+		var r = window.location.search.substr(1).match(reg);
+		if (r != null)
+			return unescape(r[2]);
+		return null;
+	}
+};﻿EUI.Store = function() {
+	return new EUI.data.Store(arguments[0]);
+};
+
+EUI.data.Store = function() {
+	EUI.apply(this, arguments[0]);
+	// if (this.url && this.type.toLowerCase() != "get") {
+	// 	var tmp = this.url.split("/");
+	// 	if (tmp[tmp.length - 1].indexOf(".") > -1
+	// 			&& tmp[tmp.length - 1].indexOf(".do") == -1) {
+	// 		this.type = "GET";
+	// 	}
+	// }
+
+	if (this.autoLoad == true) {
+		this.doLoad();
+	}
+};
+
+EUI.apply(EUI.data.Store.prototype, {
+			url : null,
+			data : null,
+			async : true,
+			type : 'POST',
+			params : null,
+			autoLoad : true,
+			dataType : "json",
+			postType : "form",
+			timeout : 0,
+			cache : true,
+			success : null,
+			failure : null,
+			loaded : false,
+			contentType : "application/x-www-form-urlencoded",
+			doLoad : function() {
+				var g = arguments[0] ? arguments[0] : this;
+				this.transParams(g);
+				$.ajax({
+							url : g.url,
+							type : g.type,
+							dataType : g.dataType,
+							timeout : g.timeout,
+							async : g.async,
+							contentType : g.contentType,
+							data : g.params ? g.postParam : undefined,
+							success : function(response) {
+								if (typeof response == "string") {
+									if (g.failure)
+										g.failure.call(this, arguments[0]);
+								} else {
+									g.loaded = true;
+									if (g.success)
+										g.success.call(this, arguments[0]);
+								}
+							},
+							error : function() {
+								var resultStr = arguments[0].responseText
+										.trim();
+								if (resultStr.indexOf("登录界面") != -1) {
+									window.parent.location.reload();
+									return;
+								}
+								var result = "";
+								try {
+									result = JSON.parse(resultStr);
+								} catch (e) {
+								}
+								if (g.failure)
+									g.failure.call(this, result);
+							}
+						});
+			},
+			load : function() {
+				var config = arguments[0] || {};
+				EUI.applyIf(config, this);
+				config.autoLoad = true;
+				this.doLoad(config);
+			},
+			transParams : function() {
+				var cfg = arguments[0];
+				cfg.postParam = {};
+				EUI.apply(cfg.postParam, cfg.params);
+				if (cfg.postType == "json") {
+					JSON.stringify(cfg.postParam);
+					cfg.contentType = "application/json;charset=utf-8";
+				} else if (cfg.postType == "form") {
+					cfg.postParam = Object.toFormValue(cfg.postParam, true);
+				}
+			}
+		});EUI.LoadMask = function(cfg) {
+	return new EUI.other.LoadMask(cfg);
+};
+EUI.other.LoadMask = EUI.extend(EUI.UIComponent, {
+	targetDom : null,
+	msg : null,
+
+	initComponent : function() {
+		EUI.other.LoadMask.superclass.initComponent.call(this);
+	},
+
+	getType : function() {
+		return 'LoadMask';
+	},
+	initDom : function() {
+	},
+	render : function() {
+		var parentHeight;
+		if (this.target instanceof EUI.UIComponent) {
+			this.targetDom = this.target.dom;
+		} else if (!this.target || this.target.length == 0) {
+			this.targetDom = $("body");
+		} else {
+			this.targetDom = this.target;
+		}
+		this.dom = $("<div class='ux-loadmask-div'><div class='ux-loadmask-box'>"
+				+ "<span class='ux-loadmask-icon'></span><span class='ux-loadmask-msg'>"
+				+ this.msg + "</span></div></div>");
+		$("body").append(this.dom);
+		this.setShadow();
+		this.setPosition();
+		this.shadow.css("z-index", ++EUI.zindex);
+		this.dom.css("z-index", ++EUI.zindex);
+	},
+
+	hide : function() {
+		this.dom.remove();
+		this.shadow.remove();
+	},
+	setMsg : function(msg) {
+		$('.ux-loadmask-msg', this.dom).html(msg);
+		return this;
+	},
+	setShadow : function() {
+		this.shadow = $("<div class='ux-shadow'></div>");
+		$("body").append(this.shadow);
+	},
+	setPosition : function() {
+		var parentHeight = this.targetDom.outerHeight();
+		var parentWidth = this.targetDom.outerWidth();
+		if (this.targetDom[0].tagName.toUpperCase() == "BODY") {
+			parentHeight = $(window).height();
+			parentWidth = $(window).width();
+		}
+		var offset = this.targetDom.offset();
+		this.dom.css({
+					height : parentHeight + "px",
+					width : parentWidth + "px",
+					"line-height" : parentHeight + "px",
+					top : offset.top,
+					left : offset.left
+				});
+		this.shadow.css({
+					height : parentHeight + "px",
+					width : parentWidth + "px",
+					top : offset.top,
+					left : offset.left
+				});
+	},
+	onResize : function() {
+		this.setPosition();
+	},
+	remove : function() {
+		this.shadow.remove();
+		EUI.other.LoadMask.superclass.remove.call(this);
+	}
+});
+﻿EUI.Button = function(cfg) {
+	return new EUI.other.Button(cfg);
+};
+EUI.other.Button = EUI.extend(EUI.UIComponent, {
+			title : null,
+			width : null,
+			height : null,
+			disable : false,
+			selected : false,
+			CHECK_AUTH : null,
+			domCss : "ux-button",
+			disableCss : null,
+			selectCss : "ux-button-select",
+			handler : null,
+
+			initComponent : function() {
+				if (this.CHECK_AUTH) {
+					if (EUI.checkAuth(this.CHECK_AUTH)) {
+						EUI.other.Button.superclass.initComponent.call(this);
+					}
+				}else{
+					EUI.other.Button.superclass.initComponent.call(this);
+				}
+			},
+
+			getType : function() {
+				return 'Button';
+			},
+
+			render : function() {
+				if (this.selected) {
+					this.dom.addClass(this.selectCss);
+				} else {
+					this.dom.addClass(this.domCss);
+				}
+				if (this.width) {
+					this.dom.css("width", this.width);
+				}
+				if (this.height) {
+					this.dom.css("height", this.height + "px");
+					this.dom.css("line-height", this.height + "px");
+				}
+				this.setTitle(this.title);
+				this.setDisable(this.disable);
+				this.initEvents();
+			},
+			setTitle : function(title) {
+				this.dom.html(title);
+			},
+			setDisable : function(disable) {
+				if (disable) {
+					this.dom.addClass(this.disableCss);
+				} else {
+					this.dom.removeClass(this.disableCss);
+				}
+				this.disable = disable;
+			},
+			setSelected : function(selected) {
+				if (selected) {
+					if (this.selected) {
+						return;
+					} else {
+						this.dom.addClass(this.selectCss)
+								.removeClass(this.domCss);
+						this.selected = true;
+					}
+				} else {
+					if (!this.selected) {
+						return;
+					} else {
+						this.dom.removeClass(this.selectCss)
+								.addClass(this.domCss);
+						this.selected = false;
+					}
+				}
+			},
+			initEvents : function() {
+				var g = this;
+				if (g.handler && typeof g.handler == 'function') {
+					g.dom.click(function() {
+								if (g.disable)
+									return false;
+								g.handler.call(g);
+								return false;
+							});
+				}
+			}
+		});
+﻿EUI.Calendar = function() {
+	return new EUI.other.Calendar(arguments[0]);
+};
+
+EUI.other.Calendar = EUI.extend(EUI.UIComponent, {
+	format : "Y-m-d",
+	domCss : "ux-date",
+	width : 210,
+	height : 220,
+	callback : null,
+	showDate : null,
+	maxDate : null,
+	minDate : null,
+
+	initComponent : function() {
+		EUI.other.Calendar.superclass.initComponent.call(this);
+	},
+	getType : function() {
+		return 'Calendar';
+	},
+
+	render : function() {
+		var g = this;
+		g.dom.addClass(g.domCss);
+		g.setWidth(g.width);
+		g.setHeight(g.height);
+		g.initHeader();
+		g.initBody();
+		g.buttons = {
+			btnPrevYear : $(".ux-box-dateeditor-header-prevyear", g.header),
+			btnNextYear : $(".ux-box-dateeditor-header-nextyear", g.header),
+			btnPrevMonth : $(".ux-box-dateeditor-header-prevmonth", g.header),
+			btnNextMonth : $(".ux-box-dateeditor-header-nextmonth", g.header),
+			btnYear : $(".ux-box-dateeditor-header-year", g.header),
+			btnMonth : $(".ux-box-dateeditor-header-month", g.header)
+		};
+		var nowDate = new Date();
+		g.now = {
+			year : nowDate.getFullYear(),
+			month : nowDate.getMonth() + 1, // 注意这里
+			day : nowDate.getDay(),
+			date : nowDate.getDate(),
+			hour : nowDate.getHours(),
+			minute : nowDate.getMinutes()
+		};
+		if (this.showDate) {
+			var date = new Date(this.showDate);
+			g.currentDate = {
+				year : date.getFullYear(),
+				month : date.getMonth() + 1,
+				day : date.getDay(),
+				date : date.getDate(),
+				hour : date.getHours(),
+				minute : date.getMinutes()
+			};
+		} else {
+			// 当前的时间
+			g.currentDate = {
+				year : nowDate.getFullYear(),
+				month : nowDate.getMonth() + 1,
+				day : nowDate.getDay(),
+				date : nowDate.getDate(),
+				hour : nowDate.getHours(),
+				minute : nowDate.getMinutes()
+			};
+		}
+		// 选择的时间
+		g.selectedDate = g.currentDate;
+		// 使用的时间
+		g.usedDate = null;
+		g.initDate();
+		// 设置主体
+		g.bulidContent();
+		g.addEvents();
+	},
+
+	setWidth : function() {
+		var width = parseInt(arguments[0]);
+		if (width)
+			this.dom.width(width);
+	},
+	setHeight : function() {
+		var height = parseInt(arguments[0]);
+		if (height) {
+			this.dom.height(height);
+		}
+	},
+
+	initHeader : function() {
+		var g = this;
+		var header = "";
+		header += "<div class='ux-box-dateeditor-header'>";
+		header += "<div class='ux-box-dateeditor-header-btn ux-box-dateeditor-header-prevyear'><span></span></div>";
+		header += "<div class='ux-box-dateeditor-header-btn ux-box-dateeditor-header-prevmonth'><span></span></div>";
+		header += "<div class='ux-box-dateeditor-header-text'><a class='ux-box-dateeditor-header-month'></a>  <a  class='ux-box-dateeditor-header-year'></a></div>";
+		header += "<div class='ux-box-dateeditor-header-btn ux-box-dateeditor-header-nextmonth'><span></span></div>";
+		header += "<div class='ux-box-dateeditor-header-btn ux-box-dateeditor-header-nextyear'><span></span></div>";
+		header += "</div>";
+		g.header = $(header);
+		g.dom.append(g.header);
+
+	},
+
+	initBody : function() {
+		var g = this;
+		var body = "";
+		body += "<div class='ux-box-dateeditor-body'>";
+		body += "<table cellpadding='0' cellspacing='0' border='0' class='ux-box-dateeditor-calendar'>";
+		body += "<thead>";
+		body += "<tr><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td></tr>";
+		body += "</thead>";
+		body += "<tbody>";
+		body += "<tr class='ux-first'><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td></tr><tr><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td></tr><tr><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td></tr><tr><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td></tr><tr><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td></tr><tr><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td><td align='center'></td></tr>";
+		body += "</tbody>";
+		body += "</table>";
+		body += "<ul class='ux-box-dateeditor-monthselector'><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>";
+		body += "<ul class='ux-box-dateeditor-yearselector'><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>";
+		body += "<ul class='ux-box-dateeditor-hourselector'><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>";
+		body += "<ul class='ux-box-dateeditor-minuteselector'><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>";
+		body += "</div>";
+		g.body = $(body);
+		g.dom.append(g.body);
+		g.body.thead = $("thead", g.body);
+		g.body.tbody = $("tbody", g.body);
+		g.body.monthselector = $(".ux-box-dateeditor-monthselector", g.body);
+		g.body.yearselector = $(".ux-box-dateeditor-yearselector", g.body);
+		g.body.hourselector = $(".ux-box-dateeditor-hourselector", g.body);
+		g.body.minuteselector = $(".ux-box-dateeditor-minuteselector", g.body);
+	},
+
+	initDate : function() {
+		var g = this;
+		// 初始化数据
+		// 设置周日至周六
+		$("td", g.body.thead).each(function(i, td) {
+					$(td).html(EUI.other.Calendar.week[i]);
+				});
+		// 设置一月到十一二月
+		$("li", g.body.monthselector).each(function(i, li) {
+					$(li).html(EUI.other.Calendar.month[i]);
+				});
+	},
+
+	addEvents : function() {
+		var g = this;
+		// 日期 点击
+		$("td", g.body.tbody).hover(function() {
+					if ($(this).hasClass("ux-box-dateeditor-today"))
+						return;
+					$(this).addClass("ux-box-dateeditor-over");
+				}, function() {
+					$(this).removeClass("ux-box-dateeditor-over");
+				}).click(function() {
+			$(".ux-box-dateeditor-selected", g.body.tbody)
+					.removeClass("ux-box-dateeditor-selected");
+			if (!$(this).hasClass("ux-box-dateeditor-today"))
+				$(this).addClass("ux-box-dateeditor-selected");
+			g.currentDate.date = parseInt($(this).html());
+			g.currentDate.day = new Date(g.currentDate.year,
+					g.currentDate.month - 1, 1).getDay();
+			if ($(this).hasClass("ux-box-dateeditor-out")) {
+				if ($("tr", g.body.tbody).index($(this).parent()) == 0) {
+					if (--g.currentDate.month == 0) {
+						g.currentDate.month = 12;
+						g.currentDate.year--;
+					}
+				} else {
+					if (++g.currentDate.month == 13) {
+						g.currentDate.month = 1;
+						g.currentDate.year++;
+					}
+				}
+			}
+			g.selectedDate = {
+				year : g.currentDate.year,
+				month : g.currentDate.month,
+				date : g.currentDate.date
+			};
+			g.setDate();
+			return false;
+		});
+
+		$(".ux-box-dateeditor-header-btn", g.header).hover(function() {
+					$(this).addClass("ux-box-dateeditor-header-btn-over");
+				}, function() {
+					$(this).removeClass("ux-box-dateeditor-header-btn-over");
+				});
+		// 选择年份
+		g.buttons.btnYear.click(function() {
+					// build year list
+					if (!g.body.yearselector.is(":visible")) {
+						$("li", g.body.yearselector).each(function(i) {
+									var currentYear = g.currentDate.year
+											+ (i - 4);
+									if (currentYear == g.currentDate.year)
+										$(this).addClass("ux-selected");
+									else
+										$(this).removeClass("ux-selected");
+									$(this).html(currentYear);
+								});
+					}
+					g.body.yearselector.slideToggle();
+					return false;
+				});
+
+		$("li", g.body.yearselector).click(function() {
+					g.currentDate.year = parseInt($(this).html());
+					g.body.yearselector.slideToggle();
+					g.bulidContent();
+					return false;
+				});
+		// select month
+		g.buttons.btnMonth.click(function() {
+					$("li", g.body.monthselector).each(function(i) {
+								// add selected style
+								if (g.currentDate.month == i + 1)
+									$(this).addClass("ux-selected");
+								else
+									$(this).removeClass("ux-selected");
+							});
+					g.body.monthselector.slideToggle();
+					return false;
+				});
+
+		$("li", g.body.monthselector).click(function() {
+					var index = $("li", g.body.monthselector).index(this);
+					g.currentDate.month = index + 1;
+					g.body.monthselector.slideToggle();
+					g.bulidContent();
+					return false;
+				});
+
+		// 上个月
+		g.buttons.btnPrevMonth.click(function() {
+					if (--g.currentDate.month == 0) {
+						g.currentDate.month = 12;
+						g.currentDate.year--;
+					}
+					g.bulidContent();
+					return false;
+				});
+		// 下个月
+		g.buttons.btnNextMonth.click(function() {
+					if (++g.currentDate.month == 13) {
+						g.currentDate.month = 1;
+						g.currentDate.year++;
+					}
+					g.bulidContent();
+					return false;
+				});
+		// 上一年
+		g.buttons.btnPrevYear.click(function() {
+					g.currentDate.year--;
+					g.bulidContent();
+					return false;
+				});
+		// 下一年
+		g.buttons.btnNextYear.click(function() {
+					g.currentDate.year++;
+					g.bulidContent();
+					return false;
+				});
+	},
+	setDate : function() {
+		var g = this;
+		if (!this.selectedDate)
+			return;
+		var year = g.selectedDate.year;
+		var month = g.selectedDate.month;
+		var day = g.selectedDate.date;
+		if (month < 10) {
+			month = "0" + month;
+		}
+		if (day < 10) {
+			day = "0" + day;
+		}
+		var date = g.format;
+		date = date.replace(/Y/g, g.selectedDate.year);
+		date = date.replace(/m/g, month);
+		date = date.replace(/d/g, day);
+		if (g.callback) {
+			g.callback.call(this, date);
+		}
+	},
+	bulidContent : function() {
+		var g = this;
+		// 当前月第一天星期
+		var thismonthFirstDay = new Date(g.currentDate.year,
+				g.currentDate.month - 1, 1).getDay();
+		// 当前月天数
+		var nextMonth = g.currentDate.month;
+		var nextYear = g.currentDate.year;
+		if (++nextMonth == 13) {
+			nextMonth = 1;
+			nextYear++;
+		}
+		var monthDayNum = new Date(nextYear, nextMonth - 1, 0).getDate();
+		// 当前上个月天数
+		var prevMonthDayNum = new Date(g.currentDate.year, g.currentDate.month
+						- 1, 0).getDate();
+
+		g.buttons.btnMonth.html(EUI.other.Calendar.month[g.currentDate.month
+				- 1]);
+		g.buttons.btnYear.html(g.currentDate.year);
+		$("td", this.body.tbody).each(function() {
+					this.className = "";
+				});
+		$("tr", this.body.tbody).each(function(i, tr) {
+			$("td", tr).each(function(j, td) {
+				var id = i * 7 + (j - thismonthFirstDay);
+				var showDay = id + 1;
+				if (g.selectedDate && g.currentDate.year == g.selectedDate.year
+						&& g.currentDate.month == g.selectedDate.month
+						&& id + 1 == g.selectedDate.date) {
+					if (j == 0 || j == 6) {
+						$(td).addClass("ux-box-dateeditor-holiday");
+					}
+					$(td).addClass("ux-box-dateeditor-selected");
+					$(td).siblings().removeClass("ux-box-dateeditor-selected");
+				} else if (g.currentDate.year == g.now.year
+						&& g.currentDate.month == g.now.month
+						&& id + 1 == g.now.date) {
+					if (j == 0 || j == 6) {
+						$(td).addClass("ux-box-dateeditor-holiday");
+					}
+					$(td).addClass("ux-box-dateeditor-today");
+				} else if (id < 0) {
+					showDay = prevMonthDayNum + showDay;
+					$(td).addClass("ux-box-dateeditor-out")
+							.removeClass("ux-box-dateeditor-selected");
+				} else if (id > monthDayNum - 1) {
+					showDay = showDay - monthDayNum;
+					$(td).addClass("ux-box-dateeditor-out")
+							.removeClass("ux-box-dateeditor-selected");
+				} else if (j == 0 || j == 6) {
+					$(td).addClass("ux-box-dateeditor-holiday")
+							.removeClass("ux-box-dateeditor-selected");
+				} else {
+					td.className = "";
+				}
+
+				$(td).html(showDay);
+			});
+			if ($("td.ux-box-dateeditor-holiday", tr).length == 0) {
+				g.setHeight(220);
+			} else {
+				g.setHeight(242);
+			}
+		});
+	},
+
+	isDateTime : function(dateStr) {
+		var r = dateStr.match(/^(\d{1,4})(-|\/)(\d{1,2})\2(\d{1,2})$/);
+		if (r == null)
+			return false;
+		var d = new Date(r[1], r[3] - 1, r[4]);
+		if (d == "NaN")
+			return false;
+		return (d.getFullYear() == r[1] && (d.getMonth() + 1) == r[3] && d
+				.getDate() == r[4]);
+	},
+	isLongDateTime : function(dateStr) {
+		var reg = /^(\d{1,4})(-|\/)(\d{1,2})\2(\d{1,2}) (\d{1,2}):(\d{1,2})$/;
+		var r = dateStr.match(reg);
+		if (r == null)
+			return false;
+		var d = new Date(r[1], r[3] - 1, r[4], r[5], r[6]);
+		if (d == "NaN")
+			return false;
+		return (d.getFullYear() == r[1] && (d.getMonth() + 1) == r[3]
+				&& d.getDate() == r[4] && d.getHours() == r[5] && d
+				.getMinutes() == r[6]);
+	},
+	getFormatDate : function(date) {
+		var g = this;
+		if (date == "NaN")
+			return null;
+		var format = g.format;
+		var o = {
+			"M+" : date.getMonth() + 1,
+			"d+" : date.getDate(),
+			"h+" : date.getHours(),
+			"m+" : date.getMinutes(),
+			"s+" : date.getSeconds(),
+			"q+" : Math.floor((date.getMonth() + 3) / 3),
+			"S" : date.getMilliseconds()
+		};
+		if (/(y+)/.test(format)) {
+			format = format.replace(RegExp.$1, (date.getFullYear() + "")
+							.substr(4 - RegExp.$1.length));
+		}
+		for (var k in o) {
+			if (new RegExp("(" + k + ")").test(format)) {
+				format = format.replace(RegExp.$1, RegExp.$1.length == 1
+								? o[k]
+								: ("00" + o[k]).substr(("" + o[k]).length));
+			}
+		}
+		return format;
+	},
+
+	getValue : function() {
+		return this.usedDate;
+	}
+});
+/**
+ * 消息框
+ */
+
+EUI.MessageBox = function(cfg) {
+	return new EUI.msg.MessageBox(cfg);
+};
+
+EUI.msg.MessageBox = EUI.extend(EUI.UIComponent, {
+	title : "提示消息",
+	msg : "",
+	buttons : null,
+	showClose : true,
+
+	initComponent : function() {
+		EUI.msg.MessageBox.superclass.initComponent.call(this);
+	},
+
+	getType : function() {
+		return 'MessageBox';
+	},
+	initDom : function() {
+		this.dom = $("<div class='ux-msgbox'><div class='ux-msgbox-titlebar'><span class='ux-msgbox-title'>"
+				+ this.title
+				+ "</span><span class='ux-msgbox-close'></span></div><div class='ux-msgbox-content'><div>"
+				+ this.msg
+				+ "</div><div class='ux-msgbox-optbox'></div></div></div>");
+		$("body").append(this.dom);
+		this.setShadow();
+		this.setPosition();
+		this.shadow.css("z-index", ++EUI.zindex);
+		this.dom.css("z-index", ++EUI.zindex);
+	},
+	render : function() {
+		this.initButtons();
+		this.addEvents();
+	},
+	initButtons : function() {
+		if (this.buttons) {
+			var optbox = $(".ux-msgbox-optbox", this.dom);
+			for (var i = 0; i < this.buttons.length; i++) {
+				var id = this.buttons[i].id || EUI.getId("Button");
+				var html = "<div id='" + id + "'></div>";
+				optbox.append(html);
+				EUI.applyIf(this.buttons[i], {
+							xtype : "Button",
+							renderTo : id
+						});
+				EUI.Button(this.buttons[i]);
+			}
+		}
+	},
+	addEvents : function() {
+		var g = this;
+		if (!this.showClose) {
+			$(".ux-msgbox-close", this.dom).hide();
+		} else {
+			$(".ux-msgbox-close", this.dom).bind("click", function() {
+						g.remove();
+					});
+		}
+	},
+	setTitle : function(title) {
+		$(".ux-msgbox-title", this.dom).html(title);
+	},
+	setMsg : function(msg) {
+		$(".ux-msgbox-content", this.dom).html(title);
+	},
+	setShadow : function() {
+		this.shadow = $("<div class='ux-shadow'></div>");
+		$("body").append(this.shadow);
+	},
+	setPosition : function() {
+		var parentHeight = $(window).height();
+		var parentWidth = $(window).width();
+		var left = (parentWidth - this.dom.width()) / 2;
+		var top = (parentHeight - this.dom.height()) / 2;
+		if(top > 100){
+			top -= 50;
+		}
+		this.dom.css({
+					top : top,
+					left : left
+				});
+		this.shadow.css({
+					"height" : parentHeight + "px"
+				});
+	},
+	onResize : function() {
+		this.setPosition();
+	},
+	remove : function() {
+		this.shadow.remove();
+		EUI.msg.MessageBox.superclass.remove.call(this);
+	},
+	hide : function() {
+		this.remove();
+	}
+});﻿EUI.ProcessStatus = function(cfg) {
+	return new EUI.msg.ProcessStatus(cfg);
+};
+
+EUI.msg.ProcessStatus = EUI.extend(EUI.UIComponent, {
+			width : 260,
+			height : 65,
+			showTime : 4,
+
+			initComponent : function() {
+				EUI.msg.ProcessStatus.superclass.initComponent.call(this);
+				if(status.success){
+					this.showTime = 2;
+				}
+			},
+			getType : function() {
+				return 'ProcessStatus';
+			},
+			genCmpId : function() {
+				this.id = "eui_status";
+			},
+			render : function() {
+				var preStatus = EUI.getCmp("eui_status");
+				if (preStatus) {
+					preStatus.remove();
+				}
+				this.dom.addClass("ux-status");
+				if(!this.success){
+					this.dom.addClass("ux-status-error");
+				}
+				$("body").append(this.dom);
+				this.show();
+				this.addEvents();
+			},
+			show : function() {
+				var g = this;
+				var html = "<div class='ux-status-content'>" + this.msg
+						+ "</div><span class='ux-status-close'></span>";
+				this.dom.append(html);
+				this.setPosition();
+				setTimeout(function() {
+							g.remove();
+						}, g.showTime * 1000);
+			},
+			addEvents : function() {
+				var g = this;
+				$(".ux-status-close").bind("click", function() {
+							g.remove();
+						});
+			},
+			setPosition : function() {
+				this.dom.css({
+							top : 10,
+							left : ($(window).width() - this.dom.width()) / 2
+						}).slideDown("normal");
+			},
+			onResize : function() {
+				var g = this;
+				g.setPosition();
+				g.dom.css({
+							"left" : g.showLeft,
+							"top" : g.showTop
+						});
+			},
+			remove : function() {
+				var g = this;
+				this.dom.slideUp("normal", function() {
+							g.dom.remove();
+						});
+			}
+		});﻿EUI.Container = function() {
+	return new EUI.container.Container(arguments[0]);
+};
+EUI.container.Container = EUI.extend(EUI.UIComponent, {
+			layout : "form",
+			title : null,
+			padding : 6,
+			border : false,
+			width : "100%",
+			height : "100%",
+			isOverFlow : true,
+			defaultStyle : null,
+			domCss : "ux-container",
+			borderCss : "ux-container-border",
+
+			initComponent : function() {
+				EUI.container.Container.superclass.initComponent.call(this);
+			},
+
+			getType : function() {
+				return 'Container';
+			},
+
+			render : function() {
+				var g = this;
+				g.dom.addClass(g.domCss);
+				if (g.padding) {
+					g.dom.css({
+								padding : g.padding
+							});
+				}
+				if (!g.isOverFlow) {
+					g.dom.css("overflow", "hidden");
+				} else {
+					g.dom.css("overflow", "auto");
+				}
+				if(this.title){
+					this.initTitle();
+				}
+				g.setWidth(g.width);
+				g.setHeight(g.height);
+				if (g.border) {
+					g.showBorder();
+				}
+			},
+			showBorder : function() {
+				this.dom.addClass(this.borderCss);
+			},
+			initTitle:function(){
+				
+			},
+			setWidth : function() {
+				var width = parseFloat(arguments[0]);
+				var parent = this.dom.parent();
+				if (width) {
+					if (typeof arguments[0] == "string"
+							&& arguments[0].indexOf("%") > -1) {
+						width /= 100;
+						width *= this.dom.parent().width();
+					}
+					width -= parseFloat(this.dom.css("paddingLeft")) || 0;
+					width -= parseFloat(this.dom.css("paddingRight")) || 0;
+					width -= parseFloat(this.dom.css("marginLeft")) || 0;
+					width -= parseFloat(this.dom.css("marginRight")) || 0;
+					if (this.border) {
+						width -= 2;
+					}
+					if (this.dom.height() > parent.height()) {
+						width -= 17;
+					}
+					this.dom.width(width);
+					this.width = arguments[0];
+				}
+			},
+			setHeight : function() {
+				var height = parseFloat(arguments[0]);
+				var parent = this.dom.parent();
+				if (height) {
+					if (!parent.hasClass(this.rowCss)
+							&& !parent.hasClass(this.cellCss)
+							&& !parent.hasClass(this.columnCss)) {
+						var pheight = parent.height();
+						if (parent[0].tagName.toLowerCase() == "body") {
+							pheight = $(window).height();
+							pheight -= (parseFloat(parent.css("marginTop")) || 0);
+							pheight -= (parseFloat(parent.css("marginBottom")) || 0);
+							pheight -= (parseFloat(parent.css("paddingTop")) || 0);
+							pheight -= (parseFloat(parent.css("paddingBottom")) || 0);
+						}
+						if (typeof arguments[0] == "string"
+								&& arguments[0].indexOf("%") > -1) {
+							height /= 100;
+							height *= pheight;
+						}
+						height -= parseFloat(this.dom.css("marginTop")) || 0;
+						height -= parseFloat(this.dom.css("marginBottom")) || 0;
+						if (this.border) {
+							height -= 2;
+						}
+						if (this.padding) {
+							height -= 2 * this.padding;
+						}
+						this.dom.height(height);
+						this.height = arguments[0];
+					}
+				} else {
+					this.dom.css("height", "auto");
+					if (this.dom.height() > parent.height()) {
+						var width = this.dom.width();
+						this.dom.width(width - 17);
+					}
+				}
+			},
+			doLayout : function() {
+				var type = arguments[0];
+				switch (this.layout) {
+					case "form" :
+						if (type == "init")
+							EUI.FormLayout(this, "layout");
+						else {
+							EUI.FormLayout(this, "resize");
+						}
+						break;
+					case "column" :
+						if (type == "init")
+							EUI.ColumnLayout(this, "layout");
+						else {
+							EUI.ColumnLayout(this, "resize");
+						}
+						break;
+					case "border" :
+						if (type == "init")
+							EUI.BorderLayout(this, "layout");
+						else {
+							EUI.BorderLayout(this, "resize");
+						}
+						break;
+					case "accordion" :
+						if (type == "init")
+							EUI.AccordionLayout(this, "layout");
+						else {
+							EUI.AccordionLayout(this, "resize");
+						}
+						break;
+					case "auto" :
+						if (type == "init")
+							EUI.AutoLayout(this, "layout");
+						else {
+							EUI.AutoLayout(this, "resize");
+						}
+						break;
+					default :
+						if (type == "init")
+							EUI.FormLayout(this, "layout");
+						else {
+							EUI.FormLayout(this, "resize");
+						}
+				}
+			},
+			addItems : function() {
+				if (this.html) {
+					this.getDom().append(this.html);
+					return;
+				}
+				var items = this.options.items;
+				if (items) {
+					this.doLayout("init");
+				}
+			},
+			onResize : function() {
+				var g = this;
+				if (typeof g.width == "string" && g.width.indexOf("%") > -1) {
+					g.setWidth(g.width);
+				}
+				if (typeof g.height == "string" && g.height.indexOf("%") > -1) {
+					g.setHeight(g.height);
+				}
+				g.doResize();
+			},
+
+			doResize : function() {
+				var items = this.items;
+				if (items) {
+					this.doLayout("resize");
+				}
+			}
+
+		});﻿EUI.GridPanel = function() {
+	return new EUI.grid.GridPanel(arguments[0]);
+};
+
+/**
+ * @fileOverview 封装jqGrid数据表格
+ * @author flyChan
+ */
+
+/**
+ * @class EUI.grid.GridPanel
+ * @constructor
+ * @param {Object}
+ *            cfg ：配置参数
+ * @return {Object} grid ： grid组件，其中grid为jqGrid实例
+ */
+EUI.grid.GridPanel = EUI.extend(EUI.container.Container, {
+			gridCss : "ux-grid",
+			contentCss : "ux-panel-grid",
+			padding : null,
+			searchConfig : null,
+			autoLoad : true,
+			subheight : 58,
+			data : null,
+			initComponent : function() {
+				EUI.grid.GridPanel.superclass.initComponent.call(this);
+			},
+			getType : function() {
+				return 'GridPanel';
+			},
+
+			initGridCfg : function() {
+				var grid = $("<table id='g_" + this.id + "'></table>");
+				grid.addClass(this.gridCss);
+				this.dom.append(grid);
+				var cfg = this.gridCfg;
+				cfg.autowidth = true;
+				this.initHeight(cfg);
+				/**
+				 * 设置colModel不排序
+				 */
+				for (var i = 0; i < cfg.colModel.length; i++) {
+					EUI.applyIf(cfg.colModel[i], {
+								sortable : false
+							});
+				}
+				/**
+				 * @description 初始化pager
+				 */
+				if (cfg.hasPager != false) {
+					cfg.hasPager = true;
+					cfg.pager = cfg.pager || this.id + "_pager";
+					grid.after("<div id='" + cfg.pager + "'></div>");
+					cfg.pager = "#" + cfg.pager;
+					cfg.pagerpos = "center";
+
+					/**
+					 * @description 初始化页显示数目
+					 */
+					if (!cfg.rowList) {
+						var rowNum = cfg.rowNum = cfg.rowNum ? cfg.rowNum : 15;
+						var rowList = [rowNum, rowNum + 10, rowNum + 20,
+								rowNum + 40, rowNum + 60, rowNum + 80];
+						cfg.rowList = rowList;
+					}
+				}
+				/**
+				 * @description 初始化数据类型
+				 */
+				if (cfg.loadonce == true) {
+					cfg.datatype = "local";
+				}
+				var basecfg = {
+					mtype : "post",
+					pagerpos : "left",
+					recordpos : "right",
+					altRows : true,
+					hidegrid : false,
+					data : this.data || [],
+					pgtext : EUI.cmpText.pgtext,
+					viewrecords : true,
+					rownumbers : true,
+					loadError : function(re) {
+						if (re && re.responseText) {
+							if (re.responseText.indexOf("登录界面") != -1) {
+								window.parent.location.reload();
+								return;
+							}
+							var status = {
+								success : false,
+								msg : re.responseText
+							};
+							EUI.ProcessStatus && EUI.ProcessStatus({
+										status : status
+									});
+						}
+					},
+					datatype : "json"
+				};
+				cfg = EUI.apply(basecfg, cfg);
+				this.grid = grid.jqGrid(cfg);
+				$('#gbox_' + grid.attr('id')).css('border-style', 'none');
+				$(cfg.pager).addClass("ui-jqgrid-pagerbar");
+				if (cfg.loadonce == true && this.autoLoad) {
+					this.refreshGrid();
+				}
+			},
+			initHeight : function(cfg) {
+				if (this.height != "auto") {
+					cfg.height = this.dom.height() - this.subheight;
+					if (cfg.footerrow) {
+						cfg.height -= 34;
+					}
+					if (cfg.multihead) {
+						cfg.height -= 28;
+					}
+					if (cfg.caption) {
+						cfg.height -= 31;
+					}
+					if (cfg.hasPager != false) {
+						cfg.height += 27;
+					}
+				}else{
+					cfg.height = "auto";
+				}
+			},
+			afterRender : function() {
+				EUI.grid.GridPanel.superclass.afterRender.call(this);
+				this.initGridCfg();
+				this.postDataParam = EUI.apply({}, this.grid
+								.getGridParam("postData"));
+				$("#gbox_" + this.id).css("border-style", "none");
+				this.dom.css("overflow", "hidden");
+				this.onResize();
+			},
+			localSearch : function(keyValue) {
+				var g = this;
+				var value = $.trim(keyValue).toLowerCase();
+				var keyColum;
+				if (!g.searchConfig || !g.searchConfig.searchCols) {
+					keyColum = g.getGridCols().visibleCols.colsName;
+				} else {
+					keyColum = g.searchConfig.searchCols;
+				}
+				if (!g.data) {
+					g.data = g.grid.jqGrid("getGridParam", "data");
+				}
+				var gridData = g.data;
+				if (value == "") {
+					g.setDataInGrid(gridData, true);
+					return;
+				} else {
+					if (gridData && gridData.length == 0)
+						return;
+					else {
+						var results = [];
+						for (var i = 0; gridData && i < gridData.length; i++) {
+							var item = gridData[i];
+							for (var k = 0; k < keyColum.length; k++) {
+								var colName = keyColum[k];
+								if (item[colName] != null) {
+									if (item[colName].toString().toLowerCase()
+											.indexOf(value) >= 0) {
+										results.push(item);
+										break;
+									}
+								} else if (colName.indexOf(".") != -1) {
+									var tmp = colName.split(".");
+									if (item[tmp[0]] != null
+											&& item[tmp[0]][tmp[1]] != null) {
+										if (item[tmp[0]][tmp[1]].toString()
+												.toLowerCase().indexOf(value) >= 0) {
+											results.push(item);
+											break;
+										}
+									}
+								}
+							}
+						}
+						g.setDataInGrid(results, true);
+					}
+				}
+			},
+			getGridCols : function() {
+				var g = this, cols = {
+					allCols : [],
+					visibleCols : {
+						colsName : [],
+						colsLabel : []
+					}
+				};
+				var gcols = g.grid.getGridParam("colModel");
+				var glabels = g.grid.getGridParam("colNames");
+				for (var i = 0; i < gcols.length; i++) {
+					var colProp = g.grid.getColProp(gcols[i].name);
+					if (!colProp.hidden) {
+						cols.visibleCols.colsName.push(gcols[i].name);
+					}
+					cols.allCols.push(gcols[i].name);
+				}
+				for (var m = 0; m < glabels.length; m++) {
+					cols.visibleCols.colsLabel.push(glabels[m].label);
+				}
+				return cols;
+			},
+			setDataInGrid : function(data, notRefresh) {
+				var g = this;
+				g.grid.jqGrid("clearGridData", true);
+				g.grid.jqGrid("setGridParam", {
+							datatype : "local",
+							page : 1,
+							data : data
+						}).trigger("reloadGrid");
+				if (!notRefresh) {
+					g.data = data;
+				}
+			},
+			addRowData : function(rowdata) {
+				if (rowdata instanceof Array) {
+					for (var i = 0; i < rowdata.length; i++) {
+						this.grid.addRowData(rowdata[i].id, rowdata[i]);
+					}
+				} else {
+					this.grid.addRowData(rowdata.id, rowdata);
+				}
+				if (this.isLoadOnce()) {
+					this.data = this.grid.jqGrid("getGridParam", "data");
+				}
+			},
+			restore : function() {
+				this.setDataInGrid(this.data);
+			},
+			refreshGrid : function() {
+				var g = this, args = arguments, postData;
+				if (args.length > 0 && EUI.isJsonObj(args[0])) {
+					postData = args[0];
+				} else {
+					postData = g.grid.jqGrid("getGridParam", "postData");
+				}
+				if (g.grid.jqGrid("getGridParam", "loadonce")) {
+					var url = g.grid.jqGrid("getGridParam", "url");
+					if (url) {
+						$.post(url, postData, function(data) {
+									for (var i = 0; i < args.length; i++) {
+										if (args[i] instanceof Function) {
+											args[1].call(g, data);
+										}
+									}
+									g.grid.jqGrid('clearGridData', true);
+									g.grid.jqGrid("setGridParam", {
+												data : data,
+												page : 1
+											}).trigger("reloadGrid");
+									g.data = data;
+								});
+					}
+				} else {
+					g.grid.jqGrid("setGridParam", {
+								datatype : "json",
+								page : 1,
+								postData : postData
+							}).trigger("reloadGrid");
+				}
+			},
+			getRowData : function() {
+				var g = this, args = arguments;
+				if (args.length != 0) {
+					return g.grid.getRowData(args[0]);
+				}
+				return null;
+			},
+			setSelectRowById : function() {
+				var g = this, args = arguments;
+				if (args.length != 0) {
+					g.grid.resetSelection();
+					g.grid.setSelection(args[0], true);
+				}
+			},
+			getSelectRow : function() {
+				var g = this;
+				var rows;
+				var muti = g.grid.jqGrid("getGridParam", "multiselect");
+				if (muti) {
+					rows = [];
+					var rowIds = g.grid.jqGrid('getGridParam', 'selarrrow');
+					for (var i = 0; i < rowIds.length; i++) {
+						rows.push(g.getRowData(rowIds[i]));
+					}
+				} else {
+					var rowId = g.grid.jqGrid('getGridParam', 'selrow');
+					if (rowId) {
+						rows = g.getRowData(rowId);
+					}
+				}
+				return rows;
+			},
+			getGridData : function() {
+				var g = this;
+				var rows = [];
+				if (g.isLoadOnce()) {
+					rows = g.grid.jqGrid("getGridParam", "data");
+				} else {
+					var ids = g.grid.getDataIDs();
+					for (var i = 0; i < ids.length; i++) {
+						rows.push(g.getRowData(ids[i]));
+					}
+				}
+				return rows instanceof Array ? rows : [];
+			},
+			onResize : function() {
+				EUI.grid.GridPanel.superclass.onResize.call(this);
+				if (this.grid) {
+					if (this.height != "auto") {
+						var pheight = this.dom.height() - this.subheight;
+						if (this.gridCfg.footerrow) {
+							pheight -= 34;
+						}
+						if (this.gridCfg.multihead) {
+							pheight -= 28;
+						}
+						if (this.gridCfg.hasPager == false) {
+							pheight += 27;
+						}
+						if (this.gridCfg.caption) {
+							pheight -= 31;
+						}
+						this.grid.jqGrid("setGridHeight", pheight);
+						this.dom.css("overflow", "hidden");
+					} else {
+						this.dom.css("overflow", "auto");
+					}
+				}
+			},
+			setPostParams : function(params, refresh) {
+				var g = this;
+				var grid = this.grid;
+				EUI.apply(this.postDataParam, params);
+				var jqgrid = grid.each(function() {
+							if (this.grid
+									&& typeof g.postDataParam === 'object') {
+								this.p.postData = g.postDataParam;
+							}
+						});
+				if (refresh) {
+					jqgrid.trigger("reloadGrid");
+				}
+				return jqgrid;
+			},
+			setGridParams : function(params, refresh) {
+				var jqgrid = this.grid.jqGrid("setGridParam", params);
+				if (refresh) {
+					jqgrid.trigger("reloadGrid");
+				}
+				this.postDataParam = EUI.apply({}, this.grid
+								.getGridParam("postData"));
+			},
+			setTitle : function(title) {
+				$(".ui-jqgrid-title", this.dom).html(title);
+			},
+			resetParam : function() {
+				this.setPostParams(this.postDataParam);
+			},
+			reset : function() {
+				this.setDataInGrid([]);
+				this.data = [];
+			},
+			isLoadOnce : function() {
+				return this.grid.jqGrid("getGridParam", "loadonce");
+			},
+			deleteRow : function(id) {
+				this.grid.jqGrid("delRowData", id);
+				if (this.isLoadOnce()) {
+					this.data = this.grid.jqGrid("getGridParam", "data");
+				}
+			}
+		});﻿EUI.TabPanel = function() {
+	return new EUI.container.TabPanel(arguments[0]);
+};
+EUI.container.TabPanel = EUI.extend(EUI.container.Container, {
+	maxWidth : 200,
+	maxTabs : 20,
+	padding : 0,
+	tabWidth : null,
+	totalWidth : 1,
+	showTabMenu : true,
+	overflowText : null,
+	autoScroll : true,
+	tabCss : "ux-tab",
+	itemCloseCss : "ux-tab-item-close",
+	ulCss : "ux-tab-ul",
+	liCss : "ux-tab-li",
+	aCss : "ux-tab-li-a",
+	iconCss : "ux-tab-icon",
+	headerCss : "ux-tab-header",
+	contentCss : "ux-tab-content",
+	activeCss : "ux-tab-actived",
+	wrapCss : "ux-tab-wrap",
+	disableLeft : "ux-tab-scrollLeft-disable",
+	disableRight : "ux-tab-scrollRight-disable ",
+	onActive : null,
+	beforeClose : null,
+	afterClose : null,
+
+	initComponent : function() {
+		EUI.container.TabPanel.superclass.initComponent.call(this);
+	},
+	getType : function() {
+		return 'TabPanel';
+	},
+	render : function() {
+		EUI.container.TabPanel.superclass.render.call(this);
+		this.tab = this.dom;
+		this.initCmp();
+		this.addEvents();
+		this.setTabHeight();
+	},
+	showBorder : function() {
+		// 重载父类设置border方法，该方法不能去掉
+	},
+	initCmp : function() {
+		var g = this;
+		var header = $("<div></div>").addClass(g.headerCss);
+		var left = $("<div class='ux-tab-scroll scrollLeft'><span></span></div>")
+				.hide();
+		var right = $("<div class='ux-tab-scroll scrollRight'><span></span></div>")
+				.hide();
+		var ul = $("<ul class='" + g.ulCss + "'></ul>").width(6000);
+		var wrap = $("<div class='" + g.wrapCss + "'></div>");
+		wrap.append(ul);
+		header.append(left).append(wrap).append(right);
+		header.left = left;
+		header.right = right;
+		header.ul = ul;
+		header.wrap = wrap;
+		var content = $("<div class='" + g.contentCss + "'></div>");
+		g.tab.append(header).append(content);
+		g.tab.header = header;
+		g.tab.content = content;
+		g.wrapWidth = wrap.width();
+	},
+	addEvents : function() {
+		var g = this;
+		// 右移按钮事件
+		g.tab.header.right.bind("click", function() {
+			if ($(this).hasClass(g.disableRight)) {
+				return;
+			}
+			var last = $("li:last", g.tab.header.ul);
+			var lastLeft = last.offset().left;
+			var rightBtn = g.tab.header.right.offset().left;
+			if (lastLeft + last.width() + 1 > rightBtn) {
+				var ul = g.tab.header.ul;
+				var ulLeft = ul.offset().left;
+				var scrollWidth = g.tabWidth ? g.tabWidth : 120;
+				scrollWidth = ulLeft - scrollWidth - g.tab.header.offset().left;
+				if (lastLeft <= rightBtn) {
+					scrollWidth = ul.position().left
+							- (last.width() + lastLeft + 1 - rightBtn) - 2;
+				}
+				ul.animate({
+							left : scrollWidth
+						}, function() {
+							if (last.offset().left + last.width() + 2 <= rightBtn) {
+								g.tab.header.right.addClass(g.disableRight);
+							}
+						});
+			}
+			g.tab.header.left.removeClass(g.disableLeft);
+		});
+		// 左移按钮事件
+		g.tab.header.left.bind("click", function() {
+			if ($(this).hasClass(g.disableLeft)) {
+				return;
+			}
+			var first = $("li:first", g.tab.header.ul);
+			var firstLeft = first.offset().left;
+			var leftBtn = g.tab.header.left.offset().left;
+			var leftWidth = g.tab.header.left.width();
+			if (firstLeft < leftBtn + leftWidth + 2) {
+				var ul = g.tab.header.ul;
+				var scrollWidth = g.tabWidth ? g.tabWidth : 120;
+				scrollWidth += ul.position().left;
+				if (firstLeft + first.width() > leftBtn + leftWidth + 2) {
+					scrollWidth = leftWidth;
+				}
+				// 设置绝对位移
+				ul.animate({
+							left : scrollWidth
+						}, function() {
+							if (first.offset().left >= leftBtn + leftWidth + 2) {
+								g.tab.header.left.addClass(g.disableLeft);
+							}
+						});
+			}
+			g.tab.header.right.removeClass(g.disableRight);
+		});
+		if (g.showTabMenu) {
+			$("." + g.liCss, g.dom).live("contextmenu", function(e) {
+						var tabId = $(this).attr("tabid");
+						var index = $("." + g.liCss).index(this);
+						var item = g.options.items[index];
+						var refreshable = false, closeable = item.closable;
+						if (g.activeId == tabId && item.iframe) {
+							refreshable = true;
+						}
+						g.showMenu($(this), refreshable, closeable);
+						return false;
+					});
+			$(document).bind({
+						"blur" : function() {
+							g.hideMenu();
+						},
+						"click" : function(e) {
+							if ($(e.target).parents(".ux-menu").length == 0) {
+								g.hideMenu();
+							}
+						}
+					});
+		}
+	},
+	showMenu : function(dom, refreshable, closeable) {
+		var g = this;
+		if (!this.menu) {
+			this.menu = $("<div class='ux-menu'><div class='ux-menu-yline'></div>"
+					+ "<div class='ux-menu-over' style='top: -24px;'><div class='ux-menu-over-l'></div> <div class='ux-menu-over-r'></div></div>"
+					+ "<div class='ux-menu-inner'>"
+					+ "<div class='ux-menu-item' type='refresh'><div class='ux-menu-icon ux-menu-refresh'></div><div class='ux-menu-title'>刷新</div></div>"
+					+ "<div class='ux-menu-xline'>"
+					+ "</div><div class='ux-menu-item' type='close'><div class='ux-menu-icon ux-menu-close'></div><div class='ux-menu-title'>关闭</div></div>"
+					+ "<div class='ux-menu-item' type='closeother'><div class='ux-menu-icon'></div><div class='ux-menu-title'>关闭其他</div></div>"
+					+ "<div class='ux-menu-item' type='closeall'><div class='ux-menu-icon'></div><div class='ux-menu-title'>关闭所有</div></div></div></div>");
+			$("body").append(this.menu);
+			var hoverDom = $(".ux-menu-over", g.menu);
+			$(".ux-menu-item", this.menu).hover(function() {
+						var itemDom = $(this);
+						hoverDom.css({
+									top : itemDom.position().top + 4
+								});
+					}, function() {
+						hoverDom.css({
+									top : -24
+								});
+					});
+			$(".ux-menu-item", this.menu).bind("click", function() {
+						var tabId = g.menu.attr("tabid");
+						var type = $(this).attr("type");
+						switch (type) {
+							case "refresh" :
+								g.refresh(tabId);
+								break;
+							case "close" :
+								g.close(tabId);
+								break;
+							case "closeother" :
+								g.closeOther(tabId);
+								break;
+							case "closeall" :
+								g.closeAll();
+								break;
+							default :
+								break;
+						}
+						g.hideMenu();
+					});
+		}
+		this.menu.attr("tabid", dom.attr("tabid"));
+		this.menu.show();
+		if (!refreshable) {
+			$(".ux-menu-refresh", this.menu).parent().hide();
+			$(".ux-menu-xline", this.menu).hide();
+		} else {
+			$(".ux-menu-refresh", this.menu).parent().show();
+			$(".ux-menu-xline", this.menu).show();
+		}
+		if (!closeable) {
+			$(".ux-menu-close", this.menu).parent().hide();
+		} else {
+			$(".ux-menu-close", this.menu).parent().show();
+		}
+		var offset = dom.offset();
+		this.menu.offset({
+					top : offset.top + 15,
+					left : offset.left + dom.width() / 2
+				});
+	},
+	hideMenu : function() {
+		this.menu && this.menu.hide();
+	},
+	setTabHeight : function() {
+		var heigth = this.tab.height() - 33;
+		this.tab.content.height(heigth);
+
+	},
+	setTitle : function(index, title) {
+		var li = $("li:eq(" + index + ")", this.tab.header.ul);
+		li.attr("title", title);
+		$(".ux-tab-title", li).html(title);
+	},
+	addItems : function() {
+		var g = this, items = g.options.items;
+		var activeId;
+		if (items) {
+			if (g.maxTabs && items.length > g.maxTabs) {
+				throw new Error(String.format(g.initTooMuch, items.length,
+						g.maxTabs));
+			}
+			for (var i = 0; i < items.length; i++) {
+				var item = items[i];
+				var fn = g.initItem(item);
+				g.doAddTitle(item);
+				g.doAddContent(fn, item);
+				if (i == 0 || item.actived) {
+					activeId = item.id;
+				}
+			}
+			g.activeId = activeId;
+			g.active(activeId);
+		}
+	},
+	initItem : function() {
+		var item = arguments[0], g = this;
+		var defaultConf = {
+			closable : true,
+			iframe : true,
+			xtype : "Container"
+		};
+		EUI.applyIf(item, g.defaultConfig);
+		EUI.applyIf(item, defaultConf);
+		if (!item.id) {
+			item.id = EUI.getId("tabitem");
+		}
+		if (!item.iframe) {
+			var xtype = item.xtype ? item.xtype : g.defaultType;
+			if (!xtype) {
+				throw new Error(EUI.error.noXtype);
+			}
+			var fn = eval("EUI." + xtype);
+			if (!fn) {
+				throw new Error(String.format(EUI.error.noCmp, xtype));
+			}
+			return fn;
+		} else {
+			return null;
+		}
+	},
+	doAddTitle : function(item) {
+		var g = this;
+		var title = item.title ? item.title : "";
+		delete item.title;
+		var li = $("<li title='" + title + "'></li>").addClass(g.liCss).attr(
+				"tabid", item.id);
+		li.bind("click", function() {
+					g.active(item.id);
+				});
+		var a = $("<a></a>").addClass(g.aCss);
+		if (item.iconCls)
+			a.append("<span class='" + g.iconCss + " " + item.iconCls
+					+ "'></span>&nbsp;");
+		var titleDiv = $("<span class='ux-tab-title'>" + title + "</span>");
+		a.append(titleDiv);
+		li.append(a);
+		// 关闭事件
+		if (item.closable) {
+			var close = $("<div class='" + g.itemCloseCss + "'></div>");
+			close.bind("click", function() {
+						g.close(item.id);
+						return false;
+					});
+			li.append(close);
+		}
+		g.tab.header.ul.append(li);
+		// title宽度
+		if (g.tabWidth) {
+			titleDiv.width(g.tabWidth);
+		} else {
+			var tw = titleDiv.width();
+			if (tw > g.maxWidth) {
+				titleDiv.width(g.maxWidth);
+			}
+		}
+		delete item.iconCls;
+		var wrap = g.tab.header.wrap;
+		// 记录所有tab标题的长度
+		g.totalWidth += (1 + li.width());
+		if (g.autoScroll && !g.scrolled && wrap.width() < g.totalWidth) {
+			g.tab.header.left.show();
+			g.tab.header.right.show();
+			g.tab.header.ul.animate({
+						left : g.tab.header.left.width()
+					}, function() {
+						g.tab.header.right.removeClass(g.disableRight);
+					});
+			g.scrolled = true;
+		}
+	},
+	doAddContent : function() {
+		var g = this, item = arguments[1], id, fn = arguments[0];
+		var height = this.tab.content.height();
+		var tabItem = $("<div class='ux-tab-content-item'></div>");
+		tabItem.attr("tabid", item.id);
+		g.tab.content.append(tabItem);
+		if (!item.iframe) {
+			var div = $("<div id='" + item.id + "'></div>");
+			tabItem.append(div);
+			item.renderTo = item.id;
+			var cmp = fn.call(fn, item);
+			g.items.push(cmp.id);
+		} else {
+			if (!item.url) {
+				throw new Error(EUI.error.noUrl);
+			}
+			tabItem.append("<div class='ux-tab-loading'></div>");
+			var iframe = $('<iframe frameborder="0" width="100%" height="100%"></iframe>')
+					.attr("src", item.url);
+			iframe.bind("load", function() {
+						$(this).prev().hide();
+					});
+			iframe.data(g.iframeData);
+			item.renderTo = item.id;
+			iframe.attr("id", item.id);
+			tabItem.append(iframe);
+		}
+		tabItem.hide();
+	},
+	addTab : function(item) {
+		var g = this;
+		if (item.id) {
+			for (var i = 0; i < g.options.items.length; i++) {
+				if (g.options.items[i].renderTo == item.id) {
+					if (item.cover == true) {
+						var iframe = $("#" + item.id).attr("src", item.url);
+						iframe.prev().show();
+					}
+					g.active(item.id);
+					return null;
+				}
+			}
+		}
+		if (g.maxTabs && g.options.items.length >= g.maxTabs) {
+			EUI.ProcessStatus({
+						title : "提示",
+						success : false,
+						msg : String.format(g.overflowText, g.maxTabs)
+					});
+			return null;
+		}
+		item.parentCmp = g.id || g.renderTo;
+		var fn = g.initItem(item);
+		g.doAddTitle(item);
+		g.doAddContent(fn, item);
+		g.options.items.push(item);
+		g.active(item.id);
+		return this;
+	},
+	show : function() {
+		var index = $("li", this.tab.header.ul).length;
+		this.active(index - 1);
+	},
+	active : function(id) {
+		var g = this, ul = g.tab.header.ul;
+		var li = $("." + g.liCss + "[tabid='" + id + "']", ul);
+		li.addClass(g.activeCss).siblings().removeClass(g.activeCss);
+		var content = $(".ux-tab-content-item[tabid='" + id + "']",
+				g.tab.content);
+		content.show().siblings().hide();
+		// 记录激活Id
+		g.activeId = id;
+		// g.autoScroll && g.scrollVisible(id);
+		// 触发激活事件
+		var iframeWin = null;
+		if ($("iframe#" + id).length != 0) {
+			iframeWin = $("iframe#" + id)[0].contentWindow;
+		}
+		this.onActive && this.onActive.call(this, id, iframeWin);
+	},
+	scrollVisible : function(activeId) {
+		var g = this, activedTab, leftBtn, rightBtn, scrollWidth;
+		var ul = g.tab.header.ul;
+		if (g.scrolled) {
+			activedTab = $("." + g.liCss + "[tabid='" + activeId + "']", ul);
+			var activeLeft = activedTab.offset().left;
+			var ulLeft = ul.offset().left;
+			leftBtn = g.tab.header.left.offset().left;
+			rightBtn = g.tab.header.right.offset().left;
+			var leftBtnWidth = g.tab.header.left.is(":visible")
+					? g.tab.header.left.width()
+					: 0;
+			// 如果在左边被隐藏
+			if (activeLeft < leftBtn + leftBtnWidth + 2) {
+				scrollWidth = leftBtn + leftBtnWidth;
+			} else if (activeLeft + activedTab.width() > rightBtn) {
+				// 如果在右边被隐藏
+				scrollWidth = ulLeft
+						- (activedTab.width() + activeLeft + 2 - rightBtn);
+			}
+			if (scrollWidth != undefined) {
+				g.tab.header.ul.offset({
+							left : scrollWidth
+						});
+			}
+			var firstLeft = $("." + g.liCss + ":first", ul).offset().left;
+			if (firstLeft - 2 >= leftBtn + leftBtnWidth) {
+				g.tab.header.left.addClass(g.disableLeft);
+			} else {
+				g.tab.header.left.removeClass(g.disableLeft);
+			}
+			var last = $("." + g.liCss + ":last", ul);
+			var lastLeft = last.offset().left;
+			if (lastLeft + last.width() + 2 <= rightBtn) {
+				g.tab.header.right.addClass(g.disableRight);
+			} else {
+				g.tab.header.right.removeClass(g.disableRight);
+			}
+		}
+	},
+	onResize : function() {
+		EUI.container.TabPanel.superclass.onResize.call(this);
+		var g = this, ul = g.tab.header.ul, wrapWidth = g.tab.header.wrap
+				.width()
+				- 36;
+		g.setTabHeight();
+		if (g.autoScroll && wrapWidth != g.wrapWidth) {
+			if (g.totalWidth > wrapWidth) {
+				if (!g.scrolled) {
+					g.tab.header.left.show();
+					g.tab.header.right.show();
+					g.scrolled = true;
+				}
+				g.scrollVisible(g.activeId);
+			} else {
+				if (g.scrolled) {
+					g.tab.header.left.hide();
+					g.tab.header.right.hide();
+					ul.offset({
+								left : 3
+							});
+					g.scrolled = false;
+				}
+			}
+		}
+
+		g.wrapWidth = g.tab.header.wrap.width();
+		g.tab.content.width(g.wrapWidth);
+	},
+	close : function(id) {
+		var g = this, ul = g.tab.header.ul, items = g.options.items, index;
+		for (var i = 0; i < items.length; i++) {
+			if (items[i].renderTo == id) {
+				index = i;
+				break;
+			}
+		}
+		var li = $("." + g.liCss + "[tabid='" + id + "']", ul);
+		if (li.length == 0) {
+			return;
+		}
+		var isActived = li.hasClass(g.activeCss);
+		// 触发关闭前事件
+		if (g.beforeClose) {
+			var flag = g.beforeClose.call(this, id);
+			if (flag == false)
+				return;
+		}
+		var nowTabWidth = li.width() + 1;
+		g.totalWidth -= nowTabWidth;
+		// 删除对应html元素
+		li.remove();
+		$(".ux-tab-content-item[tabid='" + id + "']", g.tab.content).remove();
+
+		// 删除options中item
+		items.splice(index, 1);
+		// 删除组件items中item,组件管理器删除组件，删除所有子组件
+		var cmp = EUI.getCmp(id);
+		if (cmp) {
+			var cmpItems = g.items;
+			for (var j in cmpItems) {
+				if (cmpItems[j] == id) {
+					cmpItems.splice(j, 1);
+					break;
+				}
+			}
+			cmp.remove();
+		}
+		// 激活当前标签的下一个标签
+		if (isActived) {
+			g.activeId = null;
+			if (index < items.length)
+				g.active(items[index].id);
+			else if (index > 0)
+				g.active(items[index - 1].id);
+		}
+		g.setScroll();
+		// 关闭后事件
+		if (g.afterClose) {
+			g.afterClose.call(this, id);
+		}
+	},
+	closeOther : function(tabId) {
+		var g = this;
+		var items = g.options.items;
+		for (var i = 0; i < items.length; i++) {
+			var id = items[i].id;
+			if (id != tabId && items[i].closable) {
+				g.doClose(id, i);
+				i--;
+				if (g.activeId == id) {
+					g.activeId = null;
+				}
+			}
+		}
+		if (!g.activeId && items.length > 0) {
+			g.active(items[0].id);
+		}
+		g.setScroll();
+	},
+	closeAll : function() {
+		var g = this;
+		var items = g.options.items;
+		for (var i = 0; i < items.length; i++) {
+			if (!items[i].closable) {
+				continue;
+			}
+			var id = items[i].id;
+			g.doClose(id, i);
+			i--;
+			if (g.activeId == id) {
+				g.activeId = null;
+			}
+		}
+		if (!g.activeId && items.length > 0) {
+			g.active(items[0].id);
+		}
+		g.setScroll();
+	},
+	doClose : function(id, index) {
+		var g = this, ul = g.tab.header.ul, items = g.options.items;
+		var li = $("." + g.liCss + "[tabid='" + id + "']", ul);
+		if (li.length == 0) {
+			return;
+		}
+		var cmpContent = $(".ux-tab-content-item[tabid='" + id + "']",
+				g.tab.content);
+		// 触发关闭前事件
+		if (g.beforeClose) {
+			var flag = g.beforeClose.call(this, id);
+			if (flag == false)
+				return;
+		}
+		g.totalWidth -= li.width() + 1;
+		// 删除对应html元素
+		li.remove();
+		cmpContent.remove();
+		// 删除options中item
+		items.splice(index, 1);
+		// 删除组件items中item,组件管理器删除组件，删除所有子组件
+		var cmp = EUI.getCmp(id);
+		if (cmp) {
+			var cmpItems = g.items;
+			for (var j in cmpItems) {
+				if (cmpItems[j] == id) {
+					cmpItems.splice(j, 1);
+					break;
+				}
+			}
+			cmp.remove();
+		}
+		// 关闭后事件
+		if (g.afterClose) {
+			g.afterClose.call(this, id);
+		}
+	},
+	refresh : function(id, url) {
+		var g = this;
+		var iframe = $("iframe#" + id, g.tab.content);
+		url = url || iframe.attr("src");
+		iframe.prev().show();
+		iframe.attr("src", url);
+	},
+	setScroll : function() {
+		var g = this;
+		var header = g.tab.header, ul = header.ul;
+		if (g.scrolled) {
+			var wrapWidth = header.wrap.width() - header.left.width()
+					- header.right.width();
+			// 判断是否需要左右移动按钮
+			if (wrapWidth >= g.totalWidth) {
+				header.left.hide();
+				header.right.hide();
+				// 将第一个Tab页签移动到最左边
+				header.wrap.animate({
+							left : 0
+						}, function() {
+							ul.offset({
+										left : header.offset().left + 31
+									});
+						});
+				g.scrolled = false;
+			} else {
+				var firstLi = $("." + g.liCss + ":first", ul);
+				var firstLeft = firstLi.offset().left;
+				var leftBtnLeft = header.left.offset().left;
+				var leftBtnWidth = header.left.width();
+				if (firstLeft <= leftBtnLeft + leftBtnWidth + 1) {
+					ul.offset({
+								left : leftBtnLeft + leftBtnWidth + 3
+							});
+				}
+			}
+		}
+	}
+});﻿EUI.FormPanel = function() {
+	return new EUI.container.FormPanel(arguments[0]);
+};
+
+EUI.container.FormPanel = EUI.extend(EUI.container.Container, {
+	url : null,
+	store : null,
+	afterLoad : null,
+	layout : "form",
+	formCss : "ux-form",
+	initComponent : function() {
+		EUI.container.FormPanel.superclass.initComponent.call(this);
+		if (this.store) {
+			this.initStore();
+		}
+	},
+	getType : function() {
+		return 'FormPanel';
+	},
+
+	submit : function() {
+		if (this.isValid()) {
+			var config = arguments[0] || {};
+			var data = this.getFormValue();
+			EUI.applyIf(config, {
+						params : data
+					});
+			EUI.applyIf(config, {
+						url : this.url
+					});
+			config.autoLoad = true;
+			EUI.Store(config);
+		}
+	},
+	isValid : function() {
+		return this.doValidate(this.items);
+	},
+	doValidate : function() {
+		var items = arguments[0];
+		var flag = true;
+		if (items) {
+			for (var i = 0; i < items.length; i++) {
+				var item = EUI.getCmp(items[i]);
+				if (item.isFormField || item.needValid) {
+					var tmp = item.sysValidater();
+					flag = flag && tmp;
+				} else if(item.items){
+					flag = this.doValidate(item.items) && flag;
+				}
+			}
+		}
+		return flag;
+	},
+
+	getFormValue : function() {
+		var items = this.items;
+		var data = {};
+		for (var i = 0; i < items.length; i++) {
+			var item = EUI.getCmp(items[i]);
+			EUI.applyIf(data, this.getItemValue(item));
+		}
+		return data;
+	},
+
+	getItemValue : function() {
+		var item = arguments[0];
+		var data = {};
+		if (item.isFormField) {
+			EUI.applyIf(data, item.getSubmitValue());
+		}
+		if (item.items) {
+			for (var i = 0; i < item.items.length; i++) {
+				EUI.applyIf(data, this.getItemValue(EUI.getCmp(item.items[i])));
+			}
+		}
+		return data;
+	},
+
+	reset : function() {
+		this.doReset(this.items);
+	},
+
+	doReset : function() {
+		var items = arguments[0];
+		if (items) {
+			for (var i = 0; i < items.length; i++) {
+				var item = EUI.getCmp(items[i]);
+				if (item.isFormField) {
+					item.reset();
+				}
+				this.doReset(item.items);
+			}
+		}
+	},
+
+	loadData : function() {
+		if (arguments[0]) {
+			this.data = arguments[0];
+		}
+		this.doLoadData(this.items);
+		this.isValid();
+	},
+	doLoadData : function() {
+		var items = arguments[0];
+		if (items) {
+			for (var i = 0; i < items.length; i++) {
+				var item = EUI.getCmp(items[i]);
+				if (item.isFormField) {
+					item.loadData(this.data);
+				}
+				this.doLoadData(item.items);
+			}
+		}
+	},
+	initStore : function() {
+		var g = this;
+		g.store.success = function(response) {
+			g.data = response.data;
+			g.loadData();
+			g.afterLoad && g.afterLoad.call(this, g.data);
+		};
+		g.store.autoLoad = true;
+		g.beforeLoad && g.beforeLoad.call(this, g);
+		var store = EUI.Store(g.store);
+		g.store = store;
+	},
+
+	getCmpByName : function() {
+		var name = arguments[0];
+		var items = this.items;
+		return this.doGetCmp(items, name);
+	},
+
+	doGetCmp : function() {
+		var items = arguments[0], name = arguments[1];
+		if (items) {
+			for (var i = 0; i < items.length; i++) {
+				var item = EUI.getCmp(items[i]);
+				if (item.isFormField && item.name == name) {
+					return item;
+				} else {
+					var cmp = this.doGetCmp(item.items, name);
+					if (cmp != null) {
+						return cmp;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+});﻿EUI.TreePanel = function () {
+    return new EUI.container.TreePanel(arguments[0]);
+};
+
+EUI.container.TreePanel = EUI.extend(EUI.container.Container, {
+    url: null,
+    params: null,
+    data: null,
+    showField: "name",
+    beforeLoad: null,
+    afterLoad: null,
+    showIcon: null,
+    index: 1,
+    originData: null,
+    searchField: ["name"],
+    async: false,
+    onSelect: null,
+    itemRender: null,
+    afterItemRender: null,
+    getAsyncUrl: null,
+
+    initComponent: function () {
+        EUI.container.TreePanel.superclass.initComponent.call(this);
+        if(this.data && this.data.length > 0){
+            this.originData = this.data;
+        }
+    },
+    getType: function () {
+        return 'TreePanel';
+    },
+    render: function () {
+        this.treebox = $("<div class='ux-tree-box'></div>");
+        this.dom.append(this.treebox);
+        if (this.url) {
+            this.loadData();
+        } else if (this.data) {
+            this.initTree();
+        }
+        this.addEvents();
+        EUI.container.TreePanel.superclass.render.call(this);
+    },
+    loadData: function (params) {
+        var g = this;
+        EUI.applyIf(this.params, params);
+        if (this.beforeLoad) {
+            var result = this.beforeLoad.call(this);
+            if (!result) {
+                return false;
+            }
+        }
+        var mask = EUI.LoadMask();
+        EUI.Store({
+            url: this.url,
+            params: this.params,
+            success: function (result) {
+                mask.hide();
+                if (result.success) {
+                    g.data = result.data;
+                    g.originData = result.data;
+                    g.initTree();
+                } else {
+                    EUI.ProcessStatus(result);
+                }
+            },
+            failure: function (result) {
+                EUI.ProcessStatus(result);
+                mask.hide();
+            }
+        });
+    },
+    initTree: function () {
+        this.treebox.html("");
+        var html = this.doInitTree(this.data, "", 0);
+        this.treebox.append(html);
+        if (this.afterItemRender) {
+            this.renderItem(this.data);
+        }
+    },
+    doInitTree: function (data, preLvStr, level) {
+        var html = "";
+        if (preLvStr) {
+            preLvStr += "-";
+        }
+        for (var i = 0; i < data.length; i++) {
+            var itemdata = data[i];
+            var id = itemdata.id || ++this.id;
+            var lvStr = preLvStr + i;
+            var itemHtml = "<li id='" + id + "' dx='" + lvStr + "'>";
+            var expandCss, iconCss;
+            if (itemdata.hasChild
+                || (itemdata.children && itemdata.children.length > 0)) {
+                expandCss = "ux-expandable-close";
+                if (itemdata.isexpand) {
+                    expandCss = "ux-expandable-open";
+                    iconCss = "ux-tree-folder-open";
+                } else {
+                    iconCss = "ux-tree-folder-close";
+                }
+            } else {
+                expandCss = "ux-expandable-hide";
+                iconCss = "ux-tree-leaf";
+            }
+            if (this.showIcon) {
+                var showCss = this.showIcon.call(this, itemdata);
+                if (showCss) {
+                    iconCss = showCss;
+                }
+            }
+            var text = itemdata[this.showField];
+            if (this.itemRender) {
+                text = this.itemRender.call(this, itemdata);
+            }
+            var paddingLeft = level * 20;
+            var titleHtml = "<div class='ux-body' style='padding-left:"
+                + paddingLeft
+                + "px;'><div class='ux-icon-box'><div class='ux-tree-icon expandable "
+                + expandCss + "'></div></div><div class='ux-tree-icon "
+                + iconCss + "'></div><div class='ux-tree-title'>" + text
+                + "</div></div>";
+            itemHtml += titleHtml;
+            if (itemdata.children) {
+                var ul = "<ul class='ux-tree-children'>";
+                if (!itemdata.isexpand) {
+                    ul = "<ul class='ux-tree-children' style='display:none;'>";
+                }
+                var childrenHtml = this.doInitTree(itemdata.children, lvStr,
+                    level + 1);
+                ul += childrenHtml + "</ul>";
+                itemHtml += ul;
+            }
+            html += itemHtml + "</li>";
+        }
+        return html;
+    },
+    renderItem: function (data) {
+        for (var i = 0; i < data.length; i++) {
+            this.afterItemRender.call(this, data[i]);
+            if (data[i].children) {
+                this.renderItem(data[i].children);
+            }
+        }
+    },
+    expandAll: function () {
+        $("ul", this.treebox).show();
+    },
+    closeAll: function () {
+        $("ul", this.treebox).hide();
+    },
+    expand: function (id) {
+        var dom = $("li[id='" + id + "']", this.treebox);
+        var data = this.getNodeData(id);
+        if (this.async && data.hasChild && !data.children) {
+            this.getExtraData(data, dom);
+        }
+        var uls = dom.parents("ul");
+        for (var i = 0; i < uls.length; i++) {
+            var ul = $(uls[i]);
+            var expandDom = ul.prev().find(".expandable");
+            this.expandOpt(expandDom);
+        }
+        dom.find(".ux-icon-box").click();
+        dom.addClass("ux-tree-selected");
+    },
+    getExtraData: function (data, dom) {
+        var g = this;
+        var url;
+        if (g.getAsyncUrl) {
+            url = g.getAsyncUrl.call(this, data);
+        }
+        if (!url) {
+            EUI.ProcessStatus({
+                success: false,
+                msg: "获取数据地址不能为空"
+            });
+            return;
+        }
+        EUI.Store({
+            url: url,
+            success: function (result) {
+                if (result.success) {
+                    g.doInitTree(data, dom);
+                } else {
+                    EUI.ProcessStatus(result);
+                }
+            },
+            failure: function (result) {
+                EUI.ProcessStatus(result);
+            }
+        });
+    },
+    close: function (id) {
+        var dom = $("li[id='" + id + "']", this.treebox);
+        dom.find(".ux-icon-box").click();
+    },
+    addEvents: function () {
+        var g = this;
+        $(".ux-icon-box", this.dom).live("click", function () {
+            var iconDom = $(this).find(".expandable");
+            if (iconDom.hasClass("ux-expandable-close")) {
+                var dom = $(this).parent().parent();
+                var id = dom.attr("id");
+                var data = g.getNodeData(id);
+                if (g.async && data.hasChild && !data.children) {
+                    g.getExtraData(data, dom);
+                }
+                g.expandOpt(iconDom);
+            } else {
+                g.closeOpt(iconDom);
+            }
+            return false;
+        });
+        $(".ux-body", this.dom).live("click", function () {
+            $(".selected", g.dom).removeClass("selected");
+            $(this).addClass("selected");
+            var id = $(this).parent().attr("id");
+            var data = g.getNodeData(id);
+            g.onSelect && g.onSelect.call(g, data);
+        });
+
+    },
+    expandOpt: function (dom) {
+        dom.removeClass("ux-expandable-close");
+        dom.parent().next().removeClass("ux-tree-folder-close")
+            .addClass("ux-tree-folder-open");
+        dom.parent().parent().next().show("normal");
+    },
+    closeOpt: function (dom) {
+        dom.addClass("ux-expandable-close");
+        dom.parent().next().addClass("ux-tree-folder-close")
+            .removeClass("ux-expandable-open");
+        dom.parent().parent().next().hide("normal");
+    },
+    setData: function (data,isOrigin) {
+        if (data instanceof Array) {
+            if(isOrigin){
+                this.originData = data;
+            }
+            this.data = data;
+            this.initTree();
+        }
+    },
+    deleteItem: function (id) {
+        $("li[id='" + id + "']", this.dom).hide("fast", function () {
+            $(this).remove();
+        });
+    },
+    setSelect: function (id) {
+        var dom = $("#" + id + " .ux-body:first", this.dom);
+        if (dom.length == 0) {
+            return;
+        }
+        if (!dom.hasClass("selected")) {
+            $(".selected", this.dom).removeClass("selected");
+            dom.addClass("selected");
+        }
+
+        var data = this.getNodeData(id);
+        // 展开当前节点
+        this.expand(id);
+        this.onSelect && this.onSelect.call(this, data);
+    },
+    clearSelect: function () {
+        $(".selected", this.dom).removeClass("selected");
+    },
+    getParentData: function (id) {
+        var dom = $("#" + id, this.dom);
+        if (dom.length == 0) {
+            return null;
+        }
+        var lvStr = dom.attr("dx");
+        lvStr = lvStr.substring(0, lvStr.lastIndexOf("-"));
+        return this.getDataByLv(lvStr);
+    },
+    getNodeData: function (id) {
+        var dom = $("#" + id, this.dom);
+        if (dom.length == 0) {
+            return null;
+        }
+        var lvStr = dom.attr("dx");
+        return this.getDataByLv(lvStr);
+    },
+    getDataByLv: function (lvStr) {
+        var data = this.data;
+        var lvs = lvStr.split("-");
+        for (var i = 0; i < lvs.length; i++) {
+            var index = parseInt(lvs[i]);
+            if (i == lvs.length - 1) {
+                return data[index];
+            } else {
+                data = data[index].children;
+            }
+        }
+        return data;
+    },
+    search: function (value) {
+        var data = JSON.parse(JSON.stringify(this.originData));
+        value = value.toLowerCase();
+        var searchResult = this.doSearch(value,data);
+        this.setData(searchResult);
+    },
+    checkIsExist: function (value, data) {
+        for (var i = 0; i < this.searchField.length; i++) {
+            var key = this.searchField[i];
+            var nodeValue = data[key].toLowerCase();
+            if (nodeValue.indexOf(value) != -1) {
+                return true;
+            }
+        }
+    },
+    doSearch: function (value, data) {
+        var fitdata = [];
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].children && data[i].children.length > 0) {
+                var searchdata = this.doSearch(value,data[i].children);
+                if (searchdata.length == 0) {
+                    if (this.checkIsExist(value, data[i])) {
+                        delete data[i].children;
+                        data[i].hasChild = true;
+                        fitdata.push(data[i]);
+                    }
+                } else {
+                    data[i].children = searchdata;
+                    fitdata.push(data[i]);
+                }
+            } else if (this.checkIsExist(value, data[i])) {
+                fitdata.push(data[i]);
+            }
+        }
+        return fitdata;
+    },
+    reset: function () {
+        this.setData(this.originData);
+    },
+    remove: function () {
+        EUI.container.TreePanel.superclass.remove.call(this);
+        $(".ux-icon-box", this.dom).die("click");
+        $(".ux-body", this.dom).die("click");
+    }
+});﻿EUI.Window = function() {
+	return new EUI.container.Window(arguments[0]);
+};
+EUI.container.Window = EUI.extend(EUI.container.Container, {
+	width : 340,
+	height : 400,
+	padding : 10,
+	showTitle : true,
+	showClose : true,
+	isOverFlow : true,
+	closeAction : "close",
+	afterClose : null,
+
+	initComponent : function() {
+		EUI.container.Window.superclass.initComponent.call(this);
+	},
+
+	getType : function() {
+		return 'Window';
+	},
+
+	initDom : function() {
+		this.dom = $("<div class='ux-window'><div class='ux-window-titlebar'><span class='ux-window-title'>"
+				+ (this.title || "")
+				+ "</span><span class='ux-window-close'></span></div><div class='ux-window-content'><div id='"
+				+ this.id
+				+ "'></div><div class='ux-window-optbox'></div></div></div>");
+		$("body").append(this.dom);
+		this.dom.title = $(".ux-window-titlebar", this.dom);
+		if (!this.title) {
+			this.dom.title.hide();
+		}
+		this.setShadow();
+		this.shadow.css("z-index", ++EUI.zindex);
+		this.dom.css("z-index", ++EUI.zindex);
+	},
+	render : function() {
+		this.dom.content = $("#" + this.id);
+		if (this.padding) {
+			this.dom.content.css({
+						padding : this.padding
+					});
+		}
+		if (!this.isOverFlow) {
+			this.dom.content.css("overflow", "hidden");
+		} else {
+			this.dom.content.css("overflow", "auto");
+		}
+		this.setWidth(this.width);
+		this.setHeight(this.height);
+		this.setPosition();
+		this.initButtons();
+		this.addEvents();
+	},
+	setTitle : function(title) {
+		if (title) {
+			this.dom.title.show();
+		}
+		$(".ux-window-title", this.dom.title).text(title);
+	},
+	setWidth : function(width) {
+		this.dom.content.width(width);
+		this.width = width;
+	},
+	setHeight : function(height) {
+		this.dom.content.height(height);
+		this.height = height;
+	},
+	setShadow : function() {
+		this.shadow = $("<div class='ux-shadow'></div>");
+		$("body").append(this.shadow);
+	},
+	setPosition : function() {
+		var parentHeight = $(window).height();
+		var parentWidth = $(window).width();
+		var left = (parentWidth - this.dom.width()) / 2;
+		var top = (parentHeight - this.dom.height()) / 2;
+		left = left < 0 ? 0 : left;
+		top = top < 0 ? 0 : top;
+		if (top > 100) {
+			top -= 50;
+		}
+		this.dom.css({
+					top : top,
+					left : left
+				});
+		this.shadow.css({
+					"height" : parentHeight + "px"
+				});
+	},
+	initButtons : function() {
+		var optbox = $(".ux-window-optbox", this.dom);
+		if (this.buttons) {
+			for (var i = 0; i < this.buttons.length; i++) {
+				var id = this.buttons[i].id || EUI.getId("Button");
+				var html = "<div id='" + id + "'></div>";
+				optbox.append(html);
+				EUI.applyIf(this.buttons[i], {
+							xtype : "Button",
+							renderTo : id
+						});
+				EUI.Button(this.buttons[i]);
+			}
+		} else {
+			optbox.hide();
+		}
+	},
+	addEvents : function() {
+		var g = this;
+		if (!this.showClose) {
+			$(".ux-window-close", this.dom).hide();
+		} else {
+			$(".ux-window-close", this.dom).bind("click", function() {
+						if (g.closeAction == "close") {
+							g.close();
+						} else {
+							g.hide();
+						}
+					});
+		}
+		// 移动事件
+		$(".ux-window-titlebar", this.dom).bind({
+					mousedown : function(event) {
+						$(this).css("cursor", "move");
+						var e = event || window.event;
+						$(this).data("draggable",true);
+						$(this).data("dragData", {
+									startX : e.pageX,
+									startY : e.pageY
+								});
+					},
+					mousemove : function(event) {
+						var data = $(this).data("dragData");
+						if (!$(this).data("draggable")) {
+							return;
+						}
+						var e = event || window.event;
+						var position = g.dom.position();
+						var css = {
+							"left" : position.left + (e.pageX - data.startX),
+							"top" : position.top + (e.pageY - data.startY)
+						};
+						g.dom.css(css);
+						$(this).data("dragData", {
+									startX : e.pageX,
+									startY : e.pageY
+								});
+					},
+					mouseup : function() {
+						$(this).css("cursor", "");
+						$(this).data("draggable",false);
+					},
+					mouseleave:function(){
+						$(this).css("cursor", "");
+						$(this).data("draggable",false);
+					}
+				});
+	},
+	onResize : function() {
+		this.setPosition();
+	},
+	getDom : function() {
+		return this.dom.content;
+	},
+	hide : function() {
+		this.dom.hide();
+		this.shadow.hide();
+	},
+	show : function() {
+		this.dom.show();
+		this.shadow.show();
+	},
+	close : function() {
+		this.remove();
+		this.afterClose && this.afterClose.call(this);
+	},
+	remove : function() {
+		this.shadow.remove();
+		EUI.container.Window.superclass.remove.call(this);
+	}
+});﻿EUI.ToolBar = function(cfg) {
+	return new EUI.container.ToolBar(cfg);
+};
+EUI.container.ToolBar = EUI.extend(EUI.container.Container, {
+			padding : 5,
+			height : 40,
+			border : false,
+			isOverFlow : false,
+			domCss : "ux-toolbar",
+			itemCss : "ux-toolbar-item",
+
+			initComponent : function() {
+				EUI.container.ToolBar.superclass.initComponent.call(this);
+			},
+
+			getType : function() {
+				return 'ToolBar';
+			},
+
+			addItems : function() {
+				var g = this, items = this.options.items;
+				if (items) {
+					var tb = g.dom;
+					for (var i = 0; i < items.length; i++) {
+						var item = items[i];
+						if (item == "->") {
+							g.dom.rightbox = $('<div class="ux-bar-right"></div>');
+							g.dom.append(g.dom.rightbox);
+							tb = g.dom.rightbox;
+							continue;
+						}
+						var div;
+						if (i == items.length - 1) {
+							div = $("<div class='" + this.itemCss
+									+ "' style='margin-right:0px;'></div>");
+						} else {
+							div = $("<div class='" + this.itemCss + "'></div>");
+						}
+						if (!item.renderTo) {
+							var id = item.id || EUI.getId(item.xtype);
+							if (items.length > 1) {
+								div.append("<div id='" + id + "'>");
+							} else {
+								div.attr("id", id);
+							}
+							item.renderTo = id;
+						}
+						tb.append(div);
+						EUI.applyIf(item, g.defaultConfig);
+						var xtype = item.xtype;
+						if (!xtype) {
+							throw new Error(EUI.error.noXtype);
+						}
+						var cmp = eval("EUI." + xtype);
+						if (!cmp) {
+							throw new Error(String.format(EUI.error.noCmp,
+									xtype));
+						}
+						cmp = cmp.call(cmp, item);
+						this.items.push(cmp.id);
+					}
+				}
+			},
+			onResize : function() {
+				EUI.container.ToolBar.superclass.onResize.call(this);
+			}
+
+		});
+﻿EUI.FormLayout = function() {
+	return new EUI.layout.FormLayout(arguments[0], arguments[1]);
+};
+
+EUI.layout.FormLayout = function() {
+	this.scope = arguments[0];
+	var type = arguments[1];
+	if (type == "layout") {
+		this.layout();
+	} else if (type == "resize") {
+		this.resize();
+	}
+};
+
+EUI.apply(EUI.layout.FormLayout.prototype, {
+
+			itemspace : 8,
+			rowCss : "ux-line-row",
+
+			layout : function() {
+				var items = this.scope.options.items, scope = this.scope;
+				var dom = scope.getDom();
+				var itemspace = scope.itemspace == undefined
+						? this.itemspace
+						: scope.itemspace;
+				var rowCss = scope.rowCss || this.rowCss;
+
+				var parentWidth = dom.outerWidth();
+				parentWidth -= parseFloat(dom.css("marginLeft")) || 0;
+				parentWidth -= parseFloat(dom.css("marginRight")) || 0;
+				var flag = false;
+				for (var i = 0; i < items.length; i++) {
+					var item = items[i];
+					EUI.applyIf(item, scope.defaultConfig);
+					if (!item.xtype) {
+						throw new Error(EUI.error.noXtype);
+					}
+					var cmpFn = eval("EUI." + item.xtype);
+					if (!cmpFn) {
+						throw new Error(EUI.error.noXtype + ":" + "EUI."
+								+ item.xtype);
+					}
+					var div = $("<div class='" + rowCss + "'></div>");
+					if (!item.hidden) {
+						if (flag) {
+							div.css("margin-top", itemspace);
+						}else {
+							flag = true;
+						}
+					}
+					if (!item.renderTo) {
+						var id = item.id || EUI.getId(item.xtype);
+						if (items.length > 1) {
+							div.append("<div id='" + id + "'>");
+						} else {
+							div.attr("id", id);
+						}
+						item.renderTo = id;
+					}
+					dom.append(div);
+					item.changeVisiable = function(visiable){
+						var lineRow = this.dom.parent();
+						if(visiable){
+							lineRow.css("margin-top", itemspace);
+						}else{
+							lineRow.css("margin-top", 0);
+						}
+					};
+					item = cmpFn.call(cmpFn, item);
+					scope.items.push(item.id);
+				}
+				if (dom[0].clientWidth != dom[0].offsetWidth) {
+					EUI.resize(scope);
+				}
+			},
+
+			resize : function() {
+				var items = this.scope.items;
+				var dom = this.scope.getDom();
+				var parentWidth = dom.outerWidth();
+				parentWidth -= parseFloat(dom.css("marginLeft")) || 0;
+				parentWidth -= parseFloat(dom.css("marginRight")) || 0;
+				var isScrolled = dom[0].scrollWidth > dom[0].offsetWidth;
+				if (isScrolled && this.scope.isOverFlow) {
+					for (var i = 0; i < items.length; i++) {
+						var item = EUI.getCmp(items[i]);
+						var row = item.dom.parent();
+						row.width(parentWidth - 17);
+					}
+				}
+			}
+		});﻿EUI.ColumnLayout = function() {
+	return new EUI.layout.ColumnLayout(arguments[0], arguments[1]);
+};
+
+EUI.layout.ColumnLayout = function() {
+	this.scope = arguments[0];
+	var type = arguments[1];
+	if (type == "layout") {
+		this.layout();
+	} else if (type == "resize") {
+		this.resize();
+	}
+};
+
+EUI.apply(EUI.layout.ColumnLayout.prototype, {
+
+			itemspace : 20,
+			columnCss : "ux-column-layout",
+
+			layout : function() {
+				var items = this.scope.options.items, g = this, scope = this.scope;
+				var dom = scope.getDom();
+				var itemspace = scope.itemspace == undefined ?  this.itemspace : scope.itemspace;
+				var columnCss = scope.columnCss || this.columnCss;
+				var firstRight;
+				var overFlag = false;
+				for (var i = 0; i < items.length; i++) {
+					var item = items[i], id;
+					EUI.applyIf(item, scope.defaultConfig);
+					var xtype = item.xtype;
+					if (!xtype) {
+						throw new Error(EUI.error.noXtype);
+					}
+					var cmpFn = eval("EUI." + xtype);
+					if (!cmpFn) {
+						throw new Error(EUI.error.noXtype + ":" + "EUI."
+								+ xtype);
+					}
+					var div = $("<div class='" + columnCss + "'></div>");
+					if (i != 0) {
+						div.css("margin-left", itemspace);
+					}
+					if (!item.renderTo) {
+						id = item.id || EUI.getId(item.xtype);
+						if (items.length > 1) {
+							div.append("<div id='" + id + "'>");
+						} else {
+							div.attr("id", id);
+						}
+						item.renderTo = id;
+					}
+					dom.append(div);
+					item = cmpFn.call(cmpFn, item);
+					scope.items.push(item.id);
+					if (i == 0) {
+						firstRight = item.dom.offset().left + item.dom.width();
+					} else {
+						var left = div.offset().left;
+						if (left < firstRight) {
+							overFlag = true;
+							firstRight = div.offset().left + div.width();
+							div.css("margin-left", 0);
+						}
+						if (overFlag) {
+							div.css("margin-top", 8);
+						}
+					}
+				}
+			},
+
+			resize : function() {
+				var items = this.scope.items;
+				var itemspace = this.scope.itemspace || this.itemspace;
+				var firstDom = EUI.getCmp(items[0]).dom;
+				var firstRight = firstDom.offset().left + firstDom.width();
+				var overFlag = false;
+				for (var i = 1; i < items.length; i++) {
+					var dom = EUI.getCmp(items[i]).dom;
+					var left = dom.offset().left;
+					var div = dom.parent();
+					if (left < firstRight) {
+						overFlag = true;
+						firstRight = div.offset().left + div.width();
+						div.css("margin-left", 0);
+					}else{
+						div.css("margin-left", itemspace);
+					}
+					if (overFlag) {
+						div.css("margin-top", 8);
+					} else {
+						div.css("margin-top", 0);
+					}
+				}
+			}
+		});﻿EUI.BorderLayout = function() {
+	return new EUI.layout.BorderLayout(arguments[0], arguments[1]);
+};
+
+EUI.layout.BorderLayout = function() {
+	this.scope = arguments[0];
+	var type = arguments[1];
+	if (type == "layout") {
+		this.layout();
+	} else if (type == "resize") {
+		this.resize();
+	}
+};
+
+EUI.apply(EUI.layout.BorderLayout.prototype, {
+
+			itemspace : 4,
+
+			layout : function() {
+				var items = this.scope.options.items, scope = this.scope;
+				var east, south, west, north, center;
+				var itemspace = scope.itemspace == undefined
+						? this.itemspace
+						: scope.itemspace;
+				var dom = this.scope.getDom();
+				var parentWidth = dom.width();
+				var parentHeight = dom.height();
+				var centerWidth = parentWidth;
+				var centerHeight = parentHeight;
+				for (var i = 0; i < items.length; i++) {
+					var item = items[i];
+					EUI.applyIf(item, scope.defaultConfig);
+					EUI.applyIf(item, {
+								border : true,
+								xtype : "Container"
+							});
+					if (item.region == "east") {
+						if (!item.width) {
+							item.width = "20%";
+							item.defaultWidth = "20%";
+						}
+						east = item;
+						if (typeof east.width == "string"
+								&& east.width.indexOf("%") > -1) {
+							width = parseFloat(east.width) / 100;
+							east.width = parseInt(parentWidth * width);
+						}
+						centerWidth -= (east.width + itemspace);
+					} else if (item.region == "west") {
+						if (!item.width) {
+							item.width = "20%";
+							item.defaultWidth = "20%";
+						}
+						west = item;
+						if (typeof west.width == "string"
+								&& west.width.indexOf("%") > -1) {
+							width = parseFloat(west.width) / 100;
+							west.width = parseInt(parentWidth * width);
+						}
+						centerWidth -= (west.width + itemspace);
+					} else if (item.region == "south") {
+						if (!item.height) {
+							item.height = "15%";
+							item.defaultHeight = "15%";
+						}
+						south = item;
+						if (typeof south.height == "string"
+								&& south.height.indexOf("%") > -1) {
+							height = parseFloat(south.height) / 100;
+							south.height = parseInt(parentHeight * height);
+							south.defaultHeight = "15%";
+						}
+						centerHeight -= (south.height + itemspace);
+					} else if (item.region == "north") {
+						if (!item.height) {
+							item.height = "15%";
+							item.defaultHeight = "15%";
+						}
+						north = item;
+						if (typeof north.height == "string"
+								&& north.height.indexOf("%") > -1) {
+							height = parseFloat(north.height) / 100;
+							north.height = parseInt(parentHeight * height);
+						}
+						centerHeight -= (north.height + itemspace);
+					} else if (item.region == "center") {
+						center = item;
+					}
+				}
+
+				if (!center) {
+					throw new Error(String.format(EUI.error.noCenter,scope.id));
+				} else {
+					center.width = centerWidth;
+					center.height = centerHeight;
+					var height, width, panel, top, left;
+					var div, id, xtype, cmp;
+					if (north) {
+						xtype = north.xtype;
+						id = north.id || EUI.getId(xtype);
+						div = $("<div id='" + id + "'></div>");
+						dom.append(div);
+						div.css({
+									"position" : "absolute"
+								});
+						north.renderTo = id;
+						cmp = eval("EUI." + xtype);
+						if (!cmp) {
+							throw new Error(String.format(EUI.error.noCmp,
+									xtype));
+						}
+						panel = cmp.call(cmp, north);
+						scope.items.push(panel.id);
+						this.scope.north = panel.id;
+						top = panel.height + panel.dom.offset().top + itemspace;
+					}
+					if (west) {
+						west.height = center.height;
+						xtype = west.xtype;
+						cmp = eval("EUI." + xtype);
+						if (!cmp) {
+							throw new Error(String.format(EUI.error.noCmp,
+									xtype));
+						}
+						id = west.id || EUI.getId(xtype);
+						div = $("<div id='" + id + "'></div>");
+						dom.append(div);
+						div.css({
+									"position" : "absolute"
+								});
+						if (north)
+							div.offset({
+										top : top
+									});
+						west.renderTo = id;
+						panel = cmp.call(cmp, west);
+						scope.items.push(panel.id);
+						this.scope.west = panel.id;
+						left = panel.width + panel.dom.offset().left
+								+ itemspace;
+					}
+					if (center) {
+						xtype = center.xtype;
+						cmp = eval("EUI." + xtype);
+						if (!cmp) {
+							throw new Error(String.format(EUI.error.noCmp,
+									xtype));
+						}
+						id = center.id || EUI.getId(xtype);
+						div = $("<div id='" + id + "'></div>");
+						dom.append(div);
+						div.css({
+									"position" : "absolute"
+								});
+						if (north)
+							div.offset({
+										top : top
+									});
+						if (west)
+							div.offset({
+										left : left
+									});
+						center.renderTo = id;
+						panel = cmp.call(cmp, center);
+						scope.items.push(panel.id);
+						this.scope.center = panel.id;
+						left = panel.width + panel.dom.offset().left
+								+ itemspace;
+					}
+					if (east) {
+						east.height = center.height;
+						xtype = east.xtype;
+						cmp = eval("EUI." + xtype);
+						if (!cmp) {
+							throw new Error(String.format(EUI.error.noCmp,
+									xtype));
+						}
+						id = east.id || EUI.getId(xtype);
+						div = $("<div id='" + id + "'></div>");
+						dom.append(div);
+						div.css({
+									"position" : "absolute"
+								});
+						if (north)
+							div.offset({
+										top : top
+									});
+						div.offset({
+									left : left
+								});
+						east.renderTo = id;
+						panel = cmp.call(cmp, east);
+						scope.items.push(panel.id);
+						this.scope.east = panel.id;
+					}
+					top = EUI.getCmp(this.scope.center).dom.offset().top
+							+ EUI.getCmp(this.scope.center).height + itemspace;
+					if (south) {
+						south.height = south.height;
+						xtype = south.xtype ? south.xtype : scope.defaultType;
+						EUI.applyIf(south, this.defaultStyle);
+						cmp = eval("EUI." + xtype);
+						if (!cmp) {
+							throw new Error(String.format(EUI.error.noCmp,
+									xtype));
+						}
+						id = south.id || EUI.getId(xtype);
+						div = $("<div id='" + id + "'></div>");
+						dom.append(div);
+						div.css({
+									"position" : "absolute"
+								});
+						div.offset({
+									top : top
+								});
+						south.renderTo = id;
+						panel = cmp.call(cmp, south);
+						scope.items.push(panel.id);
+						this.scope.south = panel.id;
+					}
+				}
+			},
+
+			resize : function() {
+				var dom = this.scope.getDom();
+				var parentWidth = dom.width();
+				var parentHeight = dom.height();
+				var centerWidth = parentWidth;
+				var centerHeight = parentHeight;
+				var itemspace = this.scope.itemspace == undefined
+						? this.itemspace
+						: this.scope.itemspace;
+				var height, width, panel, top = 0, left = 0;
+				if (this.scope.north) {
+					panel = EUI.getCmp(this.scope.north);
+					height = panel.height;
+					if (panel.options.defaultHeight) {
+						height = parseFloat(panel.options.defaultHeight) / 100;
+						height = parseInt(parentHeight * height);
+						panel.setHeight(height);
+						panel.setWidth(parentWidth);
+					}
+					centerHeight -= (panel.dom.outerHeight() + itemspace);
+					panel.dom.css({
+								"position" : "absolute"
+							});
+					top = panel.dom.outerHeight() + panel.dom.offset().top
+							+ itemspace;
+					EUI.resize(panel);
+				}
+				if (this.scope.south) {
+					panel = EUI.getCmp(this.scope.south);
+					height = panel.height;
+					if (panel.options.defaultHeight) {
+						height = parseFloat(panel.options.defaultHeight) / 100;
+						height = parseInt(parentHeight * height);
+						panel.setHeight(height);
+						panel.setWidth(parentWidth);
+					}
+					centerHeight -= (panel.dom.outerHeight() + itemspace);
+					EUI.resize(panel);
+				}
+				if (this.scope.west) {
+					panel = EUI.getCmp(this.scope.west);
+					width = panel.width;
+					panel.setHeight(centerHeight);
+					if (panel.options.defaultWidth) {
+						width = parseFloat(panel.options.defaultWidth) / 100;
+						width = parseInt(parentWidth * width);
+						panel.setWidth(width);
+					}
+					if (this.scope.north)
+						panel.dom.offset({
+									top : top
+								});
+					left = panel.width + panel.dom.offset().left + itemspace;
+					centerWidth -= (width + itemspace);
+					EUI.resize(panel);
+				}
+				if (this.scope.east) {
+					panel = EUI.getCmp(this.scope.east);
+					width = panel.width;
+					panel.setHeight(centerHeight);
+					if (panel.options.defaultWidth) {
+						width = parseFloat(panel.options.defaultWidth) / 100;
+						width = parseInt(parentWidth * width);
+						panel.setWidth(width);
+					}
+					centerWidth -= (width + itemspace);
+					EUI.resize(panel);
+				}
+				if (this.scope.center) {
+					panel = EUI.getCmp(this.scope.center);
+					panel.setHeight(centerHeight);
+					panel.setWidth(centerWidth);
+					if (this.scope.west)
+						panel.dom.offset({
+									"left" : left
+								});
+					if (this.scope.north)
+						panel.dom.offset({
+									top : top
+								});
+					left = panel.width + panel.dom.offset().left + itemspace;
+					if (this.scope.east) {
+						EUI.getCmp(this.scope.east).dom.offset({
+									"left" : left
+								});
+						if (this.scope.north)
+							EUI.getCmp(this.scope.east).dom.offset({
+										"top" : top
+									});
+					}
+					top += EUI.getCmp(this.scope.center).dom.outerHeight()
+							+ itemspace;
+					EUI.resize(panel);
+				}
+				if (this.scope.south) {
+					EUI.getCmp(this.scope.south).dom.offset({
+								"top" : top
+							});
+				}
+			}
+		});﻿EUI.AutoLayout = function() {
+	return new EUI.layout.AutoLayout(arguments[0], arguments[1]);
+};
+
+EUI.layout.AutoLayout = function() {
+	this.scope = arguments[0];
+	var type = arguments[1];
+	if (type == "layout") {
+		this.layout();
+	} else if (type == "resize") {
+		this.resize();
+	}
+};
+
+EUI.apply(EUI.layout.AutoLayout.prototype, {
+			itemspace : 10,
+			floatCss : "ux-layout-auto",
+
+			layout : function() {
+				var items = this.scope.options.items, g = this, scope = this.scope;
+				var dom = scope.getDom();
+				var itemspace = scope.itemspace == undefined
+						? this.itemspace
+						: scope.itemspace;
+				for (var i = 0; i < items.length; i++) {
+					var item = items[i];
+					var config = {
+						parentCmp : scope.id || scope.renderTo,
+						isDefined : true
+					};
+					EUI.applyIf(item, config);
+					EUI.applyIf(item, scope.defaultConfig);
+					EUI.applyIf(item, scope.defaultStyle);
+					if (!item.renderTo) {
+						var id = item.id || EUI.getId(item.xtype);
+						var div = $("<div id='" + id
+								+ "' style='float:left;margin-left:"
+								+ itemspace + "px'>");
+						if (i == 0) {
+							div.css("margin-left", "0");
+						}
+						dom.append(div);
+						item.renderTo = id;
+					}
+					if (!item.xtype) {
+						throw new Error(EUI.error.noXtype);
+					}
+					var cmpFn = eval("EUI." + item.xtype);
+					if (!cmpFn) {
+						throw new Error(EUI.error.noXtype + ":" + "EUI."
+								+ item.xtype);
+					}
+					item = cmpFn.call(cmpFn, item);
+					scope.items.push(item.id);
+				}
+			},
+
+			resize : function() {
+
+			}
+		});﻿EUI.form.Field = EUI.extend(EUI.UIComponent, {
+	inputType : 'text',
+	textType : "input",
+	readonly : false,
+	name : null,
+	field : null,
+	submitValue : null,
+	isFormField : true,
+	title : null,
+	value : null,
+	colon : true,// 是否显示冒号
+	labelFirst : true,
+	invalidText : null,
+	domCss : "ux-field",
+	readonlyCss : "ux-field-readonly",
+	disabledCss : "ux-field-disable",
+	labelCss : "ux-field-label",
+	elementCss : "ux-field-element",
+	requiredCss : "ux-field-must",
+	labelStyle : null,// 自定义label样式
+
+	initComponent : function() {
+		EUI.form.Field.superclass.initComponent.call(this);
+		if (!this.labelFirst) {
+			this.labelCss = "ux-field-label-right";
+		}
+	},
+
+	getType : function() {
+		return 'Field';
+	},
+	render : function() {
+		var g = this;
+		g.dom.addClass(g.domCss);
+		g.initLabel();
+		g.initField();
+		g.addCss();
+		g.initAttribute();
+		g.addEvents();
+		if (g.value != null && g.value != "" && g.value != undefined) {
+			if (!(typeof g.value == "object")) {
+				g.setValue(g.value);
+			} else
+				g.loadData(g.value);
+		} else {
+			g.initSubmitValue();
+		}
+	},
+	show : function() {
+		EUI.form.Field.superclass.show.call(this);
+		this.hidden = false;
+	},
+	hide : function() {
+		EUI.form.Field.superclass.hide.call(this);
+		this.hidden = true;
+	},
+	initLabel : function() {
+		var g = this;
+		if (g.title) {
+			var title = g.title;
+			if (g.colon) {
+				title = g.title + "：";
+			}
+			var titleText = !g.labelFirst ? g.title : title;
+			var label = $("<label>" + titleText + "</label>");
+			label.addClass(g.labelCss);
+			if (this.labelStyle) {
+				label.css(this.labelStyle);
+			}
+			g.dom.label = label;
+			g.dom.append(label);
+			g.setLabelWidth(g.labelWidth ? g.labelWidth : 70);
+		}
+	},
+	setTitle : function() {
+		var g = this, ags = arguments;
+		if (ags.length > 0) {
+			g.title = ags[0];
+			var title = g.title;
+			if (g.colon) {
+				title = g.title + "：";
+			}
+			var titleText = !g.labelFirst ? g.title : title;
+			g.dom.label.html(titleText);
+		}
+	},
+	setLabelWidth : function() {
+		var width = parseInt(arguments[0]);
+		if (this.dom.label && width) {
+			this.dom.label.width(width);
+		}
+	},
+	initField : function() {
+		var g = this;
+		var input;
+		if (g.textType == "input") {
+			input = $("<input type='"
+					+ g.inputType
+					+ "' autocomplete='off'  autocorrect='off' autocapitalize='off' spellcheck='false'>");
+		} else if (g.textType == "textarea") {
+			input = $("<textarea></textarea>");
+		}
+		input.addClass(g.fieldCss);
+		g.dom.field = input;
+		g.dom.fieldwrap = $("<div></div>").addClass(g.elementCss);
+
+		g.dom.fieldwrap.append(g.dom.field);
+		if (g.labelFirst) {
+			g.dom.append(g.dom.fieldwrap);
+		} else {
+			g.dom.fieldwrap.insertBefore(g.dom.label);
+		}
+		g.dom.append('<div class="ux-clear"></div>');
+	},
+
+	addCss : function() {
+		var g = this;
+		if (g.readonly) {
+			g.dom.field.attr("readonly", g.readonly);
+			g.dom.fieldwrap.addClass(g.readonlyCss);
+		}
+	},
+
+	initAttribute : function() {
+		var g = this;
+		if (g.readonly) {
+			g.dom.fieldwrap.addClass(g.readonlyCss);
+		}
+		if (g.disabled) {
+			g.dom.field.attr("disabled", g.disabled);
+		}
+		if (g.name) {
+			g.dom.field.attr("name", g.name);
+		}
+		if (g.submitValue) {
+			g.dom.field.data('submitValue', g.submitValue);
+		}
+		g.dom.field.attr("name", g.name);
+	},
+	addEvents : function() {
+		var g = this;
+		g.dom.field.bind("click", function() {
+					if (!g.dom.fieldwrap.hasClass(g.focusCss)) {
+						g.dom.fieldwrap.addClass(g.focusCss);
+					}
+				});
+		if (this.handler) {
+			g.dom.field.bind("click", this.handler);
+		}
+		var listener = this.listener;
+		if (listener) {
+			for (var key in listener)
+				g.dom.field.bind(key, listener[key]);
+		}
+	},
+
+	sysValidater : function() {
+
+	},
+	keyup : function() {
+		this.sysValidater();
+	},
+
+	getValue : function() {
+		var value = this.dom.field.val();
+		if (value) {
+			value = value.trim();
+		}
+		return value;
+	},
+	initSubmitValue : function() {
+		var g = this, value = {};
+		if (g.field) {
+			for (var i = 0; i < g.field.length; i++) {
+				var name = g.field[i];
+				value[name] = "";
+			}
+		}
+		g.submitValue = value;
+	},
+	getSubmitValue : function() {
+		var data = {};
+		if (this.name)
+			data[this.name] = this.getValue();
+		EUI.applyIf(data, this.submitValue);
+		return data;
+	},
+	setSubmitValue : function(data) {
+		var g = this, value = {};
+		if (!data) {
+			return;
+		}
+		this.setValue(data[this.name]);
+		if (g.field) {
+			for (var i = 0; i < g.field.length; i++) {
+				var name = g.field[i];
+				var filedValue = g.getJsonData(data, name);
+				value[name] = (filedValue != undefined && filedValue != null
+						? filedValue
+						: "");
+			}
+		}
+		g.submitValue = value;
+	},
+	getJsonData : function(data, name) {
+		var filedValue
+		if (data[name]) {
+			return data[name];
+		}
+		if (name.indexOf(".") != -1) {
+			var key = name.split(".");
+			var field1 = key[0];
+			var field2 = key[1];
+			if (!data[field1]) {
+				return "";
+			}
+			filedValue = data[field1][field2];
+		} else {
+			filedValue = data[name];
+		}
+		return filedValue;
+	},
+	loadData : function() {
+		var data = arguments[0];
+		this.setSubmitValue(data);
+		if (data) {
+			this.setValue(this.getJsonData(data, this.name));
+		}
+	},
+	setReadOnly : function() {
+		var args = arguments;
+		if (args.length != 0) {
+			var arg = args[0] == "true" || args[0] == true ? true : false;
+			this.dom.field.attr("readonly", arg);
+			this.readonly = arg;
+			if (arg) {
+				if (!this.dom.fieldwrap.hasClass(this.readonlyCss)) {
+					this.dom.fieldwrap.addClass(this.readonlyCss);
+				}
+			} else {
+				this.dom.fieldwrap.removeClass(this.readonlyCss);
+			}
+		}
+	},
+	setWidth : function() {
+		this.dom.field.width(arguments[0]);
+	},
+	setValue : function(value) {
+		if (value && typeof value == "string") {
+			value = value.trim();
+		}
+		this.dom.field.val(value);
+	},
+	reset : function() {
+		this.dom.field.val("");
+		this.initSubmitValue();
+	}
+});﻿EUI.TextField = function() {
+	return new EUI.form.TextField(arguments[0]);
+};
+
+EUI.form.TextField = EUI.extend(EUI.form.Field, {
+	inputType : 'text',
+	width : 160,
+	height : 18,
+	minlength : 0,
+	canClear : false,
+	maxlength : Number.MAX_VALUE,
+	allowChar : null,
+	allowBlank : true,
+	validater : null,
+	validateText : null,
+	displayText : null,
+	hintText : null,
+	unit : null,
+	hintPrefixText : null,
+	hintCss : "ux-field-hint",
+	displayCss : "ux-field-display",
+	fieldCss : "ux-field-text",
+	focusCss : "ux-field-focus",
+	invalidCss : "ux-field-invalid",
+	unitCss : "ux-unitfield-unit",
+	// clearCss : "ux-field-clear",
+	clearCss : "ux-tab-item-close",
+	triggerBoxCss : "ux-trigger-box",
+	checkInitValue : true,
+	afterValidate : null,
+	afterClear : null,
+
+	initComponent : function() {
+		EUI.form.TextField.superclass.initComponent.call(this);
+	},
+	getType : function() {
+		return 'TextField';
+	},
+
+	initField : function() {
+		EUI.form.TextField.superclass.initField.call(this);
+		if (this.hintText) {
+			var hintDom = $("<div class='" + this.hintCss + "'>"
+					+ this.hintText + "</div>");
+			$(".ux-clear", this.dom).before(hintDom);
+			this.dom.hintDom = hintDom;
+		}
+		if (this.unit) {
+			this.initUnit();
+		}
+		 if (this.canClear) {
+			this.initClear();
+		}
+		this.setWidth(this.width);
+		this.setHeight(this.height);
+		this.initDisplayText();
+	},
+	initUnit : function() {
+		var g = this;
+		var unitDom = $("<span class='" + this.unitCss + "'>" + this.unit
+				+ "</span>");
+		g.dom.field.after(unitDom);
+	},
+	initClear : function() {
+		var g = this;
+		var clearbtn = $("<div class='" + this.triggerBoxCss
+				+ "'><span class='" + this.clearCss + "'></span></div>");
+		if (g.canClear) {
+			g.dom.field.after(clearbtn);
+			g.clearBtn = clearbtn;
+		}
+		if (g.readonly) {
+			clearbtn.hide();
+		}
+	},
+	initLabel : function() {
+		var g = this;
+		if (g.title) {
+			var title = "<span style='float:left;'>" + g.title + "</span>";
+			if (g.colon) {
+				title = "<span style='float:left;'>" + g.title + "：</span>";
+			}
+			var titleText = !g.allowBlank ? title + "<span class='"
+					+ g.requiredCss + "'>*</span>" : title;
+			var label = $("<label>" + titleText + "</label>");
+			label.addClass(g.labelCss);
+			if (this.labelStyle) {
+				label.css(this.labelStyle);
+			}
+			g.dom.label = label;
+			g.dom.append(label);
+			g.setLabelWidth(g.labelWidth ? g.labelWidth : 70);
+		}
+	},
+	setAllowBlank : function(v) {
+		var g = this;
+		if (typeof v != "boolean") {
+			return;
+		}
+		if (!g.title) {
+			g.allowBlank = v;
+			return;
+		}
+		if (v === false) {
+			if (g.dom.label.find("span." + g.requiredCss).length > 0)
+				return;
+			g.dom.label.append("<span class='" + g.requiredCss + "'>*</span>");
+			g.allowBlank = false;
+		} else {
+			g.dom.label.find("span." + g.requiredCss).remove();
+			g.allowBlank = true;
+		}
+	},
+	setWidth : function() {
+		var width = parseInt(arguments[0]);
+		if (width) {
+			if (typeof arguments[0] == "string"
+					&& arguments[0].indexOf("%") > -1) {
+				width /= 100;
+				width *= this.dom.parent().width();
+				if (this.dom.label) {
+					if (!this.labelWidth) {
+						if (width * 7 / 23 < 40) {
+							this.setLabelWidth(40);
+							width -= 40;
+						}
+						if (width * 7 / 23 > 70) {
+							this.setLabelWidth(70);
+							width -= 70;
+						} else {
+							this.setLabelWidth(width * 7 / 23);
+							width -= (width * 7 / 23);
+						}
+					} else {
+						this.setLabelWidth(this.labelWidth);
+						width -= this.labelWidth;
+					}
+				}
+				width -= 10;
+			}
+			this.dom.field.width(width);
+			this.width = arguments[0];
+		}
+	},
+	setHeight : function() {
+		var height = parseInt(arguments[0]);
+		if (height) {
+			this.dom.field.height(height);
+		}
+	},
+	initDisplayText : function() {
+		var g = this;
+		if (g.displayText) {
+			g.dom.field.val(g.displayText);
+			g.dom.field.addClass(g.displayCss);
+		}
+	},
+	addEvents : function() {
+		var g = this;
+		var fieldwrap = g.dom.fieldwrap;
+		var field = g.dom.field;
+		field.bind("keypress", function(e) {
+					var code = e.keyCode || e.charCode;
+					if (code == 37 || code == 39 || code == 8
+							|| (e.ctrlKey && code > 0)) {
+						if (e.ctrlKey && (code == 118 || code == 86)) {
+							g.sysValidater();
+						}
+						return true;
+					} else {
+						var chr = String.fromCharCode(code);
+						if (g.allowChar && g.allowChar.indexOf(chr) == -1) {
+							return false;
+						}
+					}
+				});
+		field.bind("click", function() {
+					if (g.hintText) {
+						g.dom.hintDom.css("display", "inline-block");
+					}
+				});
+		field.bind("blur", function() {
+					if (g.hintText) {
+						g.dom.hintDom.hide();
+					}
+					if (!g.getValue()) {
+						g.submitValue = null;
+					}
+					g.sysValidater();
+					fieldwrap.removeClass(g.focusCss);
+				});
+		field.bind("keyup", function(e) {
+					if (!g.getValue()) {
+						g.afterClear && g.afterClear.call(g);
+					}
+				});
+		field.hover(function() {
+					if (g.tooltip && g.invalidText) {
+						g.showTip().show();
+					}
+				}, function() {
+					g.hideTip();
+				});
+		if (g.displayText) {
+			g.doDisplayEvents();
+		} else {
+			g.doBlankEvents();
+		}
+		g.clearBtn && g.clearBtn.bind("click", function() {
+					g.reset();
+					g.afterClear && g.afterClear.call(g);
+				});
+		EUI.form.TextField.superclass.addEvents.call(this);
+	},
+	doDisplayEvents : function() {
+		var g = this;
+		g.dom.field.bind("blur", function() {
+					var value = g.dom.field.val();
+					if (!value) {
+						g.dom.field.addClass(g.displayCss);
+						g.dom.field.val(g.displayText);
+					}
+				});
+		g.dom.field.bind("focus", function() {
+					if (!g.readonly) {
+						var value = g.dom.field.val();
+						if (g.displayText == value) {
+							g.dom.field.val("");
+						}
+						g.dom.field.removeClass(g.displayCss);
+						g.sysValidater();
+					}
+				});
+	},
+	doBlankEvents : function() {
+		var g = this;
+		g.dom.field.bind("keyup", function() {
+					g.sysValidater();
+				});
+	},
+
+	sysValidater : function() {
+		var g = this;
+		if (g.hidden)
+			return true;
+		var value = g.getValue();
+		if (g.validater) {
+			if (g.validater(value) == false) {
+				g.invalidText = g.validateText ? g.validateText : "";
+				g.afterValid(false);
+				return false;
+			}
+		}
+		if (g.allowChar && value.length > 0 && g.displayText != value) {
+			for (var i = 0; i < value.length; i++) {
+				var c = value.charAt(i);
+				if (g.allowChar.indexOf(c) == -1) {
+					g.invalidText = String.format(g.invalidCharText, value, c);
+					g.afterValid(false);
+					return false;
+				}
+			}
+		}
+		if (!g.checkLength()) {
+			g.afterValid(false);
+			return false;
+		}
+		if (!g.allowBlank
+				&& (value == null || value === "" || g.displayText == value || value.length == 0)) {
+			var text = g.title ? g.title : g.hintPrefixText;
+			g.invalidText = String.format(g.blankText, text);
+			g.afterValid(false);
+			return false;
+		}
+		g.afterValid(true);
+		g.afterValidate && g.afterValidate.call(this, value);
+		return true;
+	},
+	afterValid : function() {
+		var g = this, flag = arguments[0];
+		if (!flag) {
+			if (!g.dom.field.hasClass(g.invalidCss)) {
+				g.dom.field.addClass(g.invalidCss);
+				g.dom.fieldwrap.removeClass(g.focusCss);
+			}
+			g.showTip();
+		} else {
+			g.dom.field.removeClass(g.invalidCss);
+			g.dom.fieldwrap.removeClass(g.focusCss);
+			if (g.tooltip) {
+				g.tooltip.remove();
+				g.tooltip = null;
+			}
+		}
+	},
+	checkLength : function() {
+		var g = this;
+		var value = g.dom.field.val();
+		var text = g.title ? g.title : g.hintPrefixText;
+		if (value.length < g.minlength) {
+			g.invalidText = String.format(g.minLengthText, text, g.minlength);
+			return false;
+		}
+		if (value.length > g.maxlength) {
+			g.invalidText = String.format(g.maxLengthText, text, g.maxlength);
+			return false;
+		}
+		return true;
+	},
+	getValue : function() {
+		var g = this, v = g.dom.field.val();
+		if (g.displayText === v) {
+			return "";
+		}
+		var value = g.dom.field.val();
+		if (value && typeof value == "string") {
+			value = value.trim();
+		}
+		return value;
+	},
+	setValue : function() {
+		var g = this;
+		EUI.form.TextField.superclass.setValue.call(this, arguments[0]);
+		if (arguments.length != 0 && arguments[0]) {
+			g.dom.field.removeClass(g.displayCss);
+		} else {
+			g.initDisplayText();
+		}
+		if (this.checkInitValue) {
+			g.sysValidater();
+		}
+	},
+	appendText : function(text) {
+		var value = this.value + text;
+		this.setValue(value);
+	},
+	onResize : function() {
+		var g = this;
+		if (typeof g.width == "string" && g.width.indexOf("%") > -1) {
+			g.setWidth(g.width);
+		}
+	},
+	reset : function() {
+		var g = this;
+		if (!g.displayText || g.displayText == "") {
+			g.dom.field.val("");
+		} else {
+			g.initDisplayText();
+		}
+		this.initSubmitValue();
+	},
+	showTip : function() {
+		if (!this.tooltip) {
+			this.tooltip = $("<div class='ux-tooltip'>" + this.invalidText
+					+ "</div>");
+			$("body").append(this.tooltip);
+		} else {
+			this.tooltip.html(this.invalidText);
+		}
+		var offset = this.dom.field.offset();
+		this.tooltip.css({
+					top : offset.top + this.dom.field.height() + 15,
+					left : offset.left + 5
+				});
+		return this.tooltip;
+	},
+	hideTip : function() {
+		this.tooltip && this.tooltip.hide();
+	}
+});﻿EUI.TriggerField = function() {
+	return new EUI.form.TriggerField(arguments[0]);
+};
+EUI.form.TriggerField = EUI.extend(EUI.form.TextField, {
+	editable : false,
+	canClear : false,
+	shadow : true,
+	loadonce : true,
+	showTrigger : true,
+	maxListHeight : 200,
+	beforeSelect : null,
+	afterSelect : null,
+	listCss : "ux-list",
+	triggerCss : "ux-trigger",
+	triggerHoverCss : "ux-trigger-hover",
+	triggerClickCss : "ux-trigger-click",
+	triggerDisableCss : "ux-trigger-disable",
+	multiBoxCls : "ux-list-multibox",
+	reader : null,
+	initComponent : function() {
+		EUI.form.TriggerField.superclass.initComponent.call(this);
+		this.initReader();
+		this.loading = false;
+	},
+	getType : function() {
+		return 'TriggerField';
+	},
+
+	initField : function() {
+		EUI.form.TriggerField.superclass.initField.call(this);
+		if (!this.editable) {
+			this.dom.field.attr("readonly", true);
+			this.dom.field.addClass("ux-hand");
+		}
+		this.initTrigger();
+		if (this.readonly) {
+			this.setReadOnly(true);
+		}
+	},
+	setWidth : function() {
+		var width = parseInt(arguments[0]);
+		if (width) {
+			if (typeof arguments[0] == "string"
+					&& arguments[0].indexOf("%") > -1) {
+				width /= 100;
+				width *= this.dom.parent().width();
+				if (this.dom.label) {
+					if (!this.labelWidth) {
+						if (width * 7 / 23 < 40) {
+							this.setLabelWidth(40);
+							width -= 40;
+						}
+						if (width * 7 / 23 > 70) {
+							this.setLabelWidth(70);
+							width -= 70;
+						} else {
+							this.setLabelWidth(width * 7 / 23);
+							width -= (width * 7 / 23);
+						}
+					} else {
+						this.setLabelWidth(this.labelWidth);
+						width -= this.labelWidth;
+					}
+				}
+				width -= 10;
+			}
+			width -= 20;
+			this.dom.field.width(width);
+			this.width = arguments[0];
+		}
+	},
+	setHeight : function() {
+		var height = parseInt(arguments[0]);
+		if (height) {
+			this.dom.field.height(height);
+		}
+	},
+	setValue : function() {
+		var g = this, args = arguments[0];
+		EUI.form.TriggerField.superclass.setValue.call(this, args);
+	},
+	initTrigger : function() {
+		var g = this;
+		var triggerbtn = $("<div class='"+this.triggerBoxCss+"'><span class='"
+				+ this.triggerCss + "'></span></div>");
+		g.dom.triggerbtn = triggerbtn;
+		g.dom.field.after(triggerbtn);
+		if (!g.showTrigger) {
+			g.dom.triggerbtn.hide();
+		}
+	},
+	addEvents : function() {
+		var g = this;
+		g.dom.field.bind("keydown", function(e) {
+					if (!g.editable) {
+						e.returnValue = false;
+						return false;
+					}
+				});
+		g.dom.fieldwrap.bind("click", function() {
+					if (!g.readonly)
+						g.onClick();
+				});
+		$(document).bind("click", function(evt) {
+					if (evt.button == 2) {
+						return;
+					}
+					var el = evt.target;
+					if (el) {
+						if ($(el).parents("#" + g.id).length != 0) {
+							return;
+						}
+						if ($(el).parents("div[euiid='" + g.id + "']").length != 0) {
+							return;
+						}
+					}
+					g.hideList();
+				}).bind("scroll", function() {
+					g.hideList();
+				});
+
+		EUI.form.TriggerField.superclass.addEvents.call(this);
+	},
+	setReadOnly : function(readonly) {
+		var g = this;
+		EUI.form.TriggerField.superclass.setReadOnly.call(this, readonly);
+		if (readonly == "true" || readonly == true) {
+			g.dom.triggerbtn.addClass(g.triggerDisableCss);
+		} else {
+			g.dom.triggerbtn.removeClass(g.triggerDisableCss);
+			g.dom.triggerbtn.show();
+		}
+		if (!g.editable) {
+			g.dom.field.attr("readonly", true);
+		}
+	},
+	onClick : function() {
+		var g = this;
+		if (!g.dom.field.hasClass(g.focusCss)) {
+			g.dom.field.addClass(g.focusCss);
+		}
+		g.dom.triggerbtn.addClass(g.triggerClickCss);
+		this.showList();
+	},
+	addLoadMask : function() {
+		var g = this;
+		var load = $('<div class="ux-combo-list-loading"></div>');
+		load.html("加载中...");
+		g.list.loadMask = load;
+		g.list.append(load);
+	},
+	removeLoadMask : function() {
+		this.list && this.list.loadMask && this.list.loadMask.remove();
+	},
+	initReader : function() {
+		var g = this, sysReader = {};
+		var rfield = g.field, name = g.name, field;
+		if (g.reader) {
+			name = g.reader.name ? g.reader.name : name;
+			if (g.reader.field) {
+				if (g.reader.field.length != g.field.length) {
+					throw new Error(EUI.error.neqField);
+				}
+				rfield = g.reader.field;
+			}
+			if (rfield) {
+				field = rfield.push(name);
+			} else {
+				field = [name];
+			}
+			sysReader.mixField = field;
+		}
+		sysReader.name = name;
+		sysReader.field = rfield;
+		g.sysReader = sysReader;
+	},
+	initList : function() {
+		var g = this;
+		g.loading = true;
+		var data = this.getData();
+		if (!data || g.loadonce == false) {
+			if (g.store) {
+				if (g.beforeLoad) {
+					var result = g.beforeLoad.call(this, g.store);
+					if (result == false) {
+						g.loading = false;
+						return;
+					}
+				}
+				var timestamp = new Date().getTime();
+				g.timeStamp = timestamp;
+				var list = $('<div></div>');
+				list.attr("euiid", g.id).addClass(g.listCss);
+				g.list = list;
+				g.addLoadMask();
+				$("body").append(list);
+				g.store.load({
+					success : function(response) {
+						if (g.timeStamp == timestamp) {
+							if (!response.data) {
+								var txt = $("<span style='color:gray;line-height:20px;padding:0 3px;'>"
+										+ g.emptyText + "</span>");
+								g.list.html(txt);
+								g.setListPos();
+								return;
+							}
+							g.data = response.data;
+							g.afterLoad
+									&& g.afterLoad.call(this, response.data);
+							g.showComboList();
+						}
+					}
+				});
+			} else {
+				throw new Error(EUI.error.dataError);
+			}
+		} else {
+			var timestamp = new Date().getTime();
+			g.timeStamp = timestamp;
+			var list = $('<div></div>');
+			list.attr("euiid", g.id).addClass(g.listCss);
+			g.list = list;
+			g.addLoadMask();
+			$("body").append(list);
+			g.showComboList();
+		}
+	},
+	showComboList : function() {
+		var g = this, data = g.getData();
+		g.removeLoadMask();
+		var sv = g.getValue();
+		g.listbox = $('<div euiid="' + g.id + '" class="' + g.listInner
+				+ '"></div>');
+		g.listbox.css("max-height", g.maxListHeight);
+		g.list.append(g.listbox);
+		g.addListItem(data, sv);
+	},
+	addListItem : function(data, sv) {
+		var g = this;
+		var txt = $("<span style='color:gray;line-height:20px;padding:0 3px;'>"
+				+ g.emptyText + "</span>");
+		g.listbox.empty();
+		for (var i = 0; i < data.length; i++) {
+			var itemvalue = data[i];
+			var name = g.sysReader.name;
+			var item = $("<div>" + itemvalue[name] + "</div>");
+			item.addClass(g.listItemCss);
+			item.data("itemdata", itemvalue);
+			if (itemvalue[name] == sv) {
+				item.addClass(g.seletedCss);
+			}
+			g.listbox.append(item);
+		}
+		if (!data || data.length == 0) {
+			g.listbox.append(txt);
+		}
+		g.addListItemEvent();
+		g.loading = false;
+		g.dom.triggerbtn.addClass(g.triggerClickCss);
+	},
+	showList : function() {
+		var g = this;
+		var data = this.getData();
+		if (!g.loadonce) {
+			data = null;
+			g.list && g.list.remove();
+			g.initList();
+		} else {
+			if (g.loading || g.list) {
+				g.setListPos();
+			} else {
+				g.initList();
+			}
+		}
+	},
+	setListPos : function() {
+		var g = this;
+		var iptpos = g.dom.field.offset();
+		var ipth = g.dom.field.outerHeight();
+		var top = iptpos.top + ipth;
+		var listh = g.list.height();
+		var tw = 0;
+		var width = g.dom.fieldwrap.width();
+		width = width < g.listWidth ? g.listWidth : width;
+		if ($(window).height() <= (listh + top)) {
+			var tmp = iptpos.top - listh - 4;
+			if (tmp > 0) {
+				top = tmp;
+			}
+		}
+		g.list.css({
+					"left" : iptpos.left - 1,
+					"top" : top,
+					"width" : width,
+					"z-index" : ++EUI.zindex
+				}).slideDown("fast");
+	},
+	getData : function() {
+		return this.data;
+	},
+	hideList : function() {
+		var g = this;
+		g.dom.triggerbtn && g.dom.triggerbtn.removeClass(g.triggerClickCss);
+		g.list && g.list.slideUp("fast");
+	},
+	remove : function() {
+		var g = this;
+		if (g.list) {
+			g.list.remove();
+		}
+		EUI.form.TriggerField.superclass.remove.call(this);
+	}
+});﻿EUI.ComboBox = function() {
+	return new EUI.form.ComboBox(arguments[0]);
+};
+EUI.form.ComboBox = EUI.extend(EUI.form.TriggerField, {
+			data : null,
+			async : true,
+			store : null,
+			editable : false,
+			loadMask : true,
+			showSearch : false,
+			searchText : null,
+			beforeLoad : null,
+			afterLoad : null,
+			listWidth : 0,
+			listInner : "ux-combo-list-inner",
+			listItemCss : "ux-combo-list-item",
+			seletedCss : "ux-combo-item-selected",
+			initComponent : function() {
+				EUI.form.ComboBox.superclass.initComponent.call(this);
+				if (this.readonly) {
+					this.async = true;
+				}
+				if (this.store)
+					this.initStore();
+			},
+			getType : function() {
+				return 'ComboBox';
+			},
+			addListItemEvent : function() {
+				var g = this;
+				$("." + g.listItemCss, g.list).each(function() {
+					var item = $(this);
+					item.bind("click", function() {
+								var value = $(this).data("itemdata");
+								if (g.beforeSelect) {
+									var before = {};
+									before.oldText = g.getValue();
+									before.oldValue = g.getSubmitValue();
+									before.data = value;
+									if (g.beforeSelect(before) == false) {
+										g.hideList();
+										return;
+									}
+								}
+								g.selectData(value);
+								g.sysValidater();
+								g.hideList();
+								$(this).addClass(g.seletedCss).siblings()
+										.removeClass(g.seletedCss);
+								if (g.afterSelect) {
+									var after = {};
+									after.text = g.getValue();
+									after.value = g.getSubmitValue();
+									after.data = value;
+									g.afterSelect(after);
+								}
+								return false;
+							});
+				});
+			},
+			selectData : function() {
+				var g = this;
+				var name = g.sysReader.name, data = arguments[0], value, i;
+				g.setValue(data[name]);
+				if (g.field) {
+					var rfield = g.sysReader.field, rname;
+					value = {};
+					for (i = 0; i < g.field.length; i++) {
+						rname = rfield[i];
+						name = g.field[i];
+						var filedValue = g.getJsonData(data, rname);
+						value[name] = filedValue != undefined
+								&& filedValue != null ? filedValue : "";
+					}
+					g.submitValue = value;
+				}
+			},
+
+			initStore : function() {
+				var g = this;
+				g.store.autoLoad = !g.async;
+				g.store.success = function(response) {
+					g.data = response.data;
+					g.afterLoad && g.afterLoad.call(this, response.data);
+				};
+				if (!g.async) {
+					g.beforeLoad && g.beforeLoad.call(this, g.store);
+				}
+				var store = EUI.Store(g.store);
+				g.store = store;
+			},
+			showComboList : function() {
+				var g = this;
+				EUI.form.ComboBox.superclass.showComboList.call(g);
+				g.setListPos();
+			},
+			remove : function() {
+				var g = this;
+				EUI.form.ComboBox.superclass.remove.call(g);
+				if (g.showSearch) {
+					g.searchCmp.remove();
+				}
+			}
+		});﻿EUI.AutoCompleteBox = function() {
+	return new EUI.form.AutoCompleteBox(arguments[0]);
+};
+EUI.form.AutoCompleteBox = EUI.extend(EUI.form.ComboBox, {
+	editable : true,
+	data : null,
+	renderTo : null,
+	store : null,
+	async : true,
+	searchField : null,
+	showField : null,
+	loaded : false,
+	tbar : null,
+
+	initComponent : function() {
+		EUI.form.AutoCompleteBox.superclass.initComponent.call(this);
+		if (this.store) {
+			this.initStore();
+		}
+		if (!this.showField) {
+			this.showField = this.name;
+		}
+		if (!this.searchField) {
+			this.searchField = [this.showField];
+		}
+		if (this.data) {
+			this.loaded = true;
+		}
+	},
+	initStore : function() {
+		var g = this;
+		g.store.autoLoad = !g.async;
+		g.store.success = function(response) {
+			g.data = response.data;
+			g.loaded = true;
+			g.afterLoad && g.afterLoad.call(this, response.data);
+			if (g.loading) {
+				g.dom.field.trigger("keyup");
+			}
+		};
+		if (!g.async) {
+			if (g.beforeLoad) {
+				var result = g.beforeLoad.call(this, g.store);
+				if (result == false) {
+					return;
+				}
+			}
+			g.store.autoLoad = true;
+		}
+		g.store = EUI.Store(g.store);
+	},
+	initList : function() {
+		var g = this;
+		g.loading = true;
+		if (!g.getData()) {
+			if (g.store) {
+				if (g.beforeLoad) {
+					var result = g.beforeLoad.call(this, g.store);
+					if (result == false) {
+						g.loading = false;
+						return;
+					}
+				}
+				var timestamp = new Date().getTime();
+				g.timeStamp = timestamp;
+				var list = $('<div></div>');
+				list.attr("euiid", g.id).addClass(g.listCss).css("overflow",
+						"hidden");;
+				g.list = list;
+				$("body").append(list);
+				g.store.load({
+					success : function(response) {
+						if (g.timeStamp == timestamp) {
+							if (!response.data) {
+								var txt = $("<span style='color:gray;line-height:20px;padding:0 3px;'>"
+										+ g.emptyText + "</span>");
+								g.list.html(txt);
+								g.setListPos();
+								return;
+							}
+							g.data = response.data;
+							g.afterLoad
+									&& g.afterLoad.call(this, response.data);
+							g.showComboList(g.data);
+//							g.setListPos();
+						}
+					}
+				});
+			} else {
+				throw new Error(EUI.error.dataError);
+			}
+		} else {
+			var timestamp = new Date().getTime();
+			g.timeStamp = timestamp;
+			var list = $('<div></div>');
+			list.attr("euiid", g.id).addClass(g.listCss).css("overflow",
+					"hidden");;
+			g.list = list;
+			$("body").append(list);
+			g.showComboList(g.getData());
+		}
+	},
+	addEvents : function() {
+		var g = this;
+		EUI.form.AutoCompleteBox.superclass.addEvents.call(this);
+		g.dom.field.bind({
+			"keyup" : function(e) {
+				var code = e.keyCode || e.charCode;
+				// 按下键事件
+				if (code == 40) {
+					if (!g.listbox) {
+						return;
+					}
+					var selectItem = g.listbox.find("." + g.seletedCss);
+					if (selectItem.length == 0) {
+						selectItem = g.listbox.find("." + g.listItemCss
+								+ ":first").addClass(g.seletedCss);
+					} else if (selectItem.next().length != 0) {
+						selectItem.removeClass(g.seletedCss);
+						selectItem.next().addClass(g.seletedCss);
+						var top = selectItem.next().offset().top;
+						if (top + 26 > g.list.offset().top + g.listbox.height()) {
+							g.listbox[0].scrollTop += 26;
+						}
+					}
+				} else if (code == 38) {
+					if (!g.listbox) {
+						return;
+					}
+					// 按上键事件
+					var selectItem = g.listbox.find("." + g.seletedCss);
+					if (selectItem.length != 0 && selectItem.prev().length != 0) {
+						selectItem.removeClass(g.seletedCss);
+						selectItem.prev().addClass(g.seletedCss);
+						var top = selectItem.prev().offset().top;
+						if (top < g.list.offset().top) {
+							g.listbox[0].scrollTop -= 26;
+						}
+					}
+				} else if (code == 13) {
+					// 回车事件
+					if (!g.listbox) {
+						return;
+					}
+					g.listbox.find("." + g.seletedCss).click();
+				} else if (code == 9) {
+					return false;
+				}else {
+					var value = $(this).val();
+					g.onSearch(value);
+				}
+			}
+		});
+		if (g.dom.clearTrigger) {
+			g.dom.clearTrigger.hover(function() {
+						$(this).addClass("ux-trigger-over");
+					}, function() {
+						$(this).removeClass("ux-trigger-over");
+					});
+		}
+	},
+	onClick : function() {
+		var g = this;
+		if (!g.loadonce) {
+			g.data = null;
+			g.list && g.list.remove();
+		}
+		if (!g.list && !g.getData()) {
+			g.initList();
+			return;
+		}
+		if (g.list) {
+			g.setListPos();
+		} else {
+			g.showComboList(g.getData());
+		}
+	},
+	onSearch : function(value) {
+		var g = this;
+		if (!g.loaded) {
+			if (!g.store) {
+				if (!g.getData() || g.getData().length == 0) {
+					g.list.html("<div class='ux-combo-list-item'>没有数据</div>");
+					g.setListPos();
+					return;
+				}
+			} else {
+				if (g.beforeLoad) {
+					var result = g.beforeLoad.call(this, g.store);
+					if (result == false) {
+						return;
+					}
+				}
+				g.store.autoLoad = true;
+				g.loading = true;
+				g.store.load();
+				// 设置加载图标
+				g.list.empty();
+				var load = $('<div class="ux-combo-list-loading"></div>');
+				load.html(EUI.LoadMask.prototype.msg);
+				g.list.loadMask = load;
+				g.list.append(load);
+				g.setListPos();
+				return;
+			}
+		}
+		this.doSearch(value, this.searchField);
+	},
+	doSearch : function(value, field) {
+		var g = this;
+		g.filterData = [];
+		var value = value ? value.toLowerCase() : "";
+		if (this.getData()) {
+			if (value == "") {
+				g.filterData = this.getData();
+			} else {
+				for (var i = 0; i < this.getData().length; i++) {
+					var itemData = this.getData()[i];
+					for (var j = 0; j < field.length; j++) {
+						var fieldData = itemData[field[j]];
+						if (!fieldData) {
+							continue;
+						}
+						var tmpData = fieldData.toLowerCase();
+						if (tmpData.indexOf(value) != -1) {
+							if (tmpData == value) {
+								itemData.selected = true;
+							} else {
+								itemData.selected = false;
+							}
+							g.filterData.push(itemData);
+							break;
+						}
+					}
+				}
+			}
+			if (g.filterData.length > 0) {
+				g.showComboList(g.filterData);
+			} else {
+				g.list.html("<div class='ux-combo-list-item'>没有匹配的数据</div>");
+				g.setListPos();
+			}
+		}
+	},
+	setData : function(data) {
+		this.data = data;
+		this.loaded = true;
+		if (this.list && this.list.is(":visible")) {
+			this.showComboList(this.getData());
+		}
+	},
+	showComboList : function(data) {
+		var g = this;
+		if (!this.list) {
+			this.initList();
+			return;
+		}
+		if (!data || data.length == 0) {
+			var txt = $("<span style='color:gray;line-height:26px;padding:0 3px;'>"
+					+ g.emptyText + "</span>");
+			g.list.html(txt);
+			if (this.tbar) {
+				g.list.append(this.tbar);
+			}
+			g.setListPos();
+			return;
+		}
+		g.removeLoadMask();
+		g.list.empty();
+		var sv = g.getValue();
+		g.listbox = $('<div euiid="' + g.id + '" class="' + g.listInner
+				+ '"></div>').css("overflow", "auto");
+		g.list.append(g.listbox);
+		g.listbox.css("max-height", g.maxListHeight);
+		if (this.tbar) {
+			g.list.append(this.tbar);
+		}
+		g.addListItem(data, sv);
+	},
+	addListItem : function(data, sv) {
+		var g = this;
+		g.listbox.empty();
+		for (var i = 0; i < data.length; i++) {
+			var itemvalue = data[i];
+			var name = g.sysReader.name;
+			var item = $("<div></div>");
+			item.addClass(g.listItemCss);
+			if (this.itemRender) {
+				var html = this.itemRender.call(this, itemvalue);
+				item.html(html);
+			} else {
+				item.html(itemvalue[g.showField]);
+			}
+			item.data("itemdata", itemvalue);
+			if (itemvalue[name] == sv || data.length == 1) {
+				item.addClass(g.seletedCss);
+			} else if (itemvalue.selected) {
+				item.removeClass(g.seletedCss);
+			}
+			g.listbox.append(item);
+		}
+		if (!(data instanceof Array) || data instanceof Array
+				&& data.length == 0) {
+			var txt = $("<span style='color:gray;line-height:26px;'>"
+					+ g.emptyText + "</span>");
+			g.listbox.append(txt);
+		}
+		g.addListItemEvent();
+		g.loading = false;
+		g.setListPos();
+	},
+	addListItemEvent : function() {
+		var g = this;
+		$("." + g.listItemCss, g.list).each(function() {
+			var item = $(this);
+			item.bind("click", function() {
+						var value = $(this).data("itemdata");
+						if (g.beforeSelect) {
+							var before = {};
+							before.oldText = g.getValue();
+							before.oldValue = g.getSubmitValue();
+							before.data = value;
+							if (g.beforeSelect(before) == false) {
+								g.hideList();
+								return;
+							}
+						}
+						g.selectData(value);
+						g.sysValidater();
+						g.hideList();
+						$(this).addClass(g.seletedCss).siblings()
+								.removeClass(g.seletedCss);
+						if (g.afterSelect) {
+							var after = {};
+							after.text = g.getValue();
+							after.value = g.getSubmitValue();
+							after.data = value;
+							g.afterSelect(after);
+						}
+						return false;
+					});
+		});
+	},
+	setValue : function() {
+		var g = this, args = arguments[0];
+		EUI.form.TriggerField.superclass.setValue.call(this, args);
+	},
+	getData:function(){
+		return this.data;
+	}
+});﻿EUI.ComboTree = function() {
+	return new EUI.form.ComboTree(arguments[0]);
+};
+EUI.form.ComboTree = EUI.extend(EUI.form.TriggerField, {
+			async : true,
+			searchText : null,
+			showSearch : true,
+			listHeight : 200,
+			listWidth : 260,
+			treeCfg : null,
+			initComponent : function() {
+				EUI.form.ComboTree.superclass.initComponent.call(this);
+				if (this.beforeLoad) {
+					this.on('beforeLoad', this.beforeLoad);
+				}
+				if (this.afterLoad) {
+					this.on('afterLoad', this.afterLoad);
+				}
+				if (this.readonly) {
+					this.async = true;
+				}
+			},
+			getType : function() {
+				return 'ComboTree';
+			},
+
+			initList : function() {
+				var g = this;
+				g.loading = true;
+				if (!g.data) {
+					var result = g.fireEvent('beforeLoad', this);
+					if (result == false) {
+						g.loading = false;
+						return;
+					}
+					var timestamp = new Date().getTime();
+					g.timeStamp = timestamp;
+					var list = $('<div></div>');
+					list.attr("euiid", g.id).addClass(g.listCss);
+					g.list = list;
+					g.addLoadMask();
+					$("body").append(list);
+					g.setListPos();
+					if (g.store) {
+						g.store.load({
+									success : function(response) {
+										if (g.timeStamp == timestamp) {
+											g.data = response.data;
+											g.fireEvent('afterLoad',
+													response.data);
+											g.showComboList();
+										}
+									}
+								});
+					} else {
+						throw new Error(EUI.error.dataError);
+					}
+				} else {
+					var timestamp = new Date().getTime();
+					g.timeStamp = timestamp;
+					var list = $('<div></div>');
+					list.attr("euiid", g.id).addClass(g.listCss);
+					g.list = list;
+					g.addLoadMask();
+					$("body").append(list);
+					g.setListPos();
+					g.showComboList();
+				}
+			},
+			showComboList : function() {
+				var g = this;
+				g.removeLoadMask();
+				var id = EUI.getId("TreePanel");
+				g.list.append($("<div id='" + id + "'></div>"));
+				var defaultCfg = {
+					renderTo : id,
+					height : g.listHeight,
+					width : g.listWidth,
+					data : g.data,
+					padding : 0
+				};
+				EUI.applyIf(g.treeCfg, defaultCfg);
+				g.treeCfg.onSelect = function(data) {
+					g.selectNode(data);
+				};
+				var tree = EUI.TreePanel(g.treeCfg);
+				tree.parentCmp = this.id;
+				g.tree = tree;
+				g.dom.triggerbtn.addClass(g.triggerClickCss);
+				g.loading = false;
+				g.setListPos();
+			},
+			selectNode : function(data) {
+				var g = this;
+				if (g.beforeSelect) {
+					var before = {};
+					before.oldText = g.getValue();
+					before.oldValue = g.getSubmitValue();
+					before.data = data;
+					if (g.beforeSelect(before) == false) {
+						return;
+					}
+				}
+				g.selectData(data);
+				if (g.afterSelect) {
+					var after = {};
+					after.text = g.getValue();
+					after.value = g.getSubmitValue();
+					after.data = data;
+					g.afterSelect(after);
+				}
+				// g.showClear();
+				g.hideList();
+			},
+			setListPos : function() {
+				var g = this;
+				var fieldPos = g.dom.field.offset();
+				var ipth = g.dom.field.outerHeight(), iptw = g.dom.field
+						.outerWidth();
+				var top = fieldPos.top + ipth, left = fieldPos.left;
+				var listh = g.list.height(), listtw = g.list.width();
+				if ($(window).height() <= (listh + top)) {
+					var tmp = (fieldPos.top - ipth - listh + 20);
+					if (tmp > 0) {
+						top = tmp;
+					}
+				}
+				if ($(window).width() <= (listtw + left)) {
+					var tmpleft = (left + iptw + 15 - listtw);
+					if (!g.clear) {
+						tmpleft += 17;
+					}
+					if (tmpleft > 0) {
+						left = tmpleft;
+					}
+				}
+				var tw = 0;
+				var width = g.dom.field.width() + tw + 6;
+				width = width < g.listWidth ? g.listWidth : width;
+				g.list.css({
+							"left" : left - 1,
+							"top" : top,
+							"width" : width,
+							"z-index" : ++EUI.zindex
+						}).show();
+				g.shadow && g.dom.shadow && g.dom.shadow.updateShadow(g.list);
+			},
+			selectData : function(data) {
+				var g = this;
+				if (!data) {
+					return;
+				}
+				var name = g.sysReader.name, value, i;
+				g.setValue(data[name]);
+				if (g.field) {
+					var rfield = g.sysReader.field, rname;
+					value = {};
+					for (i = 0; i < g.field.length; i++) {
+						rname = rfield[i];
+						name = g.field[i];
+						var filedValue = g.getJsonData(data, rname);
+						if (filedValue != undefined && filedValue != null) {
+							value[name] = filedValue;
+						} else {
+							value[name] = "";
+						}
+					}
+					g.submitValue = value;
+				}
+				g.sysValidater();
+			},
+			getValue : function() {
+				var value = EUI.form.ComboTree.superclass.getValue.call(this);
+				return value;
+			},
+
+			addEvents : function() {
+				var g = this;
+				EUI.form.ComboTree.superclass.addEvents.call(this);
+				g.canClear && g.dom.clearTrigger.bind("click", function() {
+							g.tree && g.tree.tree.cancelSelect();
+						});
+			},
+			remove : function() {
+				var g = this;
+				EUI.form.ComboTree.superclass.remove.call(this);
+				EUI.remove(g.tree);
+				g.tree = null;
+			}
+		});﻿EUI.ComboGrid = function() {
+	return new EUI.form.ComboGrid(arguments[0]);
+};
+EUI.form.ComboGrid = EUI.extend(EUI.form.TriggerField, {
+	async : false,
+	searchConfig : {},
+	listHeight : 200,
+	beforeLoad : null,
+	afterLoad : null,
+	gridCfg : {},
+	showSearch : true,
+	onSearch : null,
+	gridCss : "ux-combo-grid",
+
+	initComponent : function() {
+		EUI.form.ComboGrid.superclass.initComponent.call(this);
+	},
+	getType : function() {
+		return 'ComboGrid';
+	},
+
+	initList : function() {
+		var g = this;
+		if (!g.list) {
+			var tbarId = EUI.getId("ToolBar");
+			var id = EUI.getId("GridPanel");
+			var list = $("<div class='"
+					+ g.listCss
+					+ "'><div id='"
+					+ tbarId
+					+ "' style='border-bottom: 1px solid #ddd;'></div><div id='"
+					+ id + "'></div></div>");
+			list.bind("click", function(e) {
+						e.stopPropagation();
+					});
+			g.list = list;
+			$("body").append(list);
+			g.setListPos();
+			if (this.showSearch) {
+				EUI.ToolBar({
+							renderTo : tbarId,
+							items : ["->", {
+										xtype : "SearchBox",
+										onSearch : function(v) {
+											g.onSearch && g.onSearch.call(g, v);
+										}
+									}]
+						});
+			}
+			g.gridCfg.recordtext = EUI.cmpText.recordtext;
+			g.gridCfg.pager = null;
+			var cfg = {
+				renderTo : id,
+				height : g.listHeight,
+				searchConfig : g.searchConfig,
+				gridCfg : g.gridCfg,
+				gridCss : g.gridCss,
+				contentCss : g.contentCss,
+				subheight : 53
+			};
+			if (!g.gridCfg.multiselect) {
+				g.gridCfg.ondblClickRow = function() {
+					g.selectRow();
+				}
+			} else {
+				g.gridCfg.gridComplete = function(data) {
+					g._setSelect.call(g);
+				};
+				g.gridCfg.onSelectRow = function(rowid, status) {
+					if (status) {
+						g.multiSelectRow.call(g, rowid);
+					} else {
+						g.multiCancelSelectRow.call(g, rowid);
+					}
+				};
+				g.gridCfg.onSelectAll = function(rowids, status) {
+					if (status) {
+						for (var i = 0; i < rowids.length; i++) {
+							g.multiSelectRow.call(g, rowids[i]);
+						}
+					} else {
+						for (var i = 0; i < rowids.length; i++) {
+							g.multiCancelSelectRow.call(g, rowids[i]);
+						}
+					}
+				};
+			}
+			var grid = EUI.GridPanel(cfg);
+			grid.parentCmp = this.id;
+			g.grid = grid;
+			g.dom.triggerbtn.addClass(g.triggerClickCss);
+			g.loading = false;
+			g.setListPos();
+			// g.showShadow();
+		}
+	},
+	_setSelect:function(){
+		if(!this.grid){
+			return;
+		}
+		if(this.name == "id" || this.field.includes("id")){
+			var submitValue = this.getSubmitValue();
+			if(!submitValue){
+				return;
+			}
+			for(var key in submitValue){
+				var item = submitValue[key];
+				var id = item["id"];
+				this.grid.grid.setSelection(id, false);
+			}
+		}
+	},
+	multiSelectRow : function(rowid) {
+		var data = this.grid.getRowData(rowid);
+		var submitValue = this.getSubmitValue();
+		var selectData = this.readSelectData(data);
+		if (!submitValue) {
+			submitValue = {};
+		}
+		if (submitValue[selectData[0]]) {
+			return;
+		}
+		submitValue[selectData[0]] = selectData[1];
+		this.submitValue = submitValue;
+		var value = this.value;
+		if (value) {
+			value += ",";
+		} else {
+			value = "";
+		}
+		value += data[this.sysReader.name];
+		this.setValue(value);
+	},
+	readSelectData : function(data) {
+		var g = this;
+		var readData = {};
+		var key = data[this.sysReader.name];
+		readData[this.name] = data[this.sysReader.name];
+		if (g.field) {
+			var rfield = g.sysReader.field, rname, field;
+			for (var j = 0; j < g.field.length; j++) {
+				rname = rfield[j];
+				field = g.field[j];
+				var filedValue = g.getJsonData(data, rname);
+				readData[field] = filedValue != undefined && filedValue != null
+						? filedValue
+						: "";
+				key += readData[field];
+			}
+		}
+		return [key, readData];
+	},
+	
+	multiCancelSelectRow : function(rowid) {
+		var data = this.grid.getRowData(rowid);
+		var submitValue = this.getSubmitValue();
+		var selectData = this.readSelectData(data);
+		if (!submitValue || !submitValue[selectData[0]]) {
+			return;
+		}
+		delete submitValue[selectData[0]];
+		this.submitValue = submitValue;
+		var value = "", isFirst = true;
+		for (var key in this.submitValue) {
+			var item = this.submitValue[key];
+			if (isFirst) {
+				isFirst = false;
+			} else {
+				value += ",";
+			}
+			value += item[this.name];
+		}
+		this.setValue(value);
+	},
+
+	selectRow : function() {
+		var g = this;
+		var value = g.grid.getSelectRow();
+		if (value
+				&& ((value instanceof Array) && value.length > 0 || !(value instanceof Array))) {
+			if (g.beforeSelect) {
+				var before = {};
+				before.oldText = g.getValue();
+				before.oldValue = g.getSubmitValue();
+				before.data = value;
+				before.isMulti = g.gridCfg.multiselect;
+				if (g.beforeSelect(before) == false) {
+					g.hideList();
+					return;
+				}
+			}
+			g.selectData(value);
+			if (g.afterSelect) {
+				var after = {};
+				after.text = g.getValue();
+				after.value = g.getSubmitValue();
+				after.data = value;
+				g.afterSelect(after);
+			}
+			// g.showClear();
+		}
+		g.hideList();
+	},
+	setListPos : function() {
+		var g = this;
+		var iptpos = g.dom.field.offset();
+		var ipth = g.dom.field.outerHeight(), iptw = g.dom.field.outerWidth();
+		var top = iptpos.top + ipth, left = iptpos.left;
+		var listh = g.list.height(), listtw = g.list.width();
+		if ($(window).height() <= (listh + top)) {
+			var tmptop = (iptpos.top - ipth - listh + 20);
+			if (tmptop > 0) {
+				top = tmptop;
+			}
+		}
+		if ($(window).width() <= (listtw + left)) {
+			var tmpleft = (left + iptw + 15 - listtw);
+			if (g.canClear && !g.clear) {
+				tmpleft += 17;
+			}
+			if (tmpleft > 0) {
+				left = tmpleft;
+			}
+		}
+		var tw = 0;
+		var width = g.dom.field.width() + tw + 6;
+		width = g.listWidth ? g.listWidth : width;
+		g.list.css({
+					"left" : left - 1,
+					"top" : top,
+					"width" : width,
+					"z-index" : ++EUI.zindex
+				}).show();
+		g.shadow && g.dom.shadow && g.dom.shadow.updateShadow(g.list);
+	},
+
+	selectData : function() {
+		var g = this;
+		var name = g.sysReader.name, data = arguments[0], submitValue, i, chkCmp = null;
+		if (!g.gridCfg.multiselect) {
+			g.setValue(data[name]);
+		}
+		if (g.field) {
+			var rfield = g.sysReader.field, rname;
+			submitValue = {};
+			for (i = 0; i < g.field.length; i++) {
+				rname = rfield[i];
+				name = g.field[i];
+				var filedValue = g.getJsonData(data, rname);
+				if (filedValue != undefined && filedValue != null) {
+					submitValue[name] = filedValue;
+				} else {
+					submitValue[name] = "";
+				}
+			}
+			g.submitValue = submitValue;
+		}
+		g.sysValidater();
+	},
+	setValue : function(value) {
+		if (value && typeof value == "string") {
+			value = value.trim();
+		}
+		this.dom.field.val(value);
+		this.value = value;
+	},
+	getValue : function() {
+		var value = this.dom.field.val();
+		if (value) {
+			value = value.trim();
+		}
+		return value;
+	},
+	loadData : function(data) {
+		this.setSubmitValue(data);
+	},
+	setSubmitValue : function(data) {
+		if (this.gridCfg.multiselect) {
+			if (value instanceof Array) {
+				this.submitValue = {};
+				var value = "";
+				for (var i = 0; i < data.length; i++) {
+					var nameValue = this.getJsonData(data[i], this.name)
+					var key = nameValue;
+					if (i > 0) {
+						value += ",";
+					}
+					value += nameValue;
+					var itemdata = {};
+					itemdata[this.name] = nameValue;
+					if (this.field) {
+						for (var j = 0; j < this.field.length; j++) {
+							var fieldValue = this.getJsonData(data[i],
+									this.field[j]);
+							fieldValue = (filedValue != undefined && filedValue != null)
+									? filedValue
+									: "";
+							itemdata[this.field[j]] = fieldValue;
+							key += fieldValue;
+						}
+					}
+					this.submitValue[key] = itemdata;
+				}
+				this.setValue(value);
+			}
+		} else {
+			var nameValue = this.getJsonData(data, this.name);
+			this.setValue(nameValue);
+			this.submitValue = {};
+			this.submitValue[this.name] = nameValue;
+			if (this.field) {
+				for (var i = 0; i < this.field.length; i++) {
+					var fieldValue = this.getJsonData(data, this.field[i]);
+					fieldValue = (filedValue != undefined && filedValue != null)
+							? filedValue
+							: "";
+					this.submitValue[this.field[i]] = fieldValue;
+				}
+			}
+		}
+	},
+	getSubmitValue : function() {
+		return this.submitValue;
+	},
+	remove : function() {
+		var g = this;
+		EUI.form.ComboGrid.superclass.remove.call(this);
+		EUI.remove(g.grid);
+		g.grid = null;
+	},
+
+	showList : function() {
+		var g = this;
+		if (!g.loadonce) {
+			g.remove();
+			g.initList();
+		} else {
+			if (g.loading || g.list) {
+				g.list.show();
+				g.setListPos();
+				// g.showShadow();
+			} else {
+				g.initList();
+			}
+		}
+	},
+	updatePostParam : function(nowParams) {
+		if (this.grid) {
+			this.grid.resetParam();
+			this.grid.setPostParams(nowParams);
+		}
+	}
+});﻿EUI.FieldGroup = function() {
+	return new EUI.form.FieldGroup(arguments[0]);
+};
+
+EUI.form.FieldGroup = EUI.extend(EUI.form.TextField, {
+			width : 400,
+			isFormField : false,
+			needValid : false,
+			itemspace : 20,
+			spaceCss : "ux-fieldgroup-space",
+			itemCss : "ux-fieldgroup-item",
+			initComponent : function() {
+				EUI.form.FieldGroup.superclass.initComponent.call(this);
+				if (this.readonly) {
+					var ds = this.defaultStyle || {};
+					this.defaultStyle = EUI.apply(ds, {
+								readonly : true
+							});
+				}
+			},
+			getType : function() {
+				return 'FieldGroup';
+			},
+
+			render : function() {
+				var g = this;
+				g.dom.addClass(g.domCss);
+				g.initLabel();
+				g.setWidth(g.width);
+			},
+			sysValidater : function() {
+				var g = this;
+				if (g.hidden)
+					return true;
+				if (g.needValid)
+					return g.doValidate(g.items);
+				return true;
+			},
+			doValidate : function() {
+				var items = arguments[0];
+				var flag = true;
+				if (items) {
+					for (var i = 0; i < items.length; i++) {
+						var item = EUI.getCmp(items[i]);
+						if (item.isFormField) {
+							var tmp = item.sysValidater();
+							flag = flag && tmp;
+						} else if(item.items){
+							flag = this.doValidate(item.items) && flag;
+						}
+					}
+				}
+				return flag;
+			},
+			setAllowBlank : function(v) {
+				var g = this;
+				EUI.form.FieldGroup.superclass.setAllowBlank.call(this);
+				if (g.items) {
+					for (var i = 0; i < g.items.length; i++) {
+						var item = EUI.getCmp(g.items[i]);
+						item.setAllowBlank(v);
+					}
+				}
+			},
+			setWidth : function() {
+				var width = parseInt(arguments[0]);
+				if (width) {
+					if (typeof arguments[0] == "string"
+							&& arguments[0].indexOf("%") > -1) {
+						width /= 100;
+						width *= this.dom.parent().width();
+						width -= 10;
+					}
+					this.dom.width(width);
+					this.width = arguments[0];
+				}
+			},
+			addItems : function() {
+				var g = this, items = g.options.items;
+				for (var i = 0; i < items.length; i++) {
+					var item = items[i];
+					var id = item.id || EUI.getId("groupitem");
+					var div = $("<div id='" + id + "'></div>")
+							.addClass(g.itemCss);
+					if (i != items.length - 1) {
+						div.css("margin-right", g.itemspace);
+					}
+					g.dom.append(div);
+					if (typeof item == "string") {
+						div.html(item).css("margin-top", 4);
+					} else {
+						item.renderTo = id;
+						var xtype = item.xtype ? item.xtype : g.defaultConfig;
+						if (!xtype) {
+							throw new Error(EUI.error.noXtype);
+						}
+						var cmp = eval("EUI." + xtype);
+						if (!cmp) {
+							throw new Error(String.format(EUI.error.noCmp,
+									xtype));
+						}
+						cmp = cmp.call(cmp, item);
+						g.items.push(cmp.id);
+					}
+				}
+			},
+			addChild : function(item, preId) {
+				var g = this;
+				var id = item.id || EUI.getId("groupitem");
+				var div = $("<div id='" + id + "'></div>").addClass(g.itemCss)
+						.css("margin-right", g.itemspace);
+				if (preId != undefined) {
+					$("#" + preId, g.dom).after(div);
+				} else {
+					g.dom.append(div);
+				}
+				if (typeof item == "string") {
+					div.html(item).css("margin-top", 4);
+				} else {
+					item.renderTo = id;
+					var xtype = item.xtype ? item.xtype : g.defaultConfig;
+					if (!xtype) {
+						throw new Error(EUI.error.noXtype);
+					}
+					var cmp = eval("EUI." + xtype);
+					if (!cmp) {
+						throw new Error(String.format(EUI.error.noCmp, xtype));
+					}
+					cmp = cmp.call(cmp, item);
+					g.items.push(cmp.id);
+				}
+			},
+			removeChild : function(agr) {
+				if (typeof agr == "number") {
+					var childCmp = EUI.getCmp(this.items[agr]);
+					childCmp.remove();
+					this.items.splice(agr, 1);
+				} else {
+					for (var i = 0; i < this.items.length; i++) {
+						if (agr == this.items[i]) {
+							var childCmp = EUI.getCmp(agr);
+							childCmp.remove();
+							this.items.splice(i, 1);
+						}
+					}
+				}
+			},
+			getData : function() {
+				var data = [];
+				for (var i = 0; i < this.items.length; i++) {
+					var tmpcmp = EUI.getCmp(this.items[i]);
+					if (tmpcmp instanceof EUI.form.FieldGroup) {
+						var itemdata = tmpcmp.getData();
+						if (itemdata != false) {
+							data.push(itemdata);
+						} else {
+							return false;
+						}
+					} else if (tmpcmp instanceof EUI.form.Field) {
+						if (tmpcmp.sysValidater()) {
+							if (tmpcmp.getValue()) {
+								data.push(tmpcmp.getSubmitValue());
+							}
+						} else {
+							return false;
+						}
+					}
+				}
+				return data;
+			},
+			reset : function() {
+				for (var i = 0; i < this.items.length; i++) {
+					var tmpcmp = EUI.getCmp(this.items[i]);
+					if (tmpcmp instanceof EUI.form.Field) {
+						tmpcmp.reset();
+					}
+				}
+			},
+			remove : function() {
+				for (var i = 0; i < this.items.length; i++) {
+					var childCmp = EUI.getCmp(this.items[i]);
+					childCmp && childCmp.remove();
+				}
+				this.dom.remove();
+				delete EUI.managers[this.id];
+			}
+		});﻿EUI.ComboSearch = function() {
+	return new EUI.form.ComboSearch(arguments[0]);
+};
+EUI.form.ComboSearch = EUI.extend(EUI.UIComponent, {
+	labelWidth : 60,
+	width : 150,
+	unit : "",
+	editable : false,
+	onSearch : null,
+	onConfirm : null,
+	listForm : null,
+	onClickUnit : null,
+	triggerBoxCss : "ux-trigger-box",
+	triggerCss : "ux-trigger",
+	triggerClickCss : "ux-trigger-click",
+	labelStyle : {
+		"font-weight" : "bold"
+	},
+	initComponent : function() {
+		EUI.form.ComboSearch.superclass.initComponent.call(this);
+	},
+	getType : function() {
+		return 'ComboSearch';
+	},
+
+	render : function() {
+		this.dom.addClass("ux-field");
+		this.initLabel();
+		this.initField();
+		this.addEvents();
+		if (this.value) {
+			this.setValue(this.value);
+		}
+	},
+	initLabel : function() {
+		this.label = $("<label title='" + this.title
+				+ "' class='ux-field-label' style='font-weight:bold;'>"
+				+ this.title + "</label>").width(this.labelWidth);
+		this.dom.append(this.label);
+	},
+	initField : function() {
+		var unitHtml = "";
+		if (this.unit) {
+			unitHtml = "<span class='ux-unitfield-unit'>" + this.unit
+					+ "</span>";
+		}
+		var html = "<div class='ux-field ux-fieldgroup-item' style='margin-right: 20px;'>"
+				+ "<div class='ux-field-element'><input class='ux-field-text ux-combosearch-input' style='display: inline-block;'"
+				+ (this.editable ? "" : "readonly='readonly'")
+				+ "/>"
+				+ unitHtml
+				+ "<div class='"
+				+ this.triggerBoxCss
+				+ "'><span class='"
+				+ this.triggerCss
+				+ "'></span></div></div></div>"
+				+ "<div class='ux-button-select ux-fieldgroup-item search' style='margin-right: 20px;'>查询</div>";
+		this.dom.append(html);
+		this.dom.field = $(".ux-field-text", this.dom).width(this.width);
+		this.dom.triggerbtn = $(".ux-trigger", this.dom);
+	},
+	addEvents : function() {
+		var g = this;
+		this.dom.field.bind("click", function() {
+					if (!g.editable) {
+						g.dom.triggerbtn.addClass(g.triggerClickCss);
+						g.showList();
+					}
+				});
+		this.dom.triggerbtn.bind("click", function() {
+					g.dom.triggerbtn.addClass(g.triggerClickCss);
+					g.showList();
+				});
+		$(".ux-unitfield-unit", g.dom).bind("click", function() {
+					g.dom.triggerbtn.addClass(g.triggerClickCss);
+					g.showList();
+				});
+		/**
+		 * 点击查询
+		 */
+		$(".search", this.dom).bind("click", function() {
+					g.onSearch.call(g, g.getValue());
+				});
+		$(document).bind("click", function(evt) {
+					if (evt.button == 2) {
+						return;
+					}
+					var el = evt.target;
+					if (el) {
+						if ($(el).parents("#" + g.id).length != 0) {
+							return;
+						}
+						if ($(el).parents("div[euiid='" + g.id + "']").length != 0) {
+							return;
+						}
+					}
+					g.hideList();
+				}).bind("scroll", function() {
+					g.hideList();
+				});
+	},
+	initList : function() {
+		var g = this;
+		var list = $("<div class='ux-list'><div id='list_"
+				+ this.id
+				+ "'></div><div class='ux-msgbox-optbox' style='margin-bottom: 10px;'></div></div>");
+		list.attr("euiid", g.id).addClass(g.listCss);
+		g.list = list;
+		$("body").append(list);
+		if (this.listForm) {
+			EUI.applyIf(this.listForm, {
+						renderTo : "list_" + this.id,
+						height : 200,
+						width : 200
+					});
+			this.form = EUI.FormPanel(this.listForm);
+		}
+		this.initButtons();
+		this.setListPos();
+	},
+
+	initButtons : function() {
+		var g = this;
+		var optbox = $(".ux-msgbox-optbox", this.list);
+		var id = EUI.getId("Button");
+		optbox.append("<div id='" + id + "'></div>");
+		this.resetBtn = EUI.Button({
+					title : "重置",
+					renderTo : id,
+					handler : function() {
+						g.form.reset();
+					}
+				});
+		id = EUI.getId("Button");
+		optbox.append("<div id='" + id + "'></div>");
+		this.okBtn = EUI.Button({
+					title : "确定",
+					renderTo : id,
+					selected : true,
+					handler : function() {
+						if (g.onConfirm) {
+							var data = g.getValue();
+							g.onConfirm.call(g, data);
+						}
+					}
+				});
+
+	},
+	showList : function() {
+		if (!this.list) {
+			this.initList();
+		} else {
+			this.setListPos();
+		}
+
+	},
+	setListPos : function() {
+		var g = this;
+		var iptpos = g.dom.field.offset();
+		var ipth = g.dom.field.outerHeight();
+		var top = iptpos.top + ipth;
+		var listh = g.list.height();
+		if ($(window).height() <= (listh + top)) {
+			var tmp = iptpos.top - listh - 4;
+			if (tmp > 0) {
+				top = tmp;
+			}
+		}
+		g.list.css({
+					"left" : iptpos.left - 1,
+					"top" : top,
+					"z-index" : ++EUI.zindex
+				}).slideDown("fast");
+	},
+	hideList : function() {
+		var g = this;
+		g.dom.triggerbtn && g.dom.triggerbtn.removeClass(g.triggerClickCss);
+		g.list && g.list.slideUp("fast");
+	},
+	setValue : function(value) {
+		this.dom.field.val(value);
+	},
+	getValue : function() {
+		if (!this.form) {
+			return null;
+		}
+		return this.form.getFormValue();
+	},
+	setWidth : function(width) {
+		this.combo.setWidth(width);
+	},
+	setUnit : function(unit) {
+		$(".ux-unitfield-unit", this.dom).html(unit);
+	},
+	remove : function() {
+		this.resetBtn.remove();
+		this.okBtn.remove();
+		this.group.remove();
+		this.listForm.remove();
+		EUI.form.ComboSearch.superclass.remove.call(this);
+	}
+});﻿EUI.SearchBox = function() {
+	return new EUI.form.SearchBox(arguments[0]);
+};
+EUI.form.SearchBox = EUI.extend(EUI.form.TriggerField, {
+			editable : true,
+			onSearch : null,
+			width : 260,
+			triggerCss : "ux-search-trigger",
+			initComponent : function() {
+				EUI.form.SearchBox.superclass.initComponent.call(this);
+			},
+			getType : function() {
+				return 'SearchBox';
+			},
+
+			afterClear : function() {
+				this.doSearch();
+			},
+			setValue : function(value) {
+				EUI.form.SearchBox.superclass.setValue.call(this, value);
+			},
+			doSearch : function() {
+				var g = this;
+				var v = g.getValue();
+				g.onSearch && g.onSearch.call(g, v);
+			},
+			onClick : function() {
+			},
+			addEvents : function() {
+				var g = this;
+				if (!g.readonly && g.onSearch instanceof Function
+						&& !g.dom.triggerbtn.hasClass(g.triggerDisableCss)) {
+					g.dom.triggerbtn.bind("click", function() {
+								g.doSearch();
+							});
+					g.dom.field.bind("keyup", function(e) {
+								if (e.keyCode == 13) {
+									g.doSearch();
+								}
+							});
+				}
+				EUI.form.SearchBox.superclass.addEvents.call(this);
+			}
+		});﻿EUI.DateField = function() {
+	return new EUI.form.DateField(arguments[0]);
+};
+
+EUI.form.DateField = EUI.extend(EUI.form.TriggerField, {
+	format : "Y-m-d",
+	triggerCss : "ux-date-trigger",
+	triggerClickCss : "",
+	listWidth : 210,
+	value : null,
+	minDate : null,
+	maxDate : null,
+	msg : null,
+
+	initComponent : function() {
+		EUI.form.DateField.superclass.initComponent.call(this);
+	},
+	getType : function() {
+		return 'DateField';
+	},
+
+	showList : function() {
+		var g = this;
+		if (!g.loading && g.list) {
+			g.setListPos();
+		} else {
+			g.initList();
+		}
+		g.calendar.bulidContent();
+	},
+
+	initList : function() {
+		var g = this;
+		var list = $("<div id='calender_" + this.id + "'></div>");
+		list.attr("euiid", g.id).addClass(g.listCss);
+		g.list = list;
+		$("body").append(list);
+		var calendar = EUI.Calendar({
+					renderTo : "calender_" + this.id,
+					showDate : this.getValue(),
+					callback : function(value) {
+						if (g.beforSelect) {
+							var before = {};
+							before.oldValue = g.getValue();
+							before.nowValue = value;
+							var tmp = g.beforSelect(before);
+							if (tmp == false) {
+								return;
+							}
+						}
+						var valiFlag = g.validaterDate(value);
+						if (valiFlag) {
+							g.setValue(value);
+							g.sysValidater();
+							if (g.afterSelect) {
+								g.afterSelect(value);
+							}
+							g.list.hide();
+						}
+					}
+				});
+		calendar.parentCmp = this.id;
+		var list = calendar.dom;
+		$("body").append(list);
+		this.list = list;
+		this.calendar = calendar;
+		g.dom.triggerbtn.addClass(g.triggerClickCss);
+		g.setListPos();
+		g.loading = false;
+	},
+	validaterDate : function(value) {
+		var g = this;
+		if (!g.minDate && !g.maxDate) {
+			return true;
+		}
+		var flag = g.checkDate(value);
+		return flag;
+	},
+	sysValidater : function() {
+		var g = this;
+		var value = g.getValue();
+		if (!g.allowBlank
+				&& (value == null || value === "" || g.displayText == value || value.length == 0)) {
+			var text = g.title ? g.title : "此项";
+			g.invalidText = String.format(g.blankText, text);
+			g.afterValid(false);
+			return false;
+		}
+		g.afterValid(true);
+		g.afterValidate && g.afterValidate.call(this, value);
+		return true;
+	},
+	afterValid : function() {
+		var g = this, flag = arguments[0];
+		if (!flag) {
+			if (!g.dom.field.hasClass(g.invalidCss)) {
+				g.dom.field.addClass(g.invalidCss);
+				g.dom.fieldwrap.removeClass(g.focusCss);
+			}
+			g.showTip();
+		} else {
+			g.dom.field.removeClass(g.invalidCss);
+			g.dom.fieldwrap.removeClass(g.focusCss);
+			if (g.tooltip) {
+				g.tooltip.remove();
+				g.tooltip = null;
+			}
+		}
+	},
+	checkDate : function(value) {
+		var g = this;
+		if (value) {
+			dateStr = value.substr(0, 4) + value.substr(5, 2)
+					+ value.substr(8, 2);
+			if (g.minDate != null) {
+				if (g.minDate - dateStr > 0) {
+					EUI.ProcessStatus({
+								success : false,
+								msg : g.msg
+							});
+					return false;
+				}
+			}
+			if (g.maxDate != null) {
+				if (g.maxDate - dateStr < 0) {
+					EUI.ProcessStatus({
+								success : false,
+								msg : g.msg
+							});
+					return false;
+				}
+			}
+			return true;
+		}
+		return true;
+	},
+	setWidth : function() {
+		var width = parseInt(arguments[0]);
+		if (width) {
+			if (typeof arguments[0] == "string"
+					&& arguments[0].indexOf("%") > -1) {
+				width /= 100;
+				width *= this.dom.parent().width();
+				if (this.dom.label) {
+					if (!this.labelWidth) {
+						if (width * 7 / 23 < 40) {
+							this.setLabelWidth(40);
+							width -= 40;
+						}
+						if (width * 7 / 23 > 70) {
+							this.setLabelWidth(70);
+							width -= 70;
+						} else {
+							this.setLabelWidth(width * 7 / 23);
+							width -= (width * 7 / 23);
+						}
+					} else {
+						this.setLabelWidth(this.labelWidth);
+						width -= this.labelWidth;
+					}
+				}
+				width -= 10;
+			}
+			width -= 22;
+			this.dom.field.width(width);
+			this.width = arguments[0];
+		}
+	}
+});﻿EUI.CheckBox = function() {
+	return new EUI.form.CheckBox(arguments[0]);
+};
+
+EUI.form.CheckBox = EUI.extend(EUI.form.Field, {
+			inputType : 'checkbox',
+			fieldCss : "ux-field-checkbox",
+			fieldWrapCss : "ux-checkbox",
+			onChecked : null,
+			checked : false,
+			readonlyCss : "ux-checkbox-readonly",
+			initComponent : function() {
+				EUI.form.CheckBox.superclass.initComponent.call(this);
+			},
+			getType : function() {
+				return 'CheckBox';
+			},
+			initField : function() {
+				var g = this;
+				EUI.form.CheckBox.superclass.initField.call(this);
+				g.dom.fieldwrap.addClass(g.fieldWrapCss);
+				var fieldicon = $('<span class="ux-icon"></span>');
+				g.dom.field.hide();
+				g.dom.fieldicon = fieldicon;
+				g.dom.fieldwrap.append(fieldicon);
+				if (g.checked) {
+					g.setValue(true);
+					g.dom.fieldicon.click();
+				}
+				if (g.readonly) {
+					g.setReadOnly(g.readonly);
+				}
+			},
+			addEvents : function() {
+				var g = this;
+				g.dom.fieldicon.bind("click", function() {
+							if (!g.disabled) {
+								if (g.checked) {
+									g.dom.field.attr("checked", false);
+									$(this).removeClass("checked");
+									g.checked = false;
+								} else {
+									g.checked = true;
+									g.dom.field.attr("checked", true);
+									$(this).addClass("checked");
+								}
+								if (g.onChecked
+										&& g.onChecked instanceof Function) {
+									g.onChecked.call(g, g.getValue());
+								}
+							}
+						});
+				g.dom.label.bind("click", function() {
+							g.dom.fieldicon.click();
+						});
+				g.dom.fieldwrap.hover(function() {
+							if (!g.disabled) {
+								$(this).addClass(g.fieldWrapCss + "-over");
+							}
+						}, function() {
+							$(this).hasClass(g.fieldWrapCss + "-over")
+									&& $(this).removeClass(g.fieldWrapCss
+											+ "-over");
+						});
+			},
+			addCss : function() {
+			},
+			getValue : function() {
+				return this.checked;
+			},
+			getSubmitValue : function() {
+				var data = {};
+				if (this.name)
+					data[this.name] = this.getValue();
+				if (this.checked)
+					EUI.applyIf(data, this.submitValue);
+				return data;
+			},
+			setValue : function(v) {
+				var g = this;
+				if (v != undefined) {
+					v = v.toString().toLowerCase();
+					if (v == "true") {
+						g.dom.field.attr("checked", true);
+						g.dom.fieldicon.addClass("checked");
+						g.checked = true;
+						if (g.disabled) {
+							g.dom.fieldwrap.addClass(g.fieldWrapCss
+									+ "-checked");
+						}
+					} else {
+						g.checked = false;
+						g.dom.field.attr("checked", false);
+						g.dom.fieldicon.removeClass("checked");
+						if (g.disabled) {
+							g.dom.fieldwrap.removeClass(g.fieldWrapCss
+									+ "-checked");
+						}
+					}
+				}
+			},
+			sysValidater : function() {
+				return true;
+			},
+			setReadOnly : function() {
+				var args = arguments;
+				if (args.length != 0) {
+					var arg = args[0] == "true" || args[0] == true
+							? true
+							: false;
+					if (arg) {
+						this.dom.fieldicon.addClass("disabled");
+						this.disabled = true;
+						this.checked
+								&& this.dom.fieldwrap
+										.addClass(this.fieldWrapCss
+												+ "-checked");
+					} else {
+						this.disabled = false;
+						this.dom.fieldicon.removeClass("disabled");
+						this.dom.fieldwrap.hasClass(this.fieldWrapCss
+								+ "-checked")
+								&& this.dom.fieldwrap
+										.removeClass(this.fieldWrapCss
+												+ "-checked");
+					}
+				}
+			},
+			reset : function() {
+				var g = this;
+				g.dom.field.attr("checked", false);
+				g.dom.fieldicon.removeClass("checked");
+				g.dom.fieldwrap.removeClass(g.fieldWrapCss + "-checked");
+				g.checked = false;
+			}
+		});﻿EUI.RadioBox = function () {
+    return new EUI.form.RadioBox(arguments[0]);
+};
+
+EUI.form.RadioBox = EUI.extend(EUI.form.CheckBox, {
+    inputType: 'radio',
+    labelFirst: false,
+    inputValue: '',
+    fieldCss: "ux-field-radiobox",
+    fieldWrapCss: "ux-radiobox",
+    readonlyCss:"ux-checkbox-readonly",
+    initComponent: function () {
+        EUI.form.RadioBox.superclass.initComponent.call(this);
+    },
+    getType: function () {
+        return 'RadioBox';
+    },
+    render: function () {
+        var g = this;
+        EUI.form.RadioBox.superclass.render.call(this);
+        g.inputValue = g.inputValue == "" ? g.id : g.inputValue;
+        g.dom.field.val(g.inputValue);
+        if (this.checked) {
+            g.setValue(g.inputValue);
+            g.dom.fieldicon.click();
+        }
+        if (g.readonly) {
+            g.setReadOnly(g.readonly);
+        }
+    },
+    addEvents: function () {
+        var g = this;
+        g.dom.fieldicon.bind("click", function () {
+            if (!g.checked) {
+                g.dom.field.attr("checked", true);
+                $(this).addClass("checked");
+                g.checked = true;
+                if (g.onChecked && g.onChecked instanceof Function) {
+                    g.onChecked.call(g, g.getValue());
+                }
+            }
+        });
+        g.dom.label.bind("click", function () {
+            g.dom.fieldicon.click();
+        });
+        g.dom.fieldwrap.hover(function () {
+            if (!g.dom.fieldicon.hasClass("disabled")) {
+                $(this).addClass(g.fieldWrapCss + "-over");
+            }
+        }, function () {
+            $(this).hasClass(g.fieldWrapCss + "-over") && $(this).removeClass(g.fieldWrapCss + "-over");
+        });
+    },
+    getValue: function () {
+        return this.checked;
+    },
+    setValue: function (v) {
+        var g = this;
+		 if (v != undefined) {
+            v = v.toString().toLowerCase();
+            if (v == "true") {
+                g.dom.field.attr("checked", true);
+                g.dom.fieldicon.addClass("checked");
+                g.checked = true;
+                if (g.disabled) {
+                    g.dom.fieldwrap.addClass(g.fieldWrapCss + "-checked");
+                }
+				if (g.onChecked && g.onChecked instanceof Function) {
+                    g.onChecked.call(g, g.getValue());
+                }
+            } else {
+                g.checked = false;
+                g.dom.field.attr("checked", false);
+                g.dom.fieldicon.removeClass("checked");
+                if (g.disabled) {
+                    g.dom.fieldwrap.removeClass(g.fieldWrapCss + "-checked");
+                }
+            }
+			
+        }
+    },
+    getSubmitValue: function () {
+        if (this.checked) {
+            var data = {};
+            if (this.name)
+                data[this.name] = this.getValue();
+            EUI.applyIf(data, this.submitValue);
+            return data;
+        }
+        return "";
+    },
+    setReadOnly: function () {
+        var args = arguments;
+        if (args.length != 0) {
+            var arg = args[0] == "true" || args[0] == true ? true : false;
+            if (arg) {
+                this.dom.fieldicon.addClass("disabled");
+                this.disabled = true;
+                this.dom.field.attr("checked") && this.dom.fieldwrap.addClass(this.fieldWrapCss + "-checked");
+            } else {
+                this.dom.fieldicon.removeClass("disabled");
+                this.disabled = false;
+                this.dom.fieldwrap.hasClass(this.fieldWrapCss + "-checked") && this.dom.fieldwrap.removeClass(this.fieldWrapCss + "-checked");
+            }
+        }
+    },
+    reset: function () {
+        EUI.form.RadioBox.superclass.reset.call(this);
+        this.dom.fieldwrap.removeClass(this.fieldWrapCss + "-checked");
+    }
+});﻿EUI.CheckBoxGroup = function() {
+	return new EUI.form.CheckBoxGroup(arguments[0]);
+};
+
+EUI.form.CheckBoxGroup = EUI.extend(EUI.form.TextField, {
+			onChecked : null,
+			itemAlign : 'h',
+			isFormField : true,
+			defaultStyle : null,
+			itemspace : 20,
+			onlyOneChecked : false,
+			wrapCls : 'ux-checkbox-wrap',
+			itemCls : 'ux-checkbox-item',
+			invalidCls : 'ux-checkbox-invalid',
+			initComponent : function() {
+				EUI.form.CheckBoxGroup.superclass.initComponent.call(this);
+			},
+
+			getType : function() {
+				return 'CheckBoxGroup';
+			},
+			render : function() {
+				var g = this;
+				g.dom.addClass("ux-field");
+				g.initLabel();
+				g.addEvents();
+			},
+			setCmpType : function(cfg) {
+				return EUI.CheckBox(cfg);
+			},
+			addItems : function() {
+				var g = this, items = this.options.items;
+				if (items && g.dom) {
+					var pleft = g.title ? g.dom.label.width() : 2;
+					g.dom.fieldwrap = $("<div></div>").addClass(g.wrapCls).css(
+							"padding-left", pleft);
+					g.dom.append(g.dom.fieldwrap);
+					for (var i = 0; i < items.length; i++) {
+						if (g.onChecked) {
+							items[i].onChecked = g.onChecked;
+						}
+						if (g.readonly) {
+							items[i].readonly = g.readonly;
+						}
+						items[i].labelFirst = false;
+						items[i].isFormField = false;
+						EUI.applyIf(items[i], this.defaultConfig);
+						var cmp = g.setCmpType(items[i]);
+						if (g.itemAlign == "h") {
+							cmp.dom.addClass(g.itemCls);
+						}else{
+							cmp.dom.css("float","none");
+						}
+						cmp.dom.css("margin-right", this.itemspace);
+						g.dom.fieldwrap.append(cmp.dom);
+						this.items.push(cmp.id);
+					}
+					g.dom.fieldwrap.append("<div class='ux-clear'></div>");
+					g.onlyOneChecked && g.initGroupEvent();
+				}
+			},
+			initGroupEvent : function() {
+				var g = this;
+				g.dom.fieldwrap.children("div.ux-field").each(function() {
+							var rbox = EUI.getCmp($(this).attr("id"));
+							rbox.dom.fieldicon.bind("click", function() {
+										if (!rbox.disabled) {
+											for (var m = 0; m < g.items.length; m++) {
+												var item = EUI
+														.getCmp(g.items[m]);
+												if (rbox.id != item.id) {
+													item.reset();
+												}
+											}
+										}
+									});
+						});
+			},
+			loadData : function() {
+				this.reset();
+				EUI.form.CheckBoxGroup.superclass.loadData.call(this,
+						arguments[0]);
+			},
+			setReadOnly : function() {
+				var g = this, args = arguments;
+				if (args.length != 0) {
+					var arg = args[0] == "true" || args[0] == true
+							? true
+							: false;
+					for (var i = 0; i < g.items.length; i++) {
+						var item = EUI.getCmp(g.items[i]);
+						item.setReadOnly(arg);
+					}
+				}
+			},
+			setSubmitValue : function() {
+			},
+			getValue : function() {
+				if (!this.name)
+					throw new Error(String.format(EUI.error.noName, this.type));
+				var data = {}, arr = [];
+				for (var i = 0; i < this.items.length; i++) {
+					var item = EUI.getCmp(this.items[i]);
+					if (item.checked) {
+						arr.push(item.name);
+					}
+				}
+				data[this.name] = arr;
+				return data;
+			},
+			setValue : function(values) {
+				this.reset();
+				for (var k = 0; k < values.length; k++) {
+					var value = values[k];
+					for (var i = 0; i < this.items.length; i++) {
+						var item = EUI.getCmp(this.items[i]);
+						if (item.name == value) {
+							item.setValue(true);
+						}
+					}
+				}
+			},
+			getSubmitValue : function() {
+				return this.getValue();
+			},
+			sysValidater : function() {
+				var g = this;
+				if (!g.allowBlank) {
+					for (var i = 0; i < g.items.length; i++) {
+						if (EUI.getCmp(g.items[i]).checked) {
+							g.dom.fieldwrap.removeClass(g.invalidCls);
+							return true;
+						}
+					}
+					g.dom.fieldwrap.addClass(g.invalidCls);
+					g.invalidText = g.validateText
+							? g.validateText
+							: g.blankText;
+					return false;
+				}
+				return true;
+			},
+			reset : function() {
+				var g = this;
+				for (var i = 0; i < g.items.length; i++) {
+					EUI.getCmp(g.items[i]).reset();
+				}
+			},
+			addEvents : function() {
+			},
+			onResize : function() {
+
+			}
+		});﻿EUI.RadioBoxGroup = function() {
+	return new EUI.form.RadioBoxGroup(arguments[0]);
+};
+
+EUI.form.RadioBoxGroup = EUI.extend(EUI.form.CheckBoxGroup, {
+			onChecked : null,
+			itemAlign : 'h',
+			defaultStyle : null,
+			onlyOneChecked : true,
+			wrapCls : 'ux-radiobox-wrap',
+			itemCls : 'ux-radiobox-item',
+			invalidCls : 'ux-radiobox-invalid',
+			initComponent : function() {
+				EUI.form.RadioBoxGroup.superclass.initComponent.call(this);
+			},
+
+			getType : function() {
+				return 'RadioBoxGroup';
+			},
+			setCmpType : function(cfg) {
+				return EUI.RadioBox(cfg);
+			},
+			getValue : function() {
+				for (var i = 0; i < this.items.length; i++) {
+					var item = EUI.getCmp(this.items[i]);
+					var value = item.getValue();
+					if (value) {
+						var result = {};
+						result[this.name] = item.name;
+						return result;
+					}
+				}
+			},
+			setValue : function(value) {
+				for (var i = 0; i < this.items.length; i++) {
+					var item = EUI.getCmp(this.items[i]);
+					if (item.name == value) {
+						item.setValue(true);
+					} else {
+						item.setValue(false);
+					}
+				}
+			},
+			loadData : function(data) {
+				this.setValue(data[this.name]);
+			}
+		});﻿EUI.MonthField = function() {
+	return new EUI.form.MonthField(arguments[0]);
+};
+EUI.form.MonthField = EUI.extend(EUI.form.TriggerField, {
+	triggerCss : "ux-date-trigger",
+	triggerClickCss : "",
+	data : null,
+	listWidth : 318,
+	value : "",
+	monthUnit:"期",
+
+	initComponent : function() {
+		if (this.value) {
+			this.year = this.value.substring(0, 4);
+			this.month = parseInt(this.value.substring(4, 6));
+		}
+		EUI.form.MonthField.superclass.initComponent.call(this);
+	},
+	getType : function() {
+		return 'MonthField';
+	},
+	afterRender : function() {
+		var g = this;
+		if (this.value) {
+			this.setValue(g.year + "年第" + g.month + g.monthUnit);
+		}
+		EUI.form.MonthField.superclass.afterRender.call(this);
+	},
+	showList : function() {
+		var g = this;
+		if (g.list) {
+			g.setListPos();
+		} else {
+			g.initList();
+		}
+	},
+	initList : function() {
+		var g = this;
+		var list = $("<div class='ux-mf-list'><div class='ux-mf-top'>"
+				+ this.initYear() + this.initMonth() + "</div>"
+				+ this.initBottom() + "</div>");
+		list.attr("euiid", g.id).addClass(g.listCss);
+		g.list = list;
+		$("body").append(list);
+		g.setListPos();
+		$("span[index='" + this.month + "']", this.list).addClass("selected");
+		this.initListEvents();
+	},
+	initYear : function() {
+		if (!this.data) {
+			return;
+		}
+		
+		var html = "<div class='ux-mf-yearbox'>";
+//		var start = this.data[0][0];
+//		var end = this.data[1][0];
+		for (var i = this.data[0]; i <= this.data[1]; i++) {
+			if (i != this.year) {
+				html += "<div index='" + i + "'>" + i + "年</div>";
+			} else {
+				html += "<div class='selected' index='" + i + "'>" + i
+						+ "年</div>";
+			}
+		}
+		return html + "</div>";
+	},
+	initMonth : function() {
+		return "<div class='ux-mf-monthbox'>"
+				+ "<div><span index='1'>1"+this.monthUnit+"</span><span index='2'>2"+this.monthUnit+"</span><span index='3'>3"+this.monthUnit+"</span></div>"
+				+ "<div><span index='4'>4"+this.monthUnit+"</span><span index='5'>5"+this.monthUnit+"</span><span index='6'>6"+this.monthUnit+"</span></div>"
+				+ "<div><span index='7'>7"+this.monthUnit+"</span><span index='8'>8"+this.monthUnit+"</span><span index='9'>9"+this.monthUnit+"</span></div>"
+				+ "<div><span index='10'>10"+this.monthUnit+"</span><span index='11'>11"+this.monthUnit+"</span><span index='12'>12"+this.monthUnit+"</span></div></div>";
+	},
+	initBottom : function() {
+		return "<div class='ux-mf-bottom'>"
+				+ "<div class='ux-button opt-cancel'>取消</div>"
+				+ "<div class='ux-button-select opt-ok'>确定</div></div>";
+	},
+	initListEvents : function() {
+		var g = this;
+		EUI.form.MonthField.superclass.addEvents.call(this);
+		$(".opt-ok", this.list).bind("click", function() {
+					if (g.year && g.month) {
+						g.setValue(g.year + "年第" + g.month + g.monthUnit);
+						g.hideList();
+					}
+					g.afterSelect && g.afterSelect.call(g, g.year, g.month);
+					return false;
+				});
+		$(".opt-cancel", this.list).bind("click", function() {
+					g.hideList();
+					return false;
+				});
+		$("span", this.list).bind("click", function() {
+					if ($(this).hasClass("selected")) {
+						return false;
+					}
+					g.month = $(this).attr("index");
+					$("span.selected", g.list).removeClass("selected");
+					$(this).addClass("selected");
+					return false;
+				});
+		$("div", ".ux-mf-yearbox").bind("click", function() {
+					if ($(this).hasClass("selected")) {
+						return false;
+					}
+					g.year = $(this).attr("index");
+					$("div.selected", g.list).removeClass("selected");
+					$(this).addClass("selected");
+					return false;
+				});
+	},
+	getValue : function() {
+		var g = this;
+		if (g.year && g.month) {
+			return g.year + "" + (g.month > 9 ? g.month : "0" + g.month);
+		}
+		return "";
+	}
+});﻿EUI.NumberField = function() {
+	return new EUI.form.NumberField(arguments[0]);
+};
+
+EUI.form.NumberField = EUI.extend(EUI.form.TextField, {
+			maxValue : Number.MAX_VALUE,
+			minValue : Number.NEGATIVE_INFINITY,
+			precision : 0,
+			allowNegative : true,
+			allowChar : "0123456789",
+			fullPrecision : true,
+
+			initComponent : function() {
+				EUI.form.NumberField.superclass.initComponent.call(this);
+				if (!this.allowNegative) {
+					this.minValue = this.minValue > 0 ? this.minValue : 0;
+				} else {
+					this.allowChar += "-";
+				}
+				if (this.precision > 0) {
+					this.allowChar += ".";
+				}
+			},
+			getType : function() {
+				return 'NumberField';
+			},
+			render : function() {
+				EUI.form.NumberField.superclass.render.call(this);
+				this.setValue(this.value);
+			},
+			initField : function() {
+				EUI.form.NumberField.superclass.initField.call(this);
+				this.dom.field.css({
+							"ime-mode" : "disabled"
+						});
+			},
+			addEvents : function() {
+				var g = this;
+				this.dom.field.bind("blur", function(e) {
+							var value = g.getValue();
+							if (!value) {
+								// value = 0;
+								// g.setValue(value.toFixed(this.precision));
+								return;
+							}
+							if (g.precision >= 0) {
+								if (isNaN(value)) {
+									value = g.getValue();
+								}
+								g.setValue(value);
+							} else {
+								throw new Error(g.negPrecision);
+							}
+						});
+				EUI.form.NumberField.superclass.addEvents.call(this);
+			},
+
+			sysValidater : function() {
+				var g = this;
+				var parent = EUI.form.NumberField.superclass.sysValidater
+						.call(this);
+				if (!parent) {
+					return false;
+				} else {
+					var value = EUI.form.NumberField.superclass.getValue
+							.call(this);
+					if (value) {
+						if (!$.isNumeric(value)) {
+							g.invalidText = g.notNumberText;
+							g.afterValid(false);
+							return false;
+						}
+					}
+					if (!this.checkValue()) {
+						g.afterValid(false);
+						return false;
+					}
+				}
+				return true;
+			},
+			checkValue : function() {
+				var g = this;
+				var value = g.getValue();
+				if (!value) {
+					value = 0;
+				}
+				var text = g.title ? g.title : "此项";
+				if (value < g.minValue) {
+					g.invalidText = String.format(g.minValueText, text,
+							g.minValue);
+					return false;
+				}
+				if (value > g.maxValue) {
+					g.invalidText = String.format(g.maxValueText, text,
+							g.maxValue);
+					return false;
+				}
+				return true;
+			},
+			getValue : function() {
+				var value = EUI.form.NumberField.superclass.getValue.call(this);
+				if (value)
+					return parseFloat(value);
+				else {
+					return 0;
+				}
+			},
+			setValue : function(value) {
+				if (value || value === 0) {
+					var str = value + "";
+					var len = str.indexOf(".");
+					var precisonLen = 0;
+					if (len != -1) {
+						precisonLen = str.length - len - 1;
+					}
+					if (this.fullPrecision || precisonLen > this.precision) {
+						value = parseFloat(value).toFixed(this.precision);
+					} else {
+						value = parseFloat(value);
+					}
+					EUI.form.NumberField.superclass.setValue.call(this, value);
+				}
+			}
+		});﻿EUI.TextArea = function () {
+    return new EUI.form.TextArea(arguments[0]);
+};
+
+EUI.form.TextArea = EUI.extend(EUI.form.TextField, {
+    width: 160,
+    height: 60,
+    autoHeight: false,
+    initComponent: function () {
+        EUI.form.TextArea.superclass.initComponent.call(this);
+    },
+    getType: function () {
+        return 'TextArea';
+    },
+
+    initField: function () {
+        var g = this;
+        var textarea = $("<textarea></textarea>");
+        textarea.addClass("ux-field-textarea");
+        g.dom.field = textarea;
+        var div = $("<div class='ux-field-element'></div>");
+        div.append(g.dom.field);
+        g.dom.fieldwrap = div;
+        g.dom.append(div).append("<div class='ux-clear'> </div>");
+        g.setWidth(g.width);
+        g.setHeight(g.height);
+        g.initDisplayText();
+    },
+    loadData: function () {
+        EUI.form.TextArea.superclass.loadData.call(this, arguments[0]);
+        if (this.autoHeight) {
+            var h = this.dom.field[0].scrollHeight - parseFloat(this.dom.field.css("borderTopWidth")) - parseFloat(this.dom.field.css("borderBottomWidth"));
+            if (h > this.height) {
+                this.dom.height(h + 4);
+                this.dom.field.height(h);
+            }
+        }
+    }
+});﻿EUI.IconField = function() {
+	return new EUI.form.IconField(arguments[0]);
+};
+
+EUI.form.IconField = EUI.extend(EUI.form.TextField, {
+			iconCss : null,
+			onClick : null,
+			baseTrigger : "ux-iconfield-basetrigger",
+			baseClear : "ux-iconfield-baseclear",
+			canClear : false,
+			clearCss : "ux-iconfield-clearbtn",
+			clearIcon : "ux-iconfield-icon",
+			placeholder : null,
+			afterClear : null,
+
+			initComponent : function() {
+				EUI.form.IconField.superclass.initComponent.call(this);
+			},
+			getType : function() {
+				return 'IconField';
+			},
+			initField : function() {
+				EUI.form.IconField.superclass.initField.call(this);
+				if (this.placeholder) {
+					this.dom.field.attr("placeholder", this.placeholder);
+				}
+				if (!this.editable) {
+					this.dom.field.attr("readonly", true);
+					this.dom.field.addClass("ux-hand");
+				}
+				this.initIcon();
+				if (this.readonly) {
+					this.setReadOnly(true);
+				}
+			},
+			initIcon : function() {
+				var g = this;
+				var triggerbtn = $("<span class='" + this.baseTrigger + " "
+						+ this.iconCss + "'></span>");
+				var clearbtn = $("<span class='" + this.baseClear + "'></span>");
+				if (g.canClear) {
+					g.dom.field.after(clearbtn);
+					g.clearBtn = clearbtn;
+				}
+				g.dom.field.after(triggerbtn);
+				if (g.readonly) {
+					triggerbtn.hide();
+					clearbtn.hide();
+				}
+			},
+			addEvents : function() {
+				var g = this;
+				if (this.onClick) {
+					if(this.readonly){
+						return;
+					}
+					g.dom.field.bind("click", function() {
+								g.onClick && g.onClick.call(g);
+							});
+					$(".ux-iconfield-clearbtn").live("click", function() {
+								g.dom.field.val("");
+								$(this).removeClass("ux-iconfield-icon");
+								$(this).removeClass("ux-iconfield-clearbtn");
+								g.afterClear && g.afterClear.call(g);
+							});
+				}
+			},
+			setWidth : function() {
+				var width = parseInt(arguments[0]);
+				if (width) {
+					if (typeof arguments[0] == "string"
+							&& arguments[0].indexOf("%") > -1) {
+						width /= 100;
+						width *= this.dom.parent().width();
+						if (this.dom.label) {
+							if (!this.labelWidth) {
+								if (width * 7 / 23 < 40) {
+									this.setLabelWidth(40);
+									width -= 40;
+								}
+								if (width * 7 / 23 > 70) {
+									this.setLabelWidth(70);
+									width -= 70;
+								} else {
+									this.setLabelWidth(width * 7 / 23);
+									width -= (width * 7 / 23);
+								}
+							} else {
+								this.setLabelWidth(this.labelWidth);
+								width -= this.labelWidth;
+							}
+						}
+						width -= 10;
+					}
+					width -= 22;
+					this.dom.field.width(width);
+					this.width = arguments[0];
+				}
+			}
+		});

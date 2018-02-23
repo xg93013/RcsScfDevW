@@ -1,0 +1,55 @@
+package com.rcsit.scf.bsp.handler;
+
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.rcsit.scf.bsp.constant.ServerConstant;
+import com.rcsit.scf.bsp.model.avf.AvfFinancingRelConfigure;
+import com.rcsit.scf.bsp.utils.HttpClientUtil;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by hmily on 2017/5/27.
+ */
+public class AvfFinancingRelConfigureHandler {
+
+    public List<AvfFinancingRelConfigure> findRelBySupplyCode(String token){
+        Map<String,String> param = new HashMap<>();
+        param.put("token",token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCINGRELCONFIGURE_SUPPLYCODE, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return JSONObject.parseObject(jsonObject.getString("data"),new TypeReference<List<AvfFinancingRelConfigure>>(){});
+    }
+
+    public List<AvfFinancingRelConfigure> findRelByCompanyCodeAndSupplyCode(String token,String companyCode){
+        Map<String,String> param = new HashMap<>();
+        param.put("token",token);
+        param.put("companyCode",companyCode);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCINGRELCONFIGURE_SUPPLYCODE_COMPANYCODE, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return JSONObject.parseObject(jsonObject.getString("data"),new TypeReference<List<AvfFinancingRelConfigure>>(){});
+    }
+
+    public List<AvfFinancingRelConfigure> findRelByCompanyCode(String token){
+        Map<String,String> param = new HashMap<>();
+        param.put("token",token);
+        //param.put("companyCode",companyCode);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCINGRELCONFIGURE_COMPANYCODE, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return JSONObject.parseObject(jsonObject.getString("data"),new TypeReference<List<AvfFinancingRelConfigure>>(){});
+    }
+
+    public List<AvfFinancingRelConfigure> findFinByCompanyCode(String token){
+        Map<String,String> param = new HashMap<>();
+        param.put("token",token);
+        String result = HttpClientUtil.httpKvPost(ServerConstant.URL_AVF_FINANCINGRELCONFIGURE_FIN_COMPANYCODE, param);
+        JSONObject jsonObject = JSONObject.parseObject(result);
+        HttpClientUtil.isOk(jsonObject);
+        return JSONObject.parseObject(jsonObject.getString("data"),new TypeReference<List<AvfFinancingRelConfigure>>(){});
+    }
+}

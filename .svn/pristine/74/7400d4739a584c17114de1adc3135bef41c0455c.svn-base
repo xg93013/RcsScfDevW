@@ -1,0 +1,210 @@
+var messageDemo = new MessageDemo();//创建一个提示对象
+function MessageDemo() {
+	//删除的提示框
+	this.messageBox = function(func) {
+		if(typeof(func) != 'function') {
+			return false;
+		}
+		var message = EUI.MessageBox({
+			border: true,
+			title: "提示框", //消息提示框的标题
+			showClose: true, // 右上角关闭按钮是否显示
+			msg: "确定要删除吗?", //提示框中的提示信息
+			buttons: [{ //按钮组
+				title: "确定",
+				selected: true,
+				handler: function() {
+					message.remove();
+					func(); //需要删除设置的操作
+				}
+			}, {
+				title: "取消",
+				handler: function() {
+					message.remove();
+				}
+			}]
+		});
+	};
+	//操作成功的提示
+	this.messageSuccess = function(msg) {
+		EUI.ProcessStatus({
+			width: 260, //宽度
+			height: 65, //高度
+			msg: msg, //状态提示框框中的提示信息
+			success: true, //状态是否成功
+			showTime: 50 //显示提示时间
+		});
+	};
+	//操作失败的提示
+	this.messageError = function(msg) {
+		EUI.ProcessStatus({
+			msg: msg,
+			success: false,
+			showTime: 6
+		});
+	};
+
+}
+
+(function($)  
+{  
+    $.extend({  
+        /** 
+         * 数字千分位格式化 
+         * @public 
+         * @param mixed mVal 数值 
+         * @param int iAccuracy 小数位精度(iAccuracy不传就为整数) 
+         * @return string 
+         */  
+        formatMoney:function(mVal, iAccuracy){  
+            var fTmp = 0.00;//临时变量  
+            var iFra = 0;//小数部分  
+            var iInt = 0;//整数部分  
+            var aBuf = new Array(); //输出缓存  
+            var bPositive = true; //保存正负值标记(true:正数)  
+            /** 
+             * 输出定长字符串，不够补0 
+             * <li>闭包函数</li> 
+             * @param int iVal 值 
+             * @param int iLen 输出的长度 
+             */  
+            function funZero(iVal, iLen){  
+                var sTmp = iVal.toString();  
+                var sBuf = new Array();  
+                for(var i=0,iLoop=iLen-sTmp.length; i<iLoop; i++)  
+                    sBuf.push('0');  
+                sBuf.push(sTmp);  
+                return sBuf.join('');  
+            };  
+  
+            if (typeof(iAccuracy) === 'undefined')
+            {
+            	iAccuracy = 0; 
+            }
+                 
+            bPositive = (mVal >= 0);//取出正负号  
+            fTmp = (isNaN(fTmp = parseFloat(mVal))) ? 0 : Math.abs(fTmp);//强制转换为绝对值数浮点  
+            //所有内容用正数规则处理  
+            iInt = parseInt(fTmp); //分离整数部分  
+            iFra = parseInt((fTmp - iInt) * Math.pow(10,iAccuracy) + 0.5); //分离小数部分(四舍五入)  
+  
+            do{  
+                aBuf.unshift(funZero(iInt % 1000, 3));  
+            }while((iInt = parseInt(iInt/1000)));  
+            aBuf[0] = parseInt(aBuf[0]).toString();//最高段区去掉前导0  
+            return ((bPositive)?'':'-') + aBuf.join(',') + ((0 === iAccuracy)? '' : '.'+funZero(iFra, iAccuracy));  
+        },  
+        /** 
+         * 将千分位格式的数字字符串转换为浮点数 
+         * @public 
+         * @param string sVal 数值字符串 
+         * @return float 
+         */  
+        unformatMoney:function(sVal){  
+            var fTmp = parseFloat(sVal.replace(/,/g, ''));  
+            return (isNaN(fTmp) ? 0 : fTmp);  
+        },  
+    });  
+})(jQuery);
+
+(function($) {
+    $.extend({
+        myTime: {
+            /**
+			 * <script>
+             document.write($.myTime.DateToUnix('2016-04-12 10:49:59')+'<br>');
+             document.write($.myTime.UnixToDate(1460429399));
+             </script>
+             * 当前时间戳
+             * @return <int>    unix时间戳(秒)
+             */
+            CurTime: function(){
+                return Date.parse(new Date())/1000;
+            },
+            /**
+             * 日期 转换为 Unix时间戳
+             * @param <string> 2014-01-01 20:20:20 日期格式
+             * @return <int>    unix时间戳(秒)
+             */
+            DateToUnix: function(string) {
+                var f = string.split(' ', 2);
+                var d = (f[0] ? f[0] : '').split('-', 3);
+                var t = (f[1] ? f[1] : '').split(':', 3);
+                return (new Date(
+                        parseInt(d[0], 10) || null,
+                        (parseInt(d[1], 10) || 1) - 1,
+                        parseInt(d[2], 10) || null,
+                        parseInt(t[0], 10) || null,
+                        parseInt(t[1], 10) || null,
+                        parseInt(t[2], 10) || null
+                    )).getTime() / 1000;
+            },
+            /**
+             * 时间戳转换日期
+             * @param <int> unixTime  待时间戳(秒)
+             * @param <bool> isFull  返回完整时间(Y-m-d 或者 Y-m-d H:i:s)
+             * @param <int> timeZone  时区
+             */
+            UnixToDate: function(unixTime, isFull, timeZone) {
+                if (typeof (timeZone) == 'number')
+                {
+                    unixTime = parseInt(unixTime) + parseInt(timeZone) * 60 * 60;
+                }
+                var time = new Date(unixTime);
+                var ymdhis = "";
+                ymdhis += time.getUTCFullYear() + "-";
+                if(String(parseInt(time.getUTCMonth()+1)).length == 1){
+                    ymdhis += '0'+(time.getUTCMonth()+1) + "-";
+                }else{
+                    ymdhis += (time.getUTCMonth()+1) + "-";
+                }
+                if(String(parseInt(time.getUTCDate())).length == 1){
+                    ymdhis += '0'+time.getUTCDate();
+                }else{
+                    ymdhis += time.getUTCDate();
+                }
+
+                if (isFull === true)
+                {
+                    ymdhis += " " + time.getUTCHours() + ":";
+                    ymdhis += time.getUTCMinutes() + ":";
+                    ymdhis += time.getUTCSeconds();
+                }
+                return ymdhis;
+            }
+        }
+    });
+})(jQuery);
+//标准日期转化成yyyy-mm-dd hh:mm:ss
+function GetDateT(d,format)
+{
+    format = format || '-- -- --';
+    if( d == 'Invalid Date' || d == null || d== undefined){
+        return format;
+    }
+    var s;
+    s = d.getFullYear() + "-";             //取年份
+    if(String(parseInt(d.getMonth()+1)).length == 1){
+        s = s +'0'+ (d.getMonth() + 1) + "-";
+    }else{
+        s = s + (d.getMonth() + 1) + "-";
+    }
+    if(String(parseInt(d.getDate()+1)).length == 1){
+        s = s +'0'+ (d.getDate() + 1);
+    }else{
+        s = s + (d.getDate() + 1);
+    }
+    //s += d.getDate() + " ";         //取日期
+    //s += d.getHours() + ":";       //取小时
+    //s += d.getMinutes() + ":";    //取分
+    //s += d.getSeconds();         //取秒
+
+    return(s);
+
+}
+//清除*
+function clearFloat() {
+    $('.ux-field-label span').css('float', 'none');
+    $('.ux-field-label .ux-field-must').remove();
+}
+

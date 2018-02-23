@@ -1,0 +1,17 @@
+//通知单确认
+$("#agree_sheet").live("click", function () {
+    var id = $(this).attr('data');
+    initWin();
+    EUI.Store({
+		url: _ctxPath + "/avf/notice/noticeConfirm.json?id="+id,
+		type : "get",
+		success: function (msg) {
+            $('#overlay,#loadingTip').css('display', 'block');
+            Countdown();//倒计时
+		},
+		failure: function (msg) {
+            // messageDemo.messageError(msg.msg);
+			showWin(msg.msg);
+		}
+	});
+});

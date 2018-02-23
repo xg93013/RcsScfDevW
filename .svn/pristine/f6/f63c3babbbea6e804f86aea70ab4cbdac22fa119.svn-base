@@ -1,0 +1,84 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+	
+		<link rel="stylesheet" href="/static/avf/css/heart_commpany.css" />
+		<link rel="stylesheet" href="/static/avf/css/commom_heart.css" />
+		<link rel="stylesheet" href="/static/avf/css/update_eui.css" />
+		
+		<!--xg addjs-->
+		<script type="text/javascript" src="/static/base/js/public.js" ></script>
+		<script type="text/javascript" src="/static/base/js/jquerysession.js" ></script>
+		<script type="text/javascript" src="/static/avf/js/add_finance.js" ></script>
+		<script type="text/javascript">
+			EUI.onReady(function() {
+				var addFinance1 = new EUI.AddFinance1({
+                    renderTo : "rzInvoice1",
+                    renderTo1 : "comboSupplier",
+                    renderTo2 : "rzInvoice2",
+                });
+                //addFinance1.choiceCheckbox();
+				/*var tabAddFinance2 = new EUI.tabAddFinance2({
+				 renderTo : "rzInvoice2",
+				 //padding: 5,
+				 });
+				 var comboBoxSupplier = new EUI.ComboBoxSupplier({
+				 renderTo : "comboSupplier"
+				 });*/
+			});
+		</script>
+	</head>
+
+	<body>
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li><a href="/avf/invoice/toWaitPage?type=supplier">首页</a></li>
+					<li><a href="/avf/financingDemand/toDemandPage?type=supplier">&nbsp;&gt;&nbsp;申请融资</a></li>
+					<li><a href="#">&nbsp;&gt;&nbsp;新增融资申请</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<div class="container1188">	
+					<div class="mb20" >
+						<div id="comboSupplier"></div>
+					</div>
+					<input id="getCompanyCode" type="hidden">
+					<ul class="ul_list"><li class="li_1">所有应收账款</li><li class="bor_b0">已选应收账款</li></ul><div class="ml20 total_invoice">已选<font id="invoiceNum">0</font>笔应收账款，应收账款总金额<font id="allMoney">0.00</font>元</div>
+					<div class="ul_tab" id="ul_tab_0" data="0">
+						<div class="rz_result">
+							<div id="rzInvoice1"></div>
+						</div>
+					</div>
+					<div class="ul_tab" id="ul_tab_1" data="1">
+						<div class="rz_result">
+							<div id="rzInvoice2"></div>
+						</div>
+					</div>
+					
+					<div class="btn_next">
+						<input type="hidden" id="companyCode">
+						<div class="btn_2 btn_confirm fl" id="confirm_next">确&nbsp;认</div>
+						<div class="btn_1 btn_cancel fl ml20">取消</div>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<%@ include file="/base/footer.jsp"%>
+		<!--footer end-->
+		<!--<button id="login_now">登录</button>-->
+	</body>
+</html> 

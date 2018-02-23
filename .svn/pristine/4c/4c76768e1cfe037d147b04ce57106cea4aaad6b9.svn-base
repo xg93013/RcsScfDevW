@@ -1,0 +1,63 @@
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"
+		 contentType="text/html; charset=UTF-8"%>
+<%@ include file="/base/header.jsp"%>
+<!DOCTYPE html>
+<html>
+	<head>
+		<!--xg addcss-->
+		<link rel="stylesheet" href="../../../../static/avf/css/mainView.css" />
+		<link rel="stylesheet" href="../../../../static/avf/css/supplyMain.css" />
+		
+		<!--xg addjs-->
+		<script type="text/javascript" src="../../../../static/avf/js/common.js" ></script>
+		<script type="text/javascript" src="../../../../static/avf/js/finance_credit.js" ></script>
+		<script>
+			EUI.onReady(function(){
+				new EUI.FinanceCredit({
+					renderTo: "credit_table",
+					cfgId: "creditList"
+				});
+			})
+		</script>
+		<title>融资管理平台</title>
+	</head>
+
+	<body>
+		<!--main content-->
+		<div class="main_content">
+			<!--tab_list-->
+			<div class="container1200">
+				<ul class="tab_list">
+					<li>首页</li>
+					<li><a href="invoice_prepare.html">&nbsp;&gt;&nbsp;准备发票</a></li>
+				</ul>
+			</div>
+			<!--tab_list end-->
+			
+			<div class="container1200 step_content">
+				<div class="rz_nav supply_rz_nav">
+						<a href="/avf/financingApprove/financingApproveListPage" class="tab_01"><div class="on_state" style="display: none;">1.融资审批</div><div class="off_state" style="display: block;"><p><span class="msg_num">1.融资审批<span>1</span></span></p><p class="font13">待处理4项</p></div></a>
+						<a href="/avf/financingLoan/financingLoanListPage" class="tab_02"><div class="on_state" style="display: none;">2.放款补录</div><div class="off_state" style="display: block;"><p><span class="msg_num">2.放款补录<span>1</span></span></p><p class="font13">需确认2项</p></div></a>
+						<a href="confirmSheet.html" class="tab_03_over"><div class="on_state"  style="display: block;">3.收款补录</div><div class="off_state"  style="display: none;"><p><span class="msg_num">3.收款补录<span>1</span></span></p><p class="font13"> 已申请3项 已反馈2项</p></div></a>
+						<a href="BackMoneyView.html" class="tab_04"><div class="on_state">4.融资跟踪</div><div class="off_state"><p><span class="msg_num">4.融资跟踪<span>1</span></span></p><p class="font13">总3项</p></div></a>
+						<!--<a href="#" class="tab_05"><div class="on_state">5.还款</div><div class="off_state"><p><span class="msg_num">5.还款<span>1</span></span></p><p class="font13">待维护2项 已申请3项 已反馈2项</p></div></a>-->
+				</div>
+				
+				<div class="con_title">待补录<span class="font20 org_color">4</span>项</div>
+				
+				<!--收款补录列表-->
+				<div class="rz_result">
+					<div id="credit_table"></div>
+				</div>
+				
+			</div>
+			
+		</div>
+		<!--main content end-->
+		
+		<!--footer-->
+		<%@ include file="/base/footer.jsp"%>
+		<!--footer end-->
+	</body>
+</html>

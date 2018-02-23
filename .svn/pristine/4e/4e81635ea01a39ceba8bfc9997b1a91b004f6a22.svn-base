@@ -1,0 +1,136 @@
+EUI.InvoiceDetail = EUI.extend(EUI.CustomUI, {
+    renderTo: null,
+    height: 'auto',
+    initComponent: function() {
+        var _this = this;
+        _this.initGrid();
+    },
+    initGrid: function() {
+        var _this = this;
+        //console.log(_this.loadData());
+        EUI.GridPanel({
+            //xtype: "GridPanel",
+            width:1160,
+            renderTo: _this.renderTo,
+            padding: 0, //设置表格的内边距
+            exportXls: false,
+            searchConfig: null,
+            showRefresh: false,
+            id: "invoiceDetailTab",
+            //autoLoad: true, //自动加载
+            height: 'auto',
+            gridCfg: {
+                rownumbers: false, //去掉表格序号
+                url:_ctxPath+"/avf/financingDemand/demandList.json",//获取后端数据
+                rowNum: 10,//一页显示几条数据
+                loadonce:false,//true数据一次性加载,每页返回加载每页的数据
+                // shrinkToFit: true,//表格宽度自适应
+                colModel: [{
+                    label: "序号",
+                    name: "id", //列显示的名称
+                    index: "id", //传到服务器端用来排序的列名称
+                    // width: 100,
+                    hidden: true //隐藏不显示这一组
+                }, {
+                    label: "发票代码",
+                    name: "invoiceCode",
+                    index: "invoiceCode",
+                    width: 200,
+
+                }, {
+                    label: "发票号码",
+                    name: "invoiceNo",
+                    index: "invoiceNo",
+                    // width: 109,
+
+                }, {
+                    label: "价税合计",
+                    name: "vatMoney",
+                    index: "vatMoney",
+                    //width: 100,
+                    formatter: function(value, id, rowdata) {
+                        if(flag == 0){
+                            return '￥'+$.formatMoney(rowdata.vatMoney,2);
+                        }else{
+                            return rowdata.vatMoney;
+                        }
+
+                    }
+                }, {
+                    label: "金额",
+                    name: "taxFreeSum",
+                    index: "taxFreeSum",
+                    // width: 100,
+                    formatter: function(value, id, rowdata) {
+                        if(flag == 0){
+                            return '￥'+$.formatMoney(rowdata.taxFreeSum,2);
+                        }else{
+                            return rowdata.taxFreeSum;
+                        }
+                    }
+
+                }, {
+                    label: "税额",
+                    name: "vatSum",
+                    index: "vatSum",
+                    //width: 100,
+                    formatter: function(value, id, rowdata) {
+                        if(flag == 0){
+                            return '￥'+$.formatMoney(rowdata.vatSum,2);
+                        }else{
+                            return rowdata.vatSum;
+                        }
+
+                    }
+
+                }, {
+                    label: "所属公司",
+                    name: "companyShortName",
+                    index: "companyShortName",
+                    //width: 120,
+
+                },
+                    //    {
+                    //     label: "公司代码",
+                    //     name: "companyCode",
+                    //     index: "companyCode",
+                    //    // width: 100,
+                    //
+                    // },
+                    {
+                        label: "开票日期",
+                        name: "invoDate",
+                        index: "invoDate",
+                        // width: 124,
+                        formatter: function(value, id, rowdata) {
+                            if(flag == 0){
+                                return GetDateT(new Date(rowdata.invoDate));
+                            }else{
+                                return rowdata.invoDate;
+                            }
+                        }
+
+                    }, {
+                        label: "批次号 ",
+                        name: "batchNumber",
+                        index: "batchNumber",
+                        // width: 100,
+                    }, {
+                        label: "账款到期日",
+                        name: "maturityDate",
+                        index: "maturityDate",
+                        width: 200,
+                        formatter: function(value, id, rowdata) {
+                            if(flag == 0){
+                                return GetDateT(new Date(rowdata.maturityDate));
+                            }else{
+                                return rowdata.maturityDate;
+                            }
+
+                        }
+                    }]
+                //data: _this.loadData(),
+            }
+        });
+    },
+});

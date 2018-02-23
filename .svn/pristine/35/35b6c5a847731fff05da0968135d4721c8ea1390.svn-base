@@ -1,0 +1,611 @@
+
+$(function() {
+	EUI.ComboBoxBank = EUI.extend(EUI.CustomUI, {
+		renderTo: "",
+		initComponent: function() {
+			var g = this;
+			EUI.Container({
+				renderTo: this.renderTo,
+				height: 65,
+				width: 338,
+				style: {
+					'padding': '0px',
+				},
+				items: [{
+					xtype: "ComboBox",
+					field: ["id"], // 表示哪些值需要提交到后端
+					name: "name",
+					id: "one",
+					//title: "一年级",
+					displayText: "请选择融资银行",
+					height: 35,
+					width: 300,
+					//listHeight:45,
+					async: true, // 是否异步，true为异步
+					store: {
+						url: "",
+					}, // 从后台获取数据的地址
+					editable: false, // 是否可编辑
+					loadMask: true, // 是否有遮罩层
+					showSearch: false, // 是否展开下拉框
+					searchText: "name", // 下拉框的内容
+					canClear: true,
+					// value : "一年级一班",
+					data: [{
+						id: "class1",
+						name: "一年级一班"
+					}, {
+						id: "class2",
+						name: "一年级二班"
+					}, {
+						id: "class3",
+						name: "一年级三班"
+					}],
+					deforeLoad: function(store) {},
+					afterLoad: function(data) {
+						console.log(data);
+					}
+				}],
+			});
+		},
+		getTextValue: function() {
+			var twoGrade = EUI.getCmp("one").getSubmitValue();
+			console.log(twoGrade);
+			// EUI.getCmp("ta").setValue(JSON.stringify(twoGrade).replace("/\{|\}/ig",""));
+			var text1 = "选中项文本:" + twoGrade.name;
+			var text2 = "选中项的值:" + twoGrade.id;
+			EUI.getCmp("ta").setValue(text1 + ";" + text2);
+		}
+	});
+
+	EUI.NumberFinanceMoney = EUI.extend(EUI.CustomUI, {
+		renderTo: "",
+		height: 65,
+		width: 390,
+		initComponent: function() {
+			var g = this;
+			EUI.Container({
+				renderTo: this.renderTo,
+				items: [{
+					xtype: "NumberField",
+					title: "意向融资金额",
+					labelWidth: 141,
+					width: 373,
+					height: 35,
+					//displayText: "请输入数字,只能输入正数",
+					//hintText: "默认值为1.298，只能输入正数（四舍五入）",
+					allowBlank: false,
+					//value: 1.298,
+					maxValue: Number.MAX_VALUE, // 允许输入的最大值
+					minValue: Number.NEGATIVE_INFINITY, // 允许输入的最小值
+					precision: 2, // 输入的数据精确到多少位，默认值0表示精确到个位
+					allowNegative: false, // 设置是否可以输入负数，false为不能输入负数
+					allowChar: "0123456789", // 允许输入的数字
+					fullPrecision: true
+					// 若填写的数据没有达到需要精确的位数，则用0自动补齐
+				}]
+			});
+			g.addEvent();
+			clearFloat();
+		},
+		addEvent: function() {
+			$("#integer input").on("input propertychange", function() {
+				var vl = EUI.getCmp("integer").getValue();
+				EUI.ProcessStatus({ // ProcessStatus不用写renderTo是因为每个页面只允许有一个状态提示框
+					msg: "数字输入框的值：" + vl
+				});
+				/*
+				 * EUI.Container({ //测试事件里面使用其他插件时的样式 html:"这是一段测试文本",
+				 * renderTo:"renderto", height:50 });
+				 */
+			});
+		}
+	});
+	EUI.NumberFinanceTerm = EUI.extend(EUI.CustomUI, {
+		renderTo: "",
+		height: 65,
+		width: 390,
+		initComponent: function() {
+			var g = this;
+			EUI.Container({
+				renderTo: this.renderTo,
+				items: [{
+					xtype: "TextField",
+					title: "意向融资期限",
+					width: 373,
+					height: 35,
+					allowBlank: false, //是否可以为空
+					name: "name",
+					labelWidth: 141,
+					style: {
+						'text-align': 'right',
+						'float': 'none'
+					},
+					//id: "name"
+				}]
+			});
+			clearFloat();
+
+		},
+
+	});
+	EUI.NumberBankRate = EUI.extend(EUI.CustomUI, {
+		renderTo: "",
+		height: 65,
+		width: 1180,
+		initComponent: function() {
+			var g = this;
+			EUI.Container({
+				renderTo: this.renderTo,
+				items: [{
+					xtype: "TextField",
+					title: "意向融资备注",
+					labelWidth: 141,
+					width: 958,
+					style: {
+						'text-align': 'right',
+						'float': 'none'
+					},
+					height: 35,
+					name: "name",
+					//id: "name"
+				}]
+			});
+			clearFloat();
+
+		}
+	});
+	//初始化供应商-显示融资申请的表格
+	EUI.AddFinance2 = EUI.extend(EUI.CustomUI, {
+		renderTo: "",
+		renderToBank: null,
+		renderToMoney: null,
+		renderToTerm: null,
+		renderToRate: null,
+		height: 'auto',
+		width: 1180,
+		comboBoxBank: null,
+		numberFinanceMoney: null,
+		numberFinanceTerm: null,
+		numberBankRate: null,
+		initComponent: function() {
+			var _this = this;
+
+			_this.comboBoxBank = new EUI.ComboBoxBank({
+				renderTo: _this.renderToBank,
+			});
+			_this.numberFinanceMoney = new EUI.NumberFinanceMoney({
+				renderTo: _this.renderToMoney,
+			});
+			_this.numberFinanceTerm = new EUI.NumberFinanceTerm({
+				renderTo: _this.renderToTerm,
+			});
+			_this.numberBankRate = new EUI.NumberBankRate({
+				renderTo: _this.renderToRate,
+			});
+			_this.initGrid();
+			_this.addEvents();
+		},
+		initGrid:function(){
+			var g = this;
+			EUI.GridPanel({
+				renderTo: g.renderTo,
+				style: {
+					'padding': '0px',
+					'overflow': 'inherit',
+				},
+
+				height: 'auto',
+				width: 1180,
+				padding: 0, //设置表格的内边距
+				exportXls: false,
+				searchConfig: null,
+				showRefresh: false,
+				id: "tabShowFinance",
+				//autoLoad: true, //自动加载
+				//height: 400,
+				gridCfg: {
+					rownumbers: false, //去掉表格序号
+					loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+					shrinkToFit: false, //表格宽度不自适应
+					//height:200,
+					colModel: [{
+						label: "序号",
+						name: "id", //列显示的名称
+						index: "id", //传到服务器端用来排序的列名称
+						width: 50,
+
+						//hidden: true //隐藏不显示这一组
+					}, {
+						label: "发票代码",
+						name: "name",
+						index: "name",
+						width: 99,
+
+					}, {
+						label: "发票号码",
+						name: "name1",
+						index: "name1",
+						width: 99,
+
+					}, {
+						label: "价格合计",
+						name: "name2",
+						index: "name2",
+						width: 100,
+					}, {
+						label: "金额",
+						name: "name3",
+						index: "name4",
+						width: 100,
+
+					}, {
+						label: "税额",
+						name: "name4",
+						index: "name4",
+						width: 100,
+
+					}, {
+						label: "所属公司",
+						name: "name5",
+						index: "name5",
+						width: 100,
+
+					}, {
+						label: "公司代码",
+						name: "name6",
+						index: "name6",
+						width: 105,
+
+					}, {
+						label: "开票日期",
+						name: "name7",
+						index: "name7",
+						width: 112,
+
+					}, {
+						label: "批次号 ",
+						name: "name8",
+						index: "name8",
+						width: 110,
+
+					}, {
+						label: "发票录入日期",
+						name: "name9",
+						index: "name9",
+						width: 148,
+					}],
+					data: g.loadData(),
+				}
+
+			});
+		},
+		loadData:function(){
+			var invoice = [{
+				id: 1,
+				name: '234567689',
+				name1: '23456748',
+				name2: '7678900',
+				name3: '7678900',
+				name4: '7678900',
+				name5: '',
+				name6: '',
+				name7: '',
+				name8: '',
+				name9: '2017-09-08 18:45',
+				name10: '2017-09-08 18:45'
+			}];
+			return invoice;
+		},
+		afterRender: function() {
+			console.log('渲染完成');
+		},
+		addEvents: function() {
+			var _self = this;
+			/*$('.del_table').live('click', function() {
+				var _this = $(this);
+				messageDemo.messageBox(function(){
+					var tableRowId = _this.attr('id');
+				    var gridPanel = EUI.getCmp("tablePrepareInvoice");
+				    gridPanel.deleteRow(tableRowId);
+				});
+			});*/
+			/*$('.btn_defend').live('click', function() {
+				window.location.href = 'extend_account.html';
+			});*/
+		},
+	});
+
+});
+
+function clearFloat() {
+	$('.ux-field-label span').css('float', 'none');
+	$('.ux-field-label .ux-field-must').remove();
+}
+
+//新增融资申请下拉列表
+EUI.ComboBoxSupplier = EUI.extend(EUI.CustomUI, {
+	renderTo: "",
+	initComponent: function() {
+		var g = this;
+		EUI.Container({
+			renderTo: this.renderTo,
+			height: 65,
+			width: 350,
+			listHeight: 44,
+			style: {
+				'padding': '0px',
+			},
+			items: [{
+				xtype: "ComboBox",
+				field: ["id"], // 表示哪些值需要提交到后端
+				name: "name",
+				id: "one",
+				//title: "一年级",
+				displayText: "请选择所属核心企业（供货方）",
+				height: 35,
+				width: 316,
+				//listHeight:45,
+				async: true, // 是否异步，true为异步
+				store: {
+					url: "",
+				}, // 从后台获取数据的地址
+				editable: false, // 是否可编辑
+				loadMask: true, // 是否有遮罩层
+				showSearch: false, // 是否展开下拉框
+				searchText: "name", // 下拉框的内容
+				canClear: true,
+				// value : "一年级一班",
+				data: [{
+					id: "class1",
+					name: "一年级一班"
+				}, {
+					id: "class2",
+					name: "一年级二班"
+				}, {
+					id: "class3",
+					name: "一年级三班"
+				}],
+				deforeLoad: function(store) {},
+				afterLoad: function(data) {
+					console.log(data);
+				}
+			}],
+		});
+	},
+	getTextValue: function() {
+		var twoGrade = EUI.getCmp("one").getSubmitValue();
+		console.log(twoGrade);
+		// EUI.getCmp("ta").setValue(JSON.stringify(twoGrade).replace("/\{|\}/ig",""));
+		var text1 = "选中项文本:" + twoGrade.name;
+		var text2 = "选中项的值:" + twoGrade.id;
+		EUI.getCmp("ta").setValue(text1 + ";" + text2);
+	}
+});
+
+EUI.AddFinance1 = EUI.extend(EUI.CustomUI, {
+	renderTo: null,
+	renderTo1: null,
+	comboBoxSupplier: null,
+	data: null,
+	height: 'auto',
+	initComponent: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		_this.comboBoxSupplier = new EUI.ComboBoxSupplier({
+			renderTo: this.renderTo1,
+		});
+		_this.initGrid();
+		_this.addEvents();
+		_this.choiceCheckbox();
+	},
+	initHtml: function(data) {
+		var html = "";
+		for(var i = 0; i < data.length; i++) {
+
+		}
+		$("body").append(html);
+	},
+	initGrid: function() {
+		var _this = this;
+		console.log(_this.loadData());
+		EUI.GridPanel({
+			//xtype: "GridPanel",
+			loadonce: true, //true数据一次性加载,每页返回加载每页的数据
+			//url:_ctxPath+"/dfdf/dd";//获取后端数据
+			//rowNum:10,//一页显示几条数据
+			renderTo: _this.renderTo,
+			padding: 0, //设置表格的内边距
+			padding: 0, //设置表格的内边距
+			exportXls: false,
+			searchConfig: null,
+			showRefresh: false,
+			id: "tabAddFinance",
+			//autoLoad: true, //自动加载
+			height: 'auto',
+			gridCfg: {
+				rownumbers: false, //去掉表格序号
+				loadonce: true, //一次性加载数据，和autoLoad都为true时，则可以一次加载所有数据
+				shrinkToFit: false, //表格宽度不自适应
+				//height:200,
+				colModel: [{
+					label: '<div class="check check_all back_check_1"></div>',
+					name: "checkbox", //列显示的名称
+					index: "checkbox", //传到服务器端用来排序的列名称
+					width: 30,
+					formatter: function(value, id, rowdata) {
+						return '<div class="check check_every back_check_1"></div>';
+					}
+
+					//hidden: true //隐藏不显示这一组
+				}, {
+					label: "序号",
+					name: "id", //列显示的名称
+					index: "id", //传到服务器端用来排序的列名称
+					width: 50,
+
+					//hidden: true //隐藏不显示这一组
+				}, {
+					label: "发票代码",
+					name: "name",
+					index: "name",
+					width: 99,
+
+				}, {
+					label: "发票号码",
+					name: "name1",
+					index: "name1",
+					width: 99,
+
+				}, {
+					label: "价格合计",
+					name: "name2",
+					index: "name2",
+					width: 100,
+				}, {
+					label: "金额",
+					name: "name3",
+					index: "name4",
+					width: 100,
+
+				}, {
+					label: "税额",
+					name: "name4",
+					index: "name4",
+					width: 100,
+
+				}, {
+					label: "所属公司",
+					name: "name5",
+					index: "name5",
+					width: 100,
+
+				}, {
+					label: "公司代码",
+					name: "name6",
+					index: "name6",
+					width: 100,
+
+				}, {
+					label: "开票日期",
+					name: "name7",
+					index: "name7",
+					width: 100,
+
+				}, {
+					label: "批次号 ",
+					name: "name8",
+					index: "name8",
+					width: 100,
+
+				}, {
+					label: "发票录入日期",
+					name: "name9",
+					index: "name9",
+					width: 148,
+				}],
+				data: _this.loadData(),
+			}
+		});
+	},
+	choiceCheckbox: function() {
+		$('.check').click(function() {
+			var _this = $(this);
+			if($(this).hasClass('check_all')) {
+				if(_this.hasClass('back_check_1')) {
+					_this.removeClass(' back_check_1').addClass(' back_check_2');
+					$('.check_every').removeClass('back_check_1').addClass('back_check_2');
+				} else {
+					_this.removeClass('back_check_2').addClass('back_check_1');
+					$('.check_every').removeClass('back_check_2').addClass('back_check_1');
+
+				}
+			} else {
+				var count = $('.check_every').length;
+				var count1 = 0;
+				var count2 = 0;
+				if(_this.hasClass('back_check_1')) {
+					_this.removeClass('back_check_1').addClass('back_check_2');
+				} else {
+					_this.removeClass('back_check_2').addClass('back_check_1');
+				}
+				count1 = $('.check_every.back_check_1').length;
+				count2 = $('.check_every.back_check_2').length;
+				if(count == count2) {
+					$('.check_all').removeClass('back_check_1').addClass('back_check_2');
+				} else {
+					$('.check_all').removeClass('back_check_2').addClass('back_check_1');
+				}
+
+			}
+
+		});
+	},
+	addEvents: function() {
+		$(".tab").bind("click", function() {
+
+		});
+		this.addTabEvents();
+	},
+	addTabEvents: function() {
+
+	},
+	loadData: function() {
+		var invoice = [{
+			id: 1,
+			name: '234567689',
+			name1: '23456748',
+			name2: '7678900',
+			name3: '7678900',
+			name4: '7678900',
+			name5: '',
+			name6: '',
+			name7: '',
+			name8: '',
+			name9: '2017-09-08 18:45'
+		}, {
+			id: 2,
+			name: '234567689',
+			name1: '23456748',
+			name2: '7678900',
+			name3: '7678900',
+			name4: '7678900',
+			name5: '',
+			name6: '',
+			name7: '',
+			name8: '',
+			name9: '2017-09-08 18:45'
+		}];
+		return invoice;
+		/*var g = this;
+		EUI.Stor({
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		})*/
+	},
+	showCount: function(data) {
+		$(".todo-count").text(data.count);
+	},
+	checkValid: function() {
+
+		return true;
+	},
+	getData: function() {
+		var data = {};
+		//TODO:
+		return data;
+	},
+	submit: function() {
+		if(!this.checkValid()) {
+			return;
+		}
+		EUI.Stor({
+			url: "",
+			params: this.getData(),
+			success: function(response) {
+				g.showCount(response.data);
+			}
+		});
+	}
+});
